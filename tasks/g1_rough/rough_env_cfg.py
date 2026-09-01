@@ -2,15 +2,19 @@
 
 Step 1: 注册链路（已通过）
 Step 2: 换地形 —— 平地 → ROUGH_TERRAINS_CFG（已通过）
-Step 3: 修 base_height —— 世界系绝对高度 → 相对地形高度（当前）
-后续: 高度扫描观测 → 奖励调整，每加一项跑一次冒烟测试。
+Step 3: 修 base_height —— 世界系绝对高度 → 相对地形高度（已通过）
+Step 4: 感知空间 —— 把 height_scanner 接进 policy / critic 观测（当前）
+后续: 奖励调整，每加一项跑一次冒烟测试。
 """
 
 import copy
 
+from isaaclab.managers import ObservationTermCfg as ObsTerm
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.terrains.config.rough import ROUGH_TERRAINS_CFG
 from isaaclab.utils import configclass
+from isaaclab.utils.noise import AdditiveUniformNoiseCfg as Unoise
+from unitree_rl_lab.tasks.locomotion import mdp
 
 from . import mdp_ext
 from ..velocity_env_cfg import RobotEnvCfg
@@ -60,6 +64,49 @@ class G1RoughEnvCfg(RobotEnvCfg):
         # docstring 自己写着 "only supported for flat terrains"。
         self.terminations.base_height.func = mdp_ext.root_height_below_minimum_adaptive
         self.terminations.base_height.params = {"minimum_height": 0.2, "sensor_cfg": scan}
+
+        # ─────────────── Step 4: 感知空间 —— 接入地形高度图 ───────────────
+        # 实践 2 的核心要求。基线的 policy 观测里只有本体感受（角速度、重力
+        # 投影、速度指令、关节位置/速度、上一步动作），机器人对脚下地形一无所知，
+        # 只能靠"踩到了才知道"被动响应。粗糙地形上这远远不够。
+        #
+        # 传感器早就在场景里（第 68 行 height_scanner），基线却把观测项注释掉了
+        # （velocity_env_cfg.py:225-228，而且只写在 CriticCfg 里）。这里启用它。
+        #
+        # 为什么可以直接给实例赋值而不用重新定义 ObsGroup 子类：
+        # ObservationManager._prepare_terms 用的是 group_cfg.__dict__.items()
+        #（observation_manager.py:523），遍历的是**实例字典**而非 dataclass 字段，
+        # 所以动态赋值会被正常收集。且 Python 3.7+ 的 __dict__ 保持插入顺序，
+        # 新项自动排在末尾 —— 这一点对 sim2sim 是硬约束：MuJoCo 侧按同样顺序
+        # 手工拼观测向量，顺序错了不会报错，只会让策略读到错位的数值。
+        #
+        # 用官方 mdp.height_scan 而不是自己写：它的语义是
+        #   sensor.data.pos_w[:, 2] - ray_hits_w[..., 2] - offset
+        # 一度怀疑 pos_w 含 RayCasterCfg.offset 的 20 m（那样值会是 ~19.9，
+        # 被 clip 压成常数 5.0，187 维观测全废且不报错）。实测否定了这个猜测：
+        #   pos_w_z - torso_z = 0.0，height_scan 值域 [0.325, 0.536]，
+        #   clip 后仍有 390 个不同值。
+        # 原因是 cfg.offset 只加在射线起点 ray_starts（ray_caster.py:224，
+        # 目的是从高处往下打避免被机器人自身挡住），不进 data.pos_w；
+        # RayCaster 内部那个同名 self._offset 是 mesh→刚体的相对变换，纯属撞名。
+        #
+        # clip 在这里是双保险：既压住异常值域，又能把射线打空时的 inf
+        # 截成 5.0（torch.clip(inf, -1, 5) == 5.0），不会污染网络输入。
+        # 奖励和终止项没有 clip 这层保护，所以 Step 3 才必须自己做 inf 掩码。
+        scan_obs = ObsTerm(
+            func=mdp.height_scan,
+            params={"sensor_cfg": scan},
+            clip=(-1.0, 5.0),
+            noise=Unoise(n_min=-0.1, n_max=0.1),
+        )
+        # policy：加噪。真机高度图来自 LiDAR/深度相机，有测量误差和标定漂移，
+        # ±0.1 m 的均匀噪声迫使策略不去依赖单根射线的精确值。
+        # policy 组 enable_corruption=True，噪声才会真正生效。
+        self.observations.policy.height_scanner = scan_obs
+        # critic：同样接入但不加噪。critic 只在训练时用，是特权网络，
+        # 它的信息集必须 ⊇ policy，否则价值估计比策略还"瞎"，优势函数失真。
+        self.observations.critic.height_scanner = copy.deepcopy(scan_obs)
+        self.observations.critic.height_scanner.noise = None
 
 
 @configclass
