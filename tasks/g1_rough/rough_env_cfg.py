@@ -1,15 +1,18 @@
 """G1 粗糙地形环境配置。
 
 Step 1: 注册链路（已通过）
-Step 2: 换地形 —— 平地 → ROUGH_TERRAINS_CFG（当前）
+Step 2: 换地形 —— 平地 → ROUGH_TERRAINS_CFG（已通过）
+Step 3: 修 base_height —— 世界系绝对高度 → 相对地形高度（当前）
 后续: 高度扫描观测 → 奖励调整，每加一项跑一次冒烟测试。
 """
 
 import copy
 
+from isaaclab.managers import SceneEntityCfg
 from isaaclab.terrains.config.rough import ROUGH_TERRAINS_CFG
 from isaaclab.utils import configclass
 
+from . import mdp_ext
 from ..velocity_env_cfg import RobotEnvCfg
 
 
@@ -18,6 +21,7 @@ class G1RoughEnvCfg(RobotEnvCfg):
     """粗糙地形训练配置。"""
 
     def __post_init__(self):
+        # ───────────────────────── Step 2: 地形 ─────────────────────────
         # deepcopy：ROUGH_TERRAINS_CFG 是模块级全局单例，直接引用后再改它的字段
         # （父类会写 curriculum，play 配置会写 num_rows）会污染同进程内的其他配置。
         terrain_cfg = copy.deepcopy(ROUGH_TERRAINS_CFG)
@@ -31,6 +35,31 @@ class G1RoughEnvCfg(RobotEnvCfg):
         self.scene.terrain.max_init_terrain_level = terrain_cfg.num_rows - 1
 
         super().__post_init__()
+
+        # ──────────────── Step 3: base_height 改用相对地形高度 ────────────────
+        # 基线的两个 height 项都拿根节点世界系 z 和常数比，这在平地上等价于
+        # 离地高度（地面 z≡0），换到粗糙地形就不成立：倒金字塔楼梯和下坡的
+        # 地面本身低于 0，机器人姿态正常却被判摔倒。
+        # 冒烟测试实测 Episode_Termination/base_height = 0.25，误杀掉 1/4 的 episode。
+        #
+        # 放在 super() 之后：父类 __post_init__ 不碰 rewards/terminations
+        #（只改 decimation、sim 参数、传感器周期、terrain curriculum），
+        # 所以这里覆盖是安全的，且顺序上明确表达"在基线之上做修改"。
+        #
+        # 传感器不用新建：基线场景第 68 行已有 height_scanner（1.6×1.0 网格，
+        # 分辨率 0.1 → 17×11=187 根射线，挂 torso_link 上方 20 m 向下打）。
+        # 它此前只被 update_period 初始化过，没有任何 MDP 项在用。
+        scan = SceneEntityCfg("height_scanner")
+
+        # 奖励：官方 base_height_l2 虽然支持 sensor_cfg，但内部 torch.mean 无 inf
+        # 防护，一根射线打空就会让整个环境的奖励变 inf → 梯度 NaN → 静默崩溃。
+        self.rewards.base_height.func = mdp_ext.base_height_l2_safe
+        self.rewards.base_height.params = {"target_height": 0.78, "sensor_cfg": scan}
+
+        # 终止：官方 root_height_below_minimum 连 sensor_cfg 都没有，
+        # docstring 自己写着 "only supported for flat terrains"。
+        self.terminations.base_height.func = mdp_ext.root_height_below_minimum_adaptive
+        self.terminations.base_height.params = {"minimum_height": 0.2, "sensor_cfg": scan}
 
 
 @configclass
