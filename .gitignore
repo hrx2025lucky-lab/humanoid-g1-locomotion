@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# 训练产物
+logs/
+runs/
+outputs/
+*.pt
+*.pth
+*.onnx
+*.ckpt
+events.out.tfevents.*
+wandb/
+
+# 媒体
+*.mp4
+*.webm
+*.mov
+
+# 编辑器 / 系统
+.DS_Store
+*.swp
+*~
+.vscode/
+.idea/
