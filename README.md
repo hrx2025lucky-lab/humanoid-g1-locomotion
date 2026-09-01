@@ -1,20 +1,51 @@
-# G1 Locomotion — Isaac Lab 人形运控实践
+# Humanoid Locomotion — 人形机器人强化学习运动控制
 
-基于 Unitree G1 (29 DoF) 的强化学习运动控制，覆盖 **训练 → 验证 → 跨仿真器部署** 全链路。
+人形机器人运控的训练、验证与跨仿真器部署。每个任务以**零侵入**方式挂进第三方训练框架，
+第三方仓库保持零改动，`git log` 里只有自己写的代码。
+
 仿真栈：Isaac Sim 5.1 / Isaac Lab 2.3.2 / rsl-rl 3.1.2 / MuJoCo 3.12。
+本体：Unitree G1（29 DoF）。
 
 ---
 
-## 内容
+## 路线图
 
-| 目录 | 内容 | 状态 |
+覆盖从环境搭建、MDP 设计、模仿学习到跨仿真器部署的完整技术链路：
+
+| # | 主题 | 技术点 | 状态 |
+|---|---|---|---|
+| 1 | 仿真环境搭建与基础验证 | Isaac Sim / Isaac Lab / MuJoCo 三栈打通 | ✅ |
+| 2 | 粗糙地形行走 | 地形课程、高度扫描感知、奖励与终止项重设计 | 🚧 |
+| 3 | 动作空间与 Sim2Sim 部署 | 动作空间设计、跨仿真器迁移 | ⬜ |
+| 4 | 蹲姿行走策略 | 速度 + 骨盆高度的 MDP 设计 | ⬜ |
+| 5 | 分层强化学习导航 | 高层导航策略 + 底层运控策略 | ⬜ |
+| 6 | 教师–学生蒸馏 | 全身运动跟踪、特权信息蒸馏 | ⬜ |
+| 7 | 人体动作重定向 | 人体动捕 → G1 关节空间 | ⬜ |
+| 8 | AMP 拟人走跑 | 对抗式动作先验 | ⬜ |
+| 9 | 轨迹追踪训练 | 运动跟踪关键函数实现 | ⬜ |
+| 10 | 人–物交互运动跟踪 | HOI | ⬜ |
+| 11 | 跑酷策略与 Sim2Sim 验证 | 高动态动作 + 部署验证 | ⬜ |
+
+## 已实现
+
+| 目录 | 内容 | 对应主题 |
 |---|---|---|
-| `g1_rough/` | 粗糙地形行走：地形课程 + 高度扫描感知 + 奖励重设计 | 进行中 |
-| `sim2sim/` | Isaac Lab → MuJoCo 策略迁移，六项对齐验证 | 已完成 |
+| [`tasks/g1_rough/`](tasks/g1_rough) | 粗糙地形行走：地形课程 + 高度扫描感知 + 奖励重设计 | 2 |
+| [`sim2sim/`](sim2sim) | Isaac Lab → MuJoCo 策略迁移，六项对齐验证 | 1 |
+
+## 仓库结构
+
+```
+tasks/       每个训练任务一个独立包，通过 symlink 挂进训练框架的任务树
+sim2sim/     跨仿真器部署验证：把训练好的策略搬到另一个物理引擎独立复现
+```
+
+新增任务时在 `tasks/` 下建目录，配一个 `install_overlay.sh` 完成挂载即可，
+不需要改动本仓库以外的任何文件。
 
 ---
 
-## `g1_rough/` — 粗糙地形行走
+## `tasks/g1_rough/` — 粗糙地形行走
 
 在六种程序化生成地形（金字塔楼梯 / 倒金字塔楼梯 / 随机方块 / 随机起伏 / 上坡 / 下坡）
 上训练速度跟踪策略，10 级难度课程 × 20 列样本。
@@ -24,7 +55,7 @@
 策略配置不写进 `unitree_rl_lab` 的目录树，而是作为独立包通过 symlink 挂载：
 
 ```
-g1_rough/  ──symlink──▶  unitree_rl_lab/.../g1/29dof/rough
+tasks/g1_rough/  ──symlink──▶  unitree_rl_lab/.../g1/29dof/rough
 ```
 
 Isaac Lab 的 `import_packages()` 会递归 import 所有**目录包**，因此挂载后任务自动注册，
@@ -37,7 +68,7 @@ Isaac Lab 的 `import_packages()` 会递归 import 所有**目录包**，因此�
 安装：
 
 ```bash
-./g1_rough/install_overlay.sh
+./tasks/g1_rough/install_overlay.sh
 # 验证（纯 Python，无需启动 Isaac Sim）
 python scripts/list_envs.py | grep Rough
 ```
@@ -87,6 +118,15 @@ def root_height_below_minimum(...):
 | ⑥ | 控制频率 | `decimation × sim_dt = policy_dt` |
 
 这六项没有任何一项会报错——错了只是行为不对，所以只能靠逐项核对配置文件来保证。
+
+路径通过环境变量定位，无硬编码：
+
+```bash
+export ROXAN_ROOT=/path/to/workspace      # 仓库与资产的公共根
+export RL_LAB_RUN_DIR=/path/to/run        # 训练输出目录（含 exported/policy.pt）
+export MUJOCO_SCENE=/path/to/scene.xml    # MuJoCo 场景
+python sim2sim/sim2sim_flat.py
+```
 
 ---
 
