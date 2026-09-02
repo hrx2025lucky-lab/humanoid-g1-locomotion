@@ -46,6 +46,10 @@ run_p5() {
   echo "──── 实践5 / $key ────  task=$task  envs=$NUM_ENVS  iters=$ITERS  seed=$SEED"
   echo "     日志: $log"
   cd "$HW5"
+  # 关键：Python 环境里装的 unitree_rl_lab 指向主仓库 repos/unitree_rl_lab，
+  # 而实践 5 用的是自己那份 fork（多了 navigation 任务与 training_logger）。
+  # 不重装包，改用 PYTHONPATH 让 hw5 的源码目录优先，避免影响实践 2。
+  PYTHONPATH="$HW5/source/unitree_rl_lab:${PYTHONPATH:-}" \
   "$ISAACLAB_PY" scripts/rsl_rl/train.py \
     --task "$task" --num_envs "$NUM_ENVS" --max_iterations "$ITERS" \
     --seed "$SEED" --headless > "$log" 2>&1

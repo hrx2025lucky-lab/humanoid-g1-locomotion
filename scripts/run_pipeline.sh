@@ -95,6 +95,34 @@ step_p4() {
   done
 }
 
+# ── 实践 5：分层导航两组对照 ─────────────────────────────────────────────
+step_p5() {
+  log "════ 实践 5 分层导航对照（每组 $ITERS iter）════"
+  for key in baseline random_arena; do
+    wait_for_gpu
+    log "开始 实践5/$key"
+    if ITERS="$ITERS" "$HERE/run_p5p6_compare.sh" p5 "$key" >> "$PIPELOG" 2>&1; then
+      log "✅ 实践5/$key 完成"
+    else
+      log "❌ 实践5/$key 失败，见 ~/p5_${key}.log"
+    fi
+  done
+}
+
+# ── 实践 6：两种蒸馏方式对照 ─────────────────────────────────────────────
+step_p6() {
+  log "════ 实践 6 蒸馏对照（每组 $ITERS iter）════"
+  for key in action_matching kl_matching; do
+    wait_for_gpu
+    log "开始 实践6/$key"
+    if ITERS="$ITERS" "$HERE/run_p5p6_compare.sh" p6 "$key" >> "$PIPELOG" 2>&1; then
+      log "✅ 实践6/$key 完成"
+    else
+      log "❌ 实践6/$key 失败，见 ~/p6_${key}.log"
+    fi
+  done
+}
+
 log "════════════════════════════════════════════"
 log "流水线启动  ITERS=$ITERS  日志=$PIPELOG"
 log "════════════════════════════════════════════"
@@ -106,6 +134,10 @@ fi
 
 (( DO_FINISH )) && step_finish_p2
 step_p4
+step_p5
+step_p6
 
 log "════ 全部完成 ════"
-log "实践4 对比曲线: tensorboard --logdir /home/limx/workspace/Roxan_warmup/shenlan_hw/hw4_mjlab/logs"
+log "实践4 曲线: tensorboard --logdir /home/limx/workspace/Roxan_warmup/shenlan_hw/hw4_mjlab/logs"
+log "实践5 曲线: tensorboard --logdir /home/limx/workspace/Roxan_warmup/shenlan_hw/hw5_navigation/unitree_rl_lab/logs/rsl_rl"
+log "实践6 曲线: tensorboard --logdir /home/limx/workspace/Roxan_warmup/shenlan_hw/hw6_distill/logs"
