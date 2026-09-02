@@ -23,6 +23,8 @@ EXP="unitree_g1_29dof_velocity_rough"
 # 不是 course_code/sim2sim/——后者是实践 11 的 Instinct Parkour 包
 # （里面是 parkour_actor.onnx / stand_depth_encoder.onnx）。
 S2S="/home/limx/workspace/Roxan_warmup/shenlan_hw/hw2_sim2sim/sim2sim"
+MJ_BUILD_LIB="/home/limx/workspace/Roxan_warmup/repos/mujoco_src/build/lib"
+PLUGIN_REPO="/home/limx/workspace/Roxan_warmup/repos/mujoco_ray_caster"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 latest_run() {
@@ -108,21 +110,25 @@ step_sim2sim() {
   done
 
   echo "-- raycaster 插件（height scanner 的硬依赖）--"
+  # 注意：set -euo pipefail 下 find 未命中会让整个脚本在此中断，
+  # 后面的检查项全部跳过。用 || true 兜住。
   local so
-  so=$(find /home/limx/workspace/Roxan_warmup/repos/mujoco_src/build/lib \
-            /home/limx/workspace/Roxan_warmup/repos/mujoco_ray_caster/lib \
-            -name "libsensor_raycaster.so" 2>/dev/null | head -1)
+  so=$(find "$MJ_BUILD_LIB" "$PLUGIN_REPO/lib" \
+            -name "libsensor_raycaster.so" 2>/dev/null | head -1 || true)
   if [[ -n "$so" ]]; then
     echo "  ✅ $so"
-    echo "     → 填入 $S2S/config.py 的 RAYCASTER_PLUGIN_LIBRARY"
   else
-    echo "  ❌ 未编译。构建方式（插件须在 MuJoCo 源码树内编译，版本必须与运行时一致）："
-    echo "     1) git clone --branch 3.12.0 google-deepmind/mujoco  → repos/mujoco_src"
-    echo "     2) 把 repos/mujoco_ray_caster 放到 mujoco_src/plugin/ 下"
-    echo "     3) 在 mujoco_src/CMakeLists.txt 追加 add_subdirectory(plugin/mujoco_ray_caster)"
-    echo "     4) cmake -B build && cmake --build build -j"
+    echo "  ❌ 未编译。跑 ./scripts/build_raycaster_plugin.sh 即可"
+    echo "     （它会处理 MuJoCo 3.12 的三处上游改动 + gcc 的 -Werror 误报）"
     echo "     报错特征: plugin mujoco.sensor.ray_caster not found"
     ok=0
+  fi
+
+  echo "-- config.py 是否已指向真实插件 --"
+  if [[ -n "$so" ]] && grep -q "$so" "$S2S/config.py" 2>/dev/null; then
+    echo "  ✅ RAYCASTER_PLUGIN_LIBRARY 已配置"
+  else
+    echo "  ⚠️  需把 RAYCASTER_PLUGIN_LIBRARY 设为上面的 .so 路径"
   fi
 
   echo "-- 训练产物 --"
