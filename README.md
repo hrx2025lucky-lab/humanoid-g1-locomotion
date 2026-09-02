@@ -53,6 +53,7 @@ docs/        调参与问题定位记录
 | [`docs/实践3_HoST增量动作空间.md`](docs/实践3_HoST增量动作空间.md) | 增量动作空间 `q*=q_cur+αa` 与残差式 `q*=q_def+αa` 的本质差别，以及为什么接触状态频繁切换的任务必须用前者；含 MuJoCo 浮动基座状态读取与 POMDP 历史观测的实现要点 |
 | [`docs/实践4_双指令MDP设计.md`](docs/实践4_双指令MDP设计.md) | 速度+骨盆高度双指令 MDP：为什么"按指令做某事"必须打通采样→观测→奖励三段闭环；高度用世界系而速度用机体系的坐标系对照；非对称 Actor-Critic 中什么算特权信息 |
 | [`docs/实践5_分层强化学习导航.md`](docs/实践5_分层强化学习导航.md) | 分层 RL 的两层接口设计：低层 TorchScript 的输入契约为什么只能 deepcopy 不能手写；裁剪前后动作在三处的一致性；`apply_actions` 为何必须在 decimation 判断之外 |
+| [`docs/实践6_教师学生蒸馏.md`](docs/实践6_教师学生蒸馏.md) | 教师-学生蒸馏：forward KL 的 mass-covering 与 reverse KL 的 mode-seeking 之别；为何冻结的 Teacher 仍需 `no_grad`；蒸馏系数退火对抗的信息不对称 |
 
 ---
 
