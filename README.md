@@ -15,23 +15,26 @@
 | # | 主题 | 技术点 | 状态 |
 |---|---|---|---|
 | 1 | 仿真环境搭建与基础验证 | Isaac Sim / Isaac Lab / MuJoCo 三栈打通 | ✅ |
-| 2 | 粗糙地形行走 | 地形课程、高度扫描感知、奖励与终止项重设计 | 🚧 |
-| 3 | 动作空间与 Sim2Sim 部署 | 动作空间设计、跨仿真器迁移 | ⬜ |
-| 4 | 蹲姿行走策略 | 速度 + 骨盆高度的 MDP 设计 | ⬜ |
-| 5 | 分层强化学习导航 | 高层导航策略 + 底层运控策略 | ⬜ |
-| 6 | 教师–学生蒸馏 | 全身运动跟踪、特权信息蒸馏 | ⬜ |
+| 2 | 粗糙地形行走 | 地形课程、高度扫描感知、奖励与终止项重设计 | ✅ |
+| 3 | 动作空间与 Sim2Sim 部署 | 动作空间设计、跨仿真器迁移 | ✅ |
+| 4 | 蹲姿行走策略 | 速度 + 骨盆高度的 MDP 设计 | 🚧 |
+| 5 | 分层强化学习导航 | 高层导航策略 + 底层运控策略 | 🚧 |
+| 6 | 教师–学生蒸馏 | 全身运动跟踪、特权信息蒸馏 | 🚧 |
 | 7 | 人体动作重定向 | 人体动捕 → G1 关节空间 | ⬜ |
 | 8 | AMP 拟人走跑 | 对抗式动作先验 | ⬜ |
-| 9 | 轨迹追踪训练 | 运动跟踪关键函数实现 | ⬜ |
+| 9 | 轨迹追踪训练 | 运动跟踪关键函数实现 | 🚧 |
 | 10 | 人–物交互运动跟踪 | HOI | ⬜ |
 | 11 | 跑酷策略与 Sim2Sim 验证 | 高动态动作 + 部署验证 | ⬜ |
+
+图例：✅ 完成　🚧 代码完成、训练/验收进行中　⬜ 未开始
 
 ## 已实现
 
 | 目录 | 内容 | 对应主题 |
 |---|---|---|
 | [`tasks/g1_rough/`](tasks/g1_rough) | 粗糙地形行走：地形课程 + 高度扫描感知 + 奖励重设计 | 2 |
-| [`sim2sim/`](sim2sim) | Isaac Lab → MuJoCo 策略迁移，六项对齐验证 | 1 |
+| [`sim2sim/`](sim2sim) | 跨仿真器部署与验证：量化评估、断言测试 | 1 · 2 · 3 |
+| [`scripts/`](scripts) | 插件编译、训练收尾、消融对照、流水线编排 | 2 · 4 · 5 · 6 |
 
 ## 仓库结构
 
@@ -50,7 +53,7 @@ docs/        调参与问题定位记录
 | 文档 | 内容 |
 |---|---|
 | [`docs/00_实践总览.md`](docs/00_实践总览.md) | **先看这个** — 11 个实践各自在解决什么问题、如何串联成一条从"会走"到"会跳舞"的技术链，以及贯穿全课程的 5 条通用经验 |
-| [`docs/实践2_实验报告.md`](docs/实践2_实验报告.md) | 粗糙地形行走的完整实验报告：地形/感知/判据/奖励四层改动、height_scan 的扫描区域与 187 维构成、观测 480→1415 维、调参前后对比 |
+| [`docs/实践2_实验报告.md`](docs/实践2_实验报告.md) | 粗糙地形行走的完整实验报告：地形/感知/判据/奖励四层改动、height_scan 的扫描区域与 187 维构成、观测 480→1415 维、10000 iter 最终结果、sim2sim 部署验证，以及"`--resume` 会丢失环境侧课程进度"这一发现 |
 | [`docs/实践2_奖励调参记录.md`](docs/实践2_奖励调参记录.md) | 第一次训练学出"原地踏步"策略的完整定位过程：如何从 `Episode_Reward/*` 分项拆解识别局部最优，以及 10 项权重为什么这么改 |
 | [`docs/实践3_HoST增量动作空间.md`](docs/实践3_HoST增量动作空间.md) | 增量动作空间 `q*=q_cur+αa` 与残差式 `q*=q_def+αa` 的本质差别，以及为什么接触状态频繁切换的任务必须用前者；含 MuJoCo 浮动基座状态读取与 POMDP 历史观测的实现要点 |
 | [`docs/实践4_双指令MDP设计.md`](docs/实践4_双指令MDP设计.md) | 速度+骨盆高度双指令 MDP：为什么"按指令做某事"必须打通采样→观测→奖励三段闭环；高度用世界系而速度用机体系的坐标系对照；非对称 Actor-Critic 中什么算特权信息 |
@@ -142,6 +145,54 @@ export RL_LAB_RUN_DIR=/path/to/run        # 训练输出目录（含 exported/po
 export MUJOCO_SCENE=/path/to/scene.xml    # MuJoCo 场景
 python sim2sim/sim2sim_flat.py
 ```
+
+### 验证工具
+
+部署侧的正确性不能靠看录像 —— 实践 2 已经栽过一次：`episode_length` 与
+`reward` 全线上涨，录像里机器人却在原地踏步。所以这里的每个工具都输出**数字**。
+
+| 脚本 | 作用 |
+|---|---|
+| [`eval_rough_headless.py`](sim2sim/eval_rough_headless.py) | 粗糙地形策略的无头量化评估：观测契约核对 + 机体系指令跟踪 + 姿态存活判定。以课程 checkpoint 为对照基准 |
+| [`verify_practice3.py`](sim2sim/verify_practice3.py) | HoST 增量动作空间的 30 项断言。零动作检查一次证明"是增量式"且"不是残差式"；含 `mj_data.qpos` 视图/副本陷阱 |
+| [`sim2sim_flat.py`](sim2sim/sim2sim_flat.py) | Isaac Lab → MuJoCo 的独立复现 |
+
+```bash
+python sim2sim/eval_rough_headless.py --run-dir /path/to/run
+python sim2sim/verify_practice3.py --full
+```
+
+### raycaster 插件
+
+粗糙地形的 `height_scanner` 依赖第三方 MuJoCo 插件，必须在 MuJoCo 源码树内编译，
+且版本与 Python 运行时严格一致。插件与 MuJoCo 3.12 之间有三处 API 断裂
+（`mjtnum.h` 改名、`mjthread.h` 与旧线程 API 删除、`mjPLUGIN_LIB_INIT` 变带参宏），
+全流程固化在幂等脚本里：
+
+```bash
+./scripts/build_raycaster_plugin.sh          # 打补丁 → 编译 → 加载验证
+./scripts/build_raycaster_plugin.sh verify   # 只验证已有产物
+```
+
+---
+
+## `scripts/` — 训练编排
+
+单个 4096 环境的训练会把 3090 打到 85~97% 利用率，并行只会互相拖慢，
+因此所有训练串行排队：
+
+```bash
+./scripts/run_pipeline.sh        # 等 GPU 空闲 → 实践2收尾 → 实践4 → 实践5 → 实践6
+ITERS=3000 ./scripts/run_pipeline.sh
+```
+
+| 脚本 | 作用 |
+|---|---|
+| `run_pipeline.sh` | 轮询 GPU 占用，按顺序编排下面这些步骤 |
+| `finish_p2.sh` | 实践 2 收尾：指标提取（自动串联续训分段）/ 录像 / sim2sim 前置检查 |
+| `record_play.sh` | 录满一整个 episode 并导出 `policy.pt` / `policy.onnx` |
+| `run_p4_ablation.sh` | 实践 4 三组消融（单因素对照） |
+| `run_p5p6_compare.sh` | 实践 5 / 6 的对照训练 |
 
 ---
 
