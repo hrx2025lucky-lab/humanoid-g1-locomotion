@@ -31,25 +31,99 @@ latest_run() {
   ls -1d "$REPO/logs/rsl_rl/$EXP"/*/ 2>/dev/null | sort | tail -1
 }
 
+all_runs() {
+  ls -1d "$REPO/logs/rsl_rl/$EXP"/*/ 2>/dev/null | sort
+}
+
 step_metrics() {
   local run; run="$(latest_run)"
   [[ -n "$run" ]] || { echo "找不到训练 run" >&2; return 1; }
   echo "════ ① 提取最终训练指标 ════"
-  echo "run: $run"
   echo
-  "$PY" - "$run" <<'PYEOF'
+  # 传入全部 run，由 Python 侧按 step 区间自动串联续训链
+  # shellcheck disable=SC2046
+  "$PY" - $(all_runs) <<'PYEOF'
 import glob, sys
 from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
 
-run = sys.argv[1]
-files = sorted(glob.glob(run + "events.out.tfevents.*"))
-if not files:
-    sys.exit("该 run 下没有 tfevents 文件")
-ea = EventAccumulator(files[0], size_guidance={"scalars": 0}); ea.Reload()
-tags = ea.Tags()["scalars"]
+# ── 续训会新建 run 目录，指标被切成多段 ────────────────────────────────
+# rsl_rl 的 resume 保留全局迭代计数（tot_iter = start_iter + max_iterations，
+# start_iter 从 checkpoint 的 "iter" 字段读出），所以各段的 step 区间首尾相接：
+#   run A: step 0    → 9000
+#   run B: step 9000 → 10000
+# 于是可以只按 step 区间就把链条串起来，不需要解析日志或 git 元数据。
+#
+# 但同一 experiment 下还躺着若干早期废弃 run（改奖励权重之前的），
+# 它们的 step 也从 0 开始，不能一股脑合并。做法是从最新 run 往回走：
+# 取当前段的起始 step，找出「包含该 step 且不是自己」的那个 run 作为前驱，
+# 沿链回溯到 step 0 为止。没有前驱就停，天然把废弃 run 排除在外。
+
+def load(run):
+    files = sorted(glob.glob(run.rstrip("/") + "/events.out.tfevents.*"))
+    if not files:
+        return None
+    ea = EventAccumulator(files[0], size_guidance={"scalars": 0})
+    ea.Reload()
+    if not ea.Tags()["scalars"]:
+        return None
+    return ea
+
+runs = {}
+ordered = [r.rstrip("/") for r in sys.argv[1:]]   # bash 侧已按目录名排序
+for r in ordered:
+    ea = load(r)
+    if ea is None:
+        continue
+    probe = ea.Tags()["scalars"][0]
+    steps = [x.step for x in ea.Scalars(probe)]
+    runs[r] = (ea, min(steps), max(steps))
+
+if not runs:
+    sys.exit("没有可用的 tfevents")
+
+# 从最新的 run（目录名是时间戳，字典序 = 时间序）出发向前回溯。
+# 注意锚点不能按「最大 step」选：早期废弃 run 也跑到过 9999，
+# 会盖过当前只跑到 9100 的续训段。
+chain = [r for r in ordered if r in runs][-1:]
+if not chain:
+    sys.exit("没有可用的 tfevents")
+while True:
+    lo = runs[chain[0]][1]
+    if lo <= 1:
+        break
+    # 前驱必须同时满足：step 区间接得上，且时间上早于当前段。
+    # 只按 step 区间会误命中早期废弃 run（它们也从 0 跑到过 9999）。
+    prev = [r for r, (_, a, b) in runs.items()
+            if r not in chain and a < lo <= b + 1 and r < chain[0]]
+    if not prev:
+        break
+    chain.insert(0, max(prev))
+
+print("── 训练链 ──")
+for r in chain:
+    _, lo, hi = runs[r]
+    print(f"  {r.split('/')[-1]}   step {lo} → {hi}")
+if len(chain) > 1:
+    print("  （续训分段，以下指标已按 step 合并）")
+print()
+
+# 合并：后段覆盖前段的重叠 step
+def series(tag):
+    merged = {}
+    for r in chain:
+        ea = runs[r][0]
+        if tag in ea.Tags()["scalars"]:
+            for x in ea.Scalars(tag):
+                merged[x.step] = x.value
+    return sorted(merged.items())
+
+all_tags = set()
+for r in chain:
+    all_tags |= set(runs[r][0].Tags()["scalars"])
 
 def last(tag):
-    return ea.Scalars(tag)[-1].value if tag in tags else None
+    s = series(tag)
+    return s[-1][1] if s else None
 
 print("── 报告用关键指标（最终值）──")
 key = [
@@ -72,9 +146,11 @@ for tag, label in key:
 
 print("\n── 全部奖励项分解（按值排序，报告 §6 用）──")
 rows = []
-for t in tags:
+for t in sorted(all_tags):
     if t.startswith("Episode_Reward/"):
-        rows.append((t.replace("Episode_Reward/", ""), ea.Scalars(t)[-1].value))
+        v = last(t)
+        if v is not None:
+            rows.append((t.replace("Episode_Reward/", ""), v))
 pos = sum(v for _, v in rows if v >= 0)
 neg = sum(v for _, v in rows if v < 0)
 for n, v in sorted(rows, key=lambda x: -x[1]):
@@ -82,10 +158,14 @@ for n, v in sorted(rows, key=lambda x: -x[1]):
 print(f"\n  正奖励合计 {pos:+.4f}   惩罚合计 {neg:+.4f}   净 {pos+neg:+.4f}")
 
 print("\n── terrain_levels 演化（报告用曲线数据）──")
-if "Curriculum/terrain_levels" in tags:
-    s = ea.Scalars("Curriculum/terrain_levels")
-    for it in [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 9999]:
-        vals = [x.value for x in s if x.step <= it]
+s = series("Curriculum/terrain_levels")
+if s:
+    last_step = s[-1][0]
+    marks = [m for m in range(0, 10001, 1000) if m <= last_step]
+    if last_step not in marks:
+        marks.append(last_step)
+    for it in marks:
+        vals = [v for st, v in s if st <= it]
         if vals:
             print(f"  @{it:<6}{vals[-1]:.4f}")
 PYEOF
