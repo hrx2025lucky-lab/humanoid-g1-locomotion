@@ -116,6 +116,46 @@ def base_height_l2_safe(
     return torch.square(asset.data.root_pos_w[:, 2] - ground - target_height)
 
 
+def foot_clearance_reward_rough(
+    env: ManagerBasedRLEnv,
+    asset_cfg: SceneEntityCfg,
+    sensor_cfg: SceneEntityCfg,
+    target_height: float,
+    std: float,
+    tanh_mult: float,
+) -> torch.Tensor:
+    """摆动腿抬脚高度奖励，高度基准从世界系原点换成脚下地形。
+
+    与官方 ``foot_clearance_reward`` 的唯一区别是脚高减去了地面高度：
+
+        官方: (foot_z_world      - target_height)^2
+        这里: (foot_z_world - ground - target_height)^2
+
+    为什么必须改：官方版把 ``target_height=0.1`` 当成**世界系绝对高度**。
+    平地上地面 z≡0，"脚在世界里 0.1 m"和"脚离地 0.1 m"是同一件事。
+    换到 ROUGH_TERRAINS_CFG 后，站在 0.3 m 高的台阶上时，脚正确地抬到
+    离地 0.1 m（世界系 0.4 m），公式却算出 (0.4-0.1)^2 = 0.09 的误差并施加
+    惩罚；反过来在低洼处脚拖地反而"达标"。地形越高，正确动作被罚得越狠。
+
+    ``ground`` 复用 :func:`ground_height_from_scan`，射线全打空时回退 0.0，
+    此时行为退化成官方版本，不会比原来更差。
+
+    注意保留原式中的 ``tanh(tanh_mult * ||foot_vel_xy||)`` 乘子：它的作用是
+    只对**正在摆动**（有水平速度）的脚施加抬高要求，支撑腿不受约束。
+    副作用是双脚静止时该项恒为 exp(0)=1 拿满分——这正是本次调参要靠
+    ``feet_air_time`` 和更大的 ``track`` 权重去对冲的"站着不动"激励来源之一。
+    """
+    asset: RigidObject = env.scene[asset_cfg.name]
+    sensor: RayCaster = env.scene[sensor_cfg.name]
+    ground = ground_height_from_scan(sensor).unsqueeze(1)
+
+    foot_z = asset.data.body_pos_w[:, asset_cfg.body_ids, 2] - ground
+    foot_z_target_error = torch.square(foot_z - target_height)
+    foot_velocity_tanh = torch.tanh(tanh_mult * torch.norm(asset.data.body_lin_vel_w[:, asset_cfg.body_ids, :2], dim=2))
+    reward = foot_z_target_error * foot_velocity_tanh
+    return torch.exp(-torch.sum(reward, dim=1) / std)
+
+
 def root_height_below_minimum_adaptive(
     env: ManagerBasedRLEnv,
     minimum_height: float,

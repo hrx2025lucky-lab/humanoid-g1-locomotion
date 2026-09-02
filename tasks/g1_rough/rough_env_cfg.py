@@ -10,6 +10,7 @@ Step 4: 感知空间 —— 把 height_scanner 接进 policy / critic 观测（�
 import copy
 
 from isaaclab.managers import ObservationTermCfg as ObsTerm
+from isaaclab.managers import RewardTermCfg as RewTerm
 from isaaclab.managers import SceneEntityCfg
 from isaaclab.terrains.config.rough import ROUGH_TERRAINS_CFG
 from isaaclab.utils import configclass
@@ -108,6 +109,93 @@ class G1RoughEnvCfg(RobotEnvCfg):
         self.observations.critic.height_scanner = copy.deepcopy(scan_obs)
         self.observations.critic.height_scanner.noise = None
 
+        # ─────────────── Step 5: 奖励权重 —— 打破"站着不动"局部最优 ───────────────
+        # 背景：第一次训练（10000 iter）跑出来的策略学会了原地踏步，11.98 s 净位移
+        # < 0.3 m。terrain_levels 从 4.92 一路掉到 0（升级判据是净位移 > 4 m，
+        # 它做不到就逐级降档），error_vel_xy 反而从 0.135 涨到 0.615。
+        #
+        # 根因不是训练不足——track_lin_vel_xy 在 4000 iter 就到 0.600，
+        # 之后 6000 iter 只挪到 0.628。是奖励函数把"站着"设成了最优解。
+        # 实测各项终值（Episode_Reward，单位=每秒平均）：
+        #
+        #     feet_clearance   +0.8228   ← 脚不动时 tanh(0)=0 → exp(0)=1，白拿满分
+        #     track_lin_vel_xy +0.6355   ← 上限只有 1.0
+        #     gait             +0.5014   ← 上限 0.5，双脚长期着地也能拿约 0.55/1.0
+        #     alive            +0.1448   ← 上限 0.15，拿了 96.5%
+        #     action_rate      -0.4281   ← 这些惩罚**只在动起来时才产生**
+        #     joint_vel        -0.1334
+        #
+        # 站着不动能白拿 feet_clearance+gait+alive ≈ 1.47，且几乎不付惩罚；
+        # 走起来 track 最多再多拿 0.36，却要付出全部动作类惩罚。走路是亏本买卖。
+        #
+        # 修法来自课程《第二章作业讲解》p5/p6 的推荐权重表。核心思路不是
+        # "把奖励调大"，而是**改变边际激励比**：让"多走一点"带来的收益
+        # 明显盖过它引发的动作惩罚。
+
+        # 速度跟踪 1.0→3.0、0.5→2.0。这是本次改动里最关键的一项。
+        # track_lin_vel_xy_yaw_frame_exp = exp(-‖v_cmd - v_actual‖²/std²)，值域 (0,1]，
+        # 权重就是它的上限。原来跟踪从 60% 提到 100% 只多拿 0.4，现在多拿 1.2，
+        # 足以覆盖 action_rate 等惩罚的增量。官方参考曲线该项终值 2.2626/3.0。
+        self.rewards.track_lin_vel_xy.weight = 3.0
+        self.rewards.track_ang_vel_z.weight = 2.0
+
+        # 关掉固定步态相位奖励。feet_gait 按 0.8 s 周期、相位阈值 0.55 要求
+        # 每条腿"该支撑时着地、该摆动时腾空"。粗糙地形上机器人需要临时改步频、
+        # 延长某只脚支撑时间来救失衡，固定相位是束缚。
+        # 附带好处：双脚静止时它仍能拿约 0.55，是"站着不动"的收益来源之一。
+        # 用 weight=0 而不是删除——RewardManager 不会跳过零权重项，
+        # TensorBoard 里仍可见（恒为 0），方便和上一次训练对照。
+        self.rewards.gait.weight = 0.0
+
+        # 新增：抬脚腾空奖励。这是整个奖励函数里**唯一直接给"迈步"发钱**的项。
+        # feet_air_time_positive_biped 只在 single_stance（恰好一只脚着地）时计分，
+        # 双脚同时着地（站立）和双脚同时腾空（跳跃）都是 0，天然反"原地不动"。
+        # 内部还有 reward *= (‖cmd_xy‖ > 0.1)，零指令时不发钱，不会鼓励空踏步。
+        # threshold=0.5 给腾空时间封顶，避免策略靠"单腿长时间悬空"刷分。
+        self.rewards.feet_air_time = RewTerm(
+            func=mdp.feet_air_time_positive_biped,
+            weight=0.5,
+            params={
+                "command_name": "base_velocity",
+                "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*ankle_roll.*"),
+                "threshold": 0.5,
+            },
+        )
+
+        # 新增：低速指令下的静止约束。stand_still 返回 Σ|q - q_default|
+        # 并乘以 (‖cmd‖ < 0.1) 的掩码，配负权重即"指令接近零时偏离默认站姿要挨罚"。
+        # 作用不是让它更爱站着，恰恰相反：它把"停"定义成一个**具体姿态**，
+        # 让"走"和"停"成为两个可区分的模式。缺了它，策略可以用同一套
+        # 原地小幅摆动应付所有指令——这正是第一次训练的失败形态。
+        self.rewards.stand_still = RewTerm(
+            func=mdp.stand_still,
+            weight=-1.0,
+            params={"command_name": "base_velocity"},
+        )
+
+        # 姿态约束加严。粗糙地形上手臂/腰/腿乱摆会显著抬高重心晃动，
+        # 让 height_scan 的观测和真实落脚点失配。官方表给的是 -0.5/-2.0/-2.0。
+        self.rewards.joint_deviation_arms.weight = -0.5
+        self.rewards.joint_deviation_waists.weight = -2.0
+        self.rewards.joint_deviation_legs.weight = -2.0
+
+        # 机身高度惩罚 -10→-20。Step 3 已把它换成相对地形高度的安全版，
+        # 加倍权重是为了在 track 权重提到 3.0 之后，机器人不会为了跑快而弓身下蹲
+        # ——蹲着重心低、更容易通过速度跟踪拿分，但那不是我们要的步态。
+        self.rewards.base_height.weight = -20.0
+
+        # feet_clearance 换成相对地形高度的版本（详见 mdp_ext 中的推导）。
+        # 官方版 target_height=0.1 是世界系绝对高度，在台阶上会把"正确抬脚"
+        # 判成误差。权重维持 1.0 不变，只修基准。
+        self.rewards.feet_clearance.func = mdp_ext.foot_clearance_reward_rough
+        self.rewards.feet_clearance.params = {
+            "std": 0.05,
+            "tanh_mult": 2.0,
+            "target_height": 0.1,
+            "asset_cfg": SceneEntityCfg("robot", body_names=".*ankle_roll.*"),
+            "sensor_cfg": scan,
+        }
+
 
 @configclass
 class G1RoughPlayEnvCfg(G1RoughEnvCfg):
@@ -127,9 +215,14 @@ class G1RoughPlayEnvCfg(G1RoughEnvCfg):
         self.scene.terrain.terrain_generator.num_cols = 10
         self.scene.terrain.max_init_terrain_level = 4
         self.commands.base_velocity.ranges = self.commands.base_velocity.limit_ranges
-        # 播放相机跟随选中的机器人
+        # 播放相机跟随选中的机器人。
+        # 保留跟随而不是固定机位：跟随才能看清步态细节（抬脚高度、落脚时机）。
+        # 但把机位从 (3,3,2.5) 拉到 (6,6,4)：第一次录像用近机位的教训是
+        # 机器人被锁在画面正中，既看不出净位移、也框不进周围地形，
+        # 只能靠背景台阶的像素偏移倒推它走了多远。拉远后单帧内可同时看到
+        # 机器人和它脚下/前方的地形块，位移和地形难度都能直接读出来。
         self.viewer.origin_type = "asset_root"
         self.viewer.asset_name = "robot"
         self.viewer.env_index = 0
-        self.viewer.eye = (3.0, 3.0, 2.5)
+        self.viewer.eye = (6.0, 6.0, 4.0)
         self.viewer.lookat = (0.0, 0.0, 0.8)
