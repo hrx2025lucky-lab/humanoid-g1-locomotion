@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+# ═══════════════════════════════════════════════════════════════════════════
+# 训练流水线 —— 等 GPU 空闲后按顺序跑下一批训练
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# 为什么需要串行排队：单个 4096 环境的训练会把 3090 打到 85~97% 利用率，
+# 并行跑第二个只会互相拖慢，总时长不降反升（实践 2 期间实测）。
+#
+# 为什么不用 `wait`：训练进程是上一个会话用 nohup 启动的，不是本脚本的子进程，
+# wait 拿不到它。改为轮询「有没有 train.py 在跑」。
+#
+# 用法：
+#   ./run_pipeline.sh                  # 等当前训练结束 → 实践2收尾 → 实践4三组
+#   ./run_pipeline.sh --now            # 不等待，立即开始（GPU 已空闲时用）
+#   ITERS=3000 ./run_pipeline.sh       # 缩短每组迭代数
+#   ./run_pipeline.sh --skip-finish    # 跳过实践2收尾，直接排实践4
+#
+# 全程日志：~/pipeline.log
+# 中断：kill 掉本脚本不会停掉已启动的训练，需另外 kill 对应 PID
+# ═══════════════════════════════════════════════════════════════════════════
+set -uo pipefail
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PIPELOG="$HOME/pipeline.log"
+ITERS="${ITERS:-3000}"
+
+WAIT_FIRST=1
+DO_FINISH=1
+for a in "$@"; do
+  case "$a" in
+    --now)          WAIT_FIRST=0 ;;
+    --skip-finish)  DO_FINISH=0 ;;
+    *) echo "未知参数 $a" >&2; exit 2 ;;
+  esac
+done
+
+log() { echo "[$(date +%H:%M:%S)] $*" | tee -a "$PIPELOG"; }
+
+train_running() {
+  pgrep -f "scripts/rsl_rl/train.py" > /dev/null 2>&1 || \
+  pgrep -f "\.venv/bin/train" > /dev/null 2>&1
+}
+
+wait_for_gpu() {
+  local waited=0
+  while train_running; do
+    if (( waited % 300 == 0 )); then
+      local it
+      it=$(grep -o "Learning iteration [0-9]*/[0-9]*" /tmp/g1_resume.log 2>/dev/null | tail -1)
+      log "训练进行中${it:+（$it）}，已等待 $((waited / 60)) 分钟…"
+    fi
+    sleep 60
+    waited=$((waited + 60))
+  done
+  log "GPU 已空闲"
+  sleep 20   # 给显存释放留出余量
+}
+
+# ── 实践 2 收尾：指标 + 录像 + 导出 policy.pt ────────────────────────────
+step_finish_p2() {
+  log "════ 实践 2 收尾 ════"
+  log "① 提取最终指标"
+  "$HERE/finish_p2.sh" metrics 2>&1 | tee -a "$PIPELOG"
+
+  log "② 录制 play 视频并导出 policy.pt / policy.onnx"
+  if "$HERE/record_play.sh" >> "$PIPELOG" 2>&1; then
+    log "   录像完成"
+  else
+    log "   ⚠️ 录像失败，见 $PIPELOG"
+  fi
+
+  log "③ 用自训策略跑 sim2sim 无头量化评估"
+  local run
+  run=$(ls -1d /home/limx/workspace/Roxan_warmup/repos/unitree_rl_lab/logs/rsl_rl/unitree_g1_29dof_velocity_rough/*/ \
+        2>/dev/null | sort | tail -1)
+  if [[ -f "${run}exported/policy.pt" ]]; then
+    /home/limx/workspace/Roxan_warmup/envs/isaaclab/bin/python \
+      "$HERE/../sim2sim/eval_rough_headless.py" --run-dir "${run%/}" 2>&1 | tee -a "$PIPELOG"
+  else
+    log "   ⚠️ 没有 exported/policy.pt，跳过（录像步骤会生成它）"
+  fi
+}
+
+# ── 实践 4：三组消融 ─────────────────────────────────────────────────────
+step_p4() {
+  log "════ 实践 4 消融实验（每组 $ITERS iter）════"
+  for key in baseline no_height_rew blind_actor; do
+    wait_for_gpu
+    log "开始 实践4/$key"
+    if ITERS="$ITERS" "$HERE/run_p4_ablation.sh" "$key" >> "$PIPELOG" 2>&1; then
+      log "✅ 实践4/$key 完成"
+    else
+      log "❌ 实践4/$key 失败，见 ~/p4_${key}.log"
+    fi
+  done
+}
+
+log "════════════════════════════════════════════"
+log "流水线启动  ITERS=$ITERS  日志=$PIPELOG"
+log "════════════════════════════════════════════"
+
+if (( WAIT_FIRST )); then
+  log "等待当前训练结束…"
+  wait_for_gpu
+fi
+
+(( DO_FINISH )) && step_finish_p2
+step_p4
+
+log "════ 全部完成 ════"
+log "实践4 对比曲线: tensorboard --logdir /home/limx/workspace/Roxan_warmup/shenlan_hw/hw4_mjlab/logs"
