@@ -136,6 +136,23 @@ step_p6() {
   done
 }
 
+# 判断某个 aligned 组是否已经跑到目标迭代数。
+# 依据是 checkpoint：instinct/mjlab 每 save_interval 存一次 model_<iter>.pt，
+# 最大编号达到 ITERS-1 即视为跑完。只看目录存在是不够的 ——
+# 中途被杀的 run 目录也在，那种要重跑。
+p6_aligned_done() {
+  local key="$1"
+  local base="/home/limx/workspace/Roxan_warmup/shenlan_hw/hw6_distill/logs/rsl_rl"
+  local d
+  d=$(ls -1dt "$base/g1_hw6_student_${key}_aligned"/*/ 2>/dev/null | head -1)
+  [[ -n "$d" ]] || return 1
+  local last
+  last=$(ls -1 "$d"model_*.pt 2>/dev/null \
+         | sed 's/.*model_\([0-9]*\)\.pt/\1/' | sort -n | tail -1)
+  [[ -n "$last" ]] || return 1
+  (( last >= ITERS - 1 ))
+}
+
 # ── 实践 6 补充：超参对齐后的严格单因素对照 ──────────────────────────────
 # 首轮两组除蒸馏目标外还差三处超参（lr / entropy_coef / desired_kl），
 # 实测 KL 组全面更优，但那个差距无法归因到蒸馏目标本身。
@@ -144,6 +161,13 @@ step_p6() {
 step_p6_aligned() {
   log "════ 实践 6 超参对齐重跑（每组 $ITERS iter）════"
   for key in action_matching kl_matching; do
+    # 跳过已经跑完的组。流水线可能被重启（改脚本时），
+    # 而上一实例启动的训练仍在跑；不检查的话会把同一组重跑一遍，
+    # 每组 2.5 小时，白白浪费 GPU。
+    if p6_aligned_done "$key"; then
+      log "⏭  实践6-aligned/$key 已完成（$ITERS iter），跳过"
+      continue
+    fi
     wait_for_gpu
     log "开始 实践6-aligned/$key"
     if HW6_ALIGN_HPARAMS=1 ITERS="$ITERS" \
