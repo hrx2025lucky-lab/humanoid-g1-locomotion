@@ -28,6 +28,14 @@
 
 图例：✅ 完成　🚧 代码完成、训练/验收进行中　⬜ 未开始
 
+### 已确认的外部卡点
+
+| # | 卡在哪 | 需要的人工动作 |
+|---|---|---|
+| 7 | SMPL-X 人体模型缺失，完整的 SMPL-X → G1 链路跑不了（重定向产物的验证不受影响，已 22/22 通过） | 在 [smpl-x.is.tue.mpg.de](https://smpl-x.is.tue.mpg.de/) 注册下载，放到 `repos/GMR/assets/body_models/smplx/` |
+| 8 · 11-训练 | `instinct_rl` 要求 Python `>=3.12,<3.13`，而 `envs/isaaclab` 是 3.11.15、系统是 3.10.12 | 另建 Python 3.12 环境 + 配套 Isaac Sim（不能升级现有环境，会波及实践 1~9 与按 mujoco 3.12.0 编译的 raycaster 插件） |
+| 10 | 只有 PDF，没有代码包与数据 | 需要课程提供 PHP/HOI 的代码与数据 |
+
 ## 已实现
 
 | 目录 | 内容 | 对应主题 |
