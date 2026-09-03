@@ -14,6 +14,7 @@
 #   ./run_pipeline.sh --now            # 不等待，立即开始（GPU 已空闲时用）
 #   ITERS=3000 ./run_pipeline.sh       # 缩短每组迭代数
 #   ./run_pipeline.sh --skip-finish    # 跳过实践2收尾，直接排实践4
+#   ONLY=p6aligned ./run_pipeline.sh   # 只跑实践6的超参对齐重跑
 #
 # 全程日志：~/pipeline.log
 # 中断：kill 掉本脚本不会停掉已启动的训练，需另外 kill 对应 PID
@@ -45,8 +46,12 @@ wait_for_gpu() {
   local waited=0
   while train_running; do
     if (( waited % 300 == 0 )); then
-      local it
-      it=$(grep -o "Learning iteration [0-9]*/[0-9]*" /tmp/g1_resume.log 2>/dev/null | tail -1)
+      # 从当前最新的训练日志里取进度。不能写死某一个文件 ——
+      # 之前写死 /tmp/g1_resume.log，实践 2 结束后它就不再更新，
+      # 等待信息会一直显示过期的 "9999/10000"，看着像卡住了。
+      local latest it=""
+      latest=$(ls -1t "$HOME"/p[456]_*.log /tmp/g1_resume.log 2>/dev/null | head -1)
+      [[ -n "$latest" ]] && it=$(grep -oE "Learning iteration [0-9]+/[0-9]+" "$latest" 2>/dev/null | tail -1)
       log "训练进行中${it:+（$it）}，已等待 $((waited / 60)) 分钟…"
     fi
     sleep 60
@@ -123,6 +128,25 @@ step_p6() {
   done
 }
 
+# ── 实践 6 补充：超参对齐后的严格单因素对照 ──────────────────────────────
+# 首轮两组除蒸馏目标外还差三处超参（lr / entropy_coef / desired_kl），
+# 实测 KL 组全面更优，但那个差距无法归因到蒸馏目标本身。
+# HW6_ALIGN_HPARAMS=1 让两组共用同一套超参，唯一变量才只剩蒸馏目标；
+# 结果写到 *_aligned 目录，不覆盖首轮数据，两轮可对照。
+step_p6_aligned() {
+  log "════ 实践 6 超参对齐重跑（每组 $ITERS iter）════"
+  for key in action_matching kl_matching; do
+    wait_for_gpu
+    log "开始 实践6-aligned/$key"
+    if HW6_ALIGN_HPARAMS=1 ITERS="$ITERS" \
+       "$HERE/run_p5p6_compare.sh" p6 "$key" >> "$PIPELOG" 2>&1; then
+      log "✅ 实践6-aligned/$key 完成"
+    else
+      log "❌ 实践6-aligned/$key 失败，见 ~/p6_${key}.log"
+    fi
+  done
+}
+
 log "════════════════════════════════════════════"
 log "流水线启动  ITERS=$ITERS  日志=$PIPELOG"
 log "════════════════════════════════════════════"
@@ -132,10 +156,18 @@ if (( WAIT_FIRST )); then
   wait_for_gpu
 fi
 
-(( DO_FINISH )) && step_finish_p2
-step_p4
-step_p5
-step_p6
+case "${ONLY:-}" in
+  p6aligned) step_p6_aligned ;;
+  p4)        step_p4 ;;
+  p5)        step_p5 ;;
+  p6)        step_p6 ;;
+  *)
+    (( DO_FINISH )) && step_finish_p2
+    step_p4
+    step_p5
+    step_p6
+    ;;
+esac
 
 log "════ 全部完成 ════"
 log "实践4 曲线: tensorboard --logdir /home/limx/workspace/Roxan_warmup/shenlan_hw/hw4_mjlab/logs"
