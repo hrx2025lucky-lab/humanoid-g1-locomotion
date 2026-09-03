@@ -15,6 +15,7 @@
 #   ITERS=3000 ./run_pipeline.sh       # 缩短每组迭代数
 #   ./run_pipeline.sh --skip-finish    # 跳过实践2收尾，直接排实践4
 #   ONLY=p6aligned ./run_pipeline.sh   # 只跑实践6的超参对齐重跑
+#   ONLY=p6aligned_then_p5 ./run_pipeline.sh   # 先实践6对齐，再实践5
 #
 # 全程日志：~/pipeline.log
 # 中断：kill 掉本脚本不会停掉已启动的训练，需另外 kill 对应 PID
@@ -158,6 +159,7 @@ fi
 
 case "${ONLY:-}" in
   p6aligned) step_p6_aligned ;;
+  p6aligned_then_p5) step_p6_aligned; step_p5 ;;
   p4)        step_p4 ;;
   p5)        step_p5 ;;
   p6)        step_p6 ;;
