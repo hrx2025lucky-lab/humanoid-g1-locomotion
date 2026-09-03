@@ -5,7 +5,7 @@
 #
 # 为什么需要它：实践 2 已经栽过一次 —— episode_length 与 reward 全线上涨，
 # 录像里机器人却在原地踏步。导航任务里这个陷阱更强：
-# 摔倒罚 -400，而"站着不动"稳拿 0，理性策略当然不动。
+# 摔倒有罚分而"站着不动"稳拿 0，理性策略当然不动。
 #
 # 所以不能只看 episode_length / time_out / reward 这三个"表面指标"，
 # 必须同时盯真实任务指标（净进展、到达率、距离误差）。
@@ -53,16 +53,29 @@ check_once() {
   printf "     %-26s %s\n" "goals_reached" "${goals:-—}"
   printf "     %-26s %s  (早期 ${err_early:-—})\n" "error_pos_2d" "${err_now:-—}"
 
-  # 判据
+  # 判据。训练早期（< WARMUP iter）高层还是随机策略，
+  # 这时 position_progress 在 0 附近震荡属正常，过早报警只会制造噪声。
+  local it_num
+  it_num=$(echo "${iter:-}" | grep -oE "[0-9]+" | head -1)
+  it_num=${it_num:-0}
+  local WARMUP=${P5_WARMUP:-300}
+  if (( it_num < WARMUP )); then
+    echo
+    echo "  判定：⏳ 预热期（< $WARMUP iter），高层策略尚未成形，暂不判据"
+    echo
+    return 0
+  fi
+
   local verdict="✅ 健康" detail=""
   if [[ -n "${ep_len:-}" ]] && awk "BEGIN{exit !($ep_len < 90)}"; then
     verdict="⚠️  摔倒偏多"; detail="episode length $ep_len 低于上限 150 的 60%"
   elif [[ -n "${prog:-}" ]] && awk "BEGIN{exit !($prog <= 0)}"; then
     verdict="❌ 疑似「站着不动」局部最优"
     detail="position_progress=$prog ≤ 0，机器人没在朝目标移动——
-       这与实践 2 的原地踏步是同一类问题：摔倒罚 -400，不动稳拿 0。
-       若持续到 1000 iter 之后仍无进展，需要重新平衡
-       position_progress 与 termination_penalty 的边际激励比。"
+       与实践 2 的原地踏步同类：摔倒有罚分，不动稳拿 0。
+       已做过两轮修复（termination_penalty -400→-20、低层换成自训策略），
+       若到 1000 iter 仍无进展，说明还有第三个因素，
+       排查顺序见 docs/实践5_分层强化学习导航.md 第九、十节。"
   elif [[ -n "${err_now:-}" && -n "${err_early:-}" ]] \
        && awk "BEGIN{exit !($err_now >= $err_early)}"; then
     verdict="⚠️  距离误差未下降"; detail="error_pos_2d $err_early → $err_now"
