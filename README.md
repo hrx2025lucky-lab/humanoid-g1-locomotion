@@ -24,7 +24,7 @@
 | 8 | AMP 拟人走跑 | 对抗式动作先验 | ⬜ |
 | 9 | 轨迹追踪训练 | 运动跟踪关键函数实现 | ✅ |
 | 10 | 人–物交互运动跟踪 | HOI | ⬜ |
-| 11 | 跑酷策略与 Sim2Sim 验证 | 高动态动作 + 部署验证 | ⬜ |
+| 11 | 跑酷策略与 Sim2Sim 验证 | 高动态动作 + 部署验证 | 🚧 |
 
 图例：✅ 完成　🚧 代码完成、训练/验收进行中　⬜ 未开始
 
@@ -60,6 +60,7 @@ docs/        调参与问题定位记录
 | [`docs/实践5_分层强化学习导航.md`](docs/实践5_分层强化学习导航.md) | **训练发散的完整定位过程**：三个隔离实验推翻三个合理假设，最后由「学习率已在下限」逼出真因——冻结低层在分布外吐出 1.7e6 污染 critic；分层 RL 的两层接口设计：低层 TorchScript 的输入契约为什么只能 deepcopy 不能手写；裁剪前后动作在三处的一致性；`apply_actions` 为何必须在 decimation 判断之外 |
 | [`docs/实践6_教师学生蒸馏.md`](docs/实践6_教师学生蒸馏.md) | KL matching 在所有跟踪指标上更优（关节误差 −21%、失败率 3.5× 更低），但两组超参不同故暂不可归因；教师-学生蒸馏：forward KL 的 mass-covering 与 reverse KL 的 mode-seeking 之别；为何冻结的 Teacher 仍需 `no_grad`；蒸馏系数退火对抗的信息不对称 |
 | [`docs/实践7_运动重定向.md`](docs/实践7_运动重定向.md) | 重定向产物的 22 项验证：四元数 xyzw/wxyz 判定、关节限位、时序连续性、支撑相检测；以及为什么装 GMR 前要小心 mujoco 版本 |
+| [`docs/实践11_跑酷与深度感知.md`](docs/实践11_跑酷与深度感知.md) | 深度图五步流水线：为什么必须最近邻插值、无效点 0 为何会被读成「紧贴镜头的墙」、模糊为何不能太强；15 项验证 |
 | [`docs/实践9_自适应采样与轨迹跟踪.md`](docs/实践9_自适应采样与轨迹跟踪.md) | 自适应采样如何把训练算力集中到失败率高的动作片段；bin 宽度必须整数除法的原因；参考动作对齐为何只对 z 和 yaw |
 
 ---
@@ -156,6 +157,7 @@ python sim2sim/sim2sim_flat.py
 |---|---|
 | [`eval_rough_headless.py`](sim2sim/eval_rough_headless.py) | 粗糙地形策略的无头量化评估：观测契约核对 + 机体系指令跟踪 + 姿态存活判定。以课程 checkpoint 为对照基准 |
 | [`verify_practice7_motion.py`](sim2sim/verify_practice7_motion.py) | 重定向动作数据的 22 项验证。产物会被实践 9/10/11 当参考轨迹，错了会一路传下去 |
+| [`verify_practice11_depth.py`](sim2sim/verify_practice11_depth.py) | 深度图处理流水线的 15 项验证（resize/crop/inpaint/blur/normalize） |
 | [`verify_practice3.py`](sim2sim/verify_practice3.py) | HoST 增量动作空间的 30 项断言。零动作检查一次证明"是增量式"且"不是残差式"；含 `mj_data.qpos` 视图/副本陷阱 |
 | [`sim2sim_flat.py`](sim2sim/sim2sim_flat.py) | Isaac Lab → MuJoCo 的独立复现 |
 
