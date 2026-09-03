@@ -79,6 +79,9 @@ def run_nav_zero_command() -> int:
     for label, cmd in (
         ("零指令", (0.0, 0.0, 0.0)),
         ("前进 vx=0.5", (0.5, 0.0, 0.0)),
+        # 三轴复合：策略实际输出的是三个分量都非零的指令。
+        # 只测纯前进会高估低层的鲁棒性 —— 侧移与转向叠加时难得多。
+        ("复合 (0.4,0.3,0.3)", (0.4, 0.3, 0.3)),
     ):
         env.reset()
         action = torch.zeros(env.num_envs, 3, device=env.device)
