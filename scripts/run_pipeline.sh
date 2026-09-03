@@ -16,6 +16,8 @@
 #   ./run_pipeline.sh --skip-finish    # 跳过实践2收尾，直接排实践4
 #   ONLY=p6aligned ./run_pipeline.sh   # 只跑实践6的超参对齐重跑
 #   ONLY=p6aligned_then_p5 ./run_pipeline.sh   # 先实践6对齐，再实践5
+#   ONLY=p5_then_p9 ./run_pipeline.sh          # 先实践5，再实践9 P2
+#   ONLY=p9 ./run_pipeline.sh                  # 只跑实践9 P2
 #
 # 全程日志：~/pipeline.log
 # 中断：kill 掉本脚本不会停掉已启动的训练，需另外 kill 对应 PID
@@ -24,6 +26,7 @@ set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PIPELOG="$HOME/pipeline.log"
+HW6_DIR="/home/limx/workspace/Roxan_warmup/shenlan_hw/hw6_distill"
 ITERS="${ITERS:-3000}"
 
 WAIT_FIRST=1
@@ -179,6 +182,32 @@ step_p6_aligned() {
   done
 }
 
+# ── 实践 9 P2：轨迹跟踪训练（舞蹈动作）──────────────────────────────────
+# 实践 9 的作业包只有 MotionCommand 与动作数据，没有训练环境。
+# 但实践 6 的 hw6_distill 正是一套完整的 BeyondMimic 跟踪框架，
+# 把 dance1_subject2.npz 接进去即可完成 P2。
+#
+# 该 npz 不带刚体名，靠同目录 meta.json 提供；名字顺序是广度优先
+#（IsaacLab articulation 的排列），已用物理量验证过：
+# 脚是最低刚体 z≈0.10、肩最高 z≈1.03、躯干 0.79 在骨盆 0.75 之上。
+step_p9() {
+  log "════ 实践 9 P2 轨迹跟踪训练（$ITERS iter）════"
+  wait_for_gpu
+  log "开始 实践9/dance_tracking"
+  local log_file="$HOME/p9_dance.log"
+  cd "$HW6_DIR" || { log "❌ 找不到 $HW6_DIR"; return 1; }
+  if HW6_MOTION_SOURCE=motion_data_cfg_hw9_dance.yaml \
+     ./.venv/bin/train Mjlab-Humanoid-HW6-Teacher-G1 \
+       --env.scene.num-envs="${NUM_ENVS:-4096}" \
+       --agent.max-iterations="$ITERS" \
+       --agent.seed=42 --agent.logger=tensorboard \
+       --agent.run-name=hw9_dance_tracking > "$log_file" 2>&1; then
+    log "✅ 实践9/dance_tracking 完成"
+  else
+    log "❌ 实践9/dance_tracking 失败，见 $log_file"
+  fi
+}
+
 log "════════════════════════════════════════════"
 log "流水线启动  ITERS=$ITERS  日志=$PIPELOG"
 log "════════════════════════════════════════════"
@@ -191,6 +220,8 @@ fi
 case "${ONLY:-}" in
   p6aligned) step_p6_aligned ;;
   p6aligned_then_p5) step_p6_aligned; step_p5 ;;
+  p9)        step_p9 ;;
+  p5_then_p9) step_p5; step_p9 ;;
   p4)        step_p4 ;;
   p5)        step_p5 ;;
   p6)        step_p6 ;;
