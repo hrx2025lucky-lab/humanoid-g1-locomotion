@@ -107,11 +107,18 @@ step_p5() {
   for key in baseline random_arena; do
     wait_for_gpu
     log "开始 实践5/$key"
+    # 同时起健康巡检：实践 5 有"站着不动"这个局部最优，
+    # 只看 episode_length / reward 会把它误判为健康（详见 docs 第九节）。
+    P5_LOG="$HOME/p5_${key}.log" nohup "$HERE/watch_p5.sh" --loop 600 \
+      > "$HOME/p5_watch_${key}.log" 2>&1 &
+    local watch_pid=$!
     if ITERS="$ITERS" "$HERE/run_p5p6_compare.sh" p5 "$key" >> "$PIPELOG" 2>&1; then
       log "✅ 实践5/$key 完成"
     else
       log "❌ 实践5/$key 失败，见 ~/p5_${key}.log"
     fi
+    kill "$watch_pid" 2>/dev/null || true
+    log "   巡检结果见 ~/p5_watch_${key}.log"
   done
 }
 

@@ -74,6 +74,12 @@ check_once() {
 }
 
 if (( INTERVAL > 0 )); then
+  # 由流水线启动时训练可能还没起来（Isaac Sim 启动要 1~2 分钟），
+  # 先等它出现，否则循环条件一上来就是假，巡检会立刻退出。
+  for _ in $(seq 1 30); do
+    pgrep -f "rsl_rl/train.py" > /dev/null && break
+    sleep 10
+  done
   while pgrep -f "rsl_rl/train.py" > /dev/null; do
     check_once
     sleep "$INTERVAL"
