@@ -69,6 +69,15 @@ check_once() {
   local verdict="✅ 健康" detail=""
   if [[ -n "${ep_len:-}" ]] && awk "BEGIN{exit !($ep_len < 90)}"; then
     verdict="⚠️  摔倒偏多"; detail="episode length $ep_len 低于上限 150 的 60%"
+  elif [[ -n "${err_now:-}" && -n "${err_early:-}" ]] \
+       && awk "BEGIN{exit !($err_now > $err_early * 0.95)}"; then
+    # 判据收紧：只要求"误差有下降"太宽松 —— 上一次 2298 iter 里
+    # error_pos_2d 从 7.5836 挪到 7.3484（降 3%）、position_progress 恒为 0.0002，
+    # 却被判为健康。实际是彻底的"站着不动"。改为要求至少降 5%。
+    verdict="❌ 距离误差几乎没降（< 5%）"
+    detail="error_pos_2d $err_early → $err_now
+       典型原因是稠密奖励的 std 太小、在工作范围内无梯度，
+       策略只能看到动作惩罚从而收敛到零指令。见文档第十一节。"
   elif [[ -n "${prog:-}" ]] && awk "BEGIN{exit !($prog <= 0)}"; then
     verdict="❌ 疑似「站着不动」局部最优"
     detail="position_progress=$prog ≤ 0，机器人没在朝目标移动——
