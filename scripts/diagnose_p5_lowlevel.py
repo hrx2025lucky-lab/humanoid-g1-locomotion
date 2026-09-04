@@ -75,6 +75,10 @@ def run_nav_zero_command() -> int:
     print("═" * 66)
 
     env_cfg = parse_env_cfg(NAV_TASK, num_envs=args_cli.num_envs)
+    # 与 --nan-hunt 模式保持一致：不显式设置的话会静默沿用 cfg 默认的
+    # command_smoothing=0.1（EMA 开启），于是"低层读到的指令"永远不等于
+    # 下发值，看起来像接线 bug 实则是 EMA 未收敛。此前就险些据此得出错误结论。
+    env_cfg.actions.pre_trained_policy_action.command_smoothing = args_cli.smoothing
     env = gym.make(NAV_TASK, cfg=env_cfg).unwrapped
     robot = env.scene["robot"]
     action_term = env.action_manager.get_term("pre_trained_policy_action")
