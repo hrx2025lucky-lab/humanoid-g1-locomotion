@@ -21,7 +21,11 @@
 # ═══════════════════════════════════════════════════════════════════════════
 set -uo pipefail
 
-LOG="${P5_LOG:-$HOME/p5_baseline.log}"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=log_paths.sh
+source "$HERE/log_paths.sh"
+
+LOG="${P5_LOG:-$(hp_log p5 baseline)}"
 INTERVAL=0
 [[ "${1:-}" == "--loop" ]] && INTERVAL="${2:-600}"
 

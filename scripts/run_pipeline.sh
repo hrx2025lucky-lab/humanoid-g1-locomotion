@@ -25,7 +25,9 @@
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PIPELOG="$HOME/pipeline.log"
+# shellcheck source=log_paths.sh
+source "$HERE/log_paths.sh"
+PIPELOG="$(hp_log_raw pipeline pipeline.log)"
 HW6_DIR="/home/limx/workspace/Roxan_warmup/shenlan_hw/hw6_distill"
 ITERS="${ITERS:-3000}"
 
@@ -53,8 +55,9 @@ wait_for_gpu() {
       # 从当前最新的训练日志里取进度。不能写死某一个文件 ——
       # 之前写死 /tmp/g1_resume.log，实践 2 结束后它就不再更新，
       # 等待信息会一直显示过期的 "9999/10000"，看着像卡住了。
+      # 日志集中到 $HP_LOG_DIR 后改成递归扫全部子目录，新增实践不用再改这里。
       local latest it=""
-      latest=$(ls -1t "$HOME"/p[456]_*.log /tmp/g1_resume.log 2>/dev/null | head -1)
+      latest=$(ls -1t "$HP_LOG_DIR"/*/p[0-9]_*.log /tmp/g1_resume.log 2>/dev/null | head -1)
       [[ -n "$latest" ]] && it=$(grep -oE "Learning iteration [0-9]+/[0-9]+" "$latest" 2>/dev/null | tail -1)
       log "训练进行中${it:+（$it）}，已等待 $((waited / 60)) 分钟…"
     fi
@@ -99,7 +102,7 @@ step_p4() {
     if ITERS="$ITERS" "$HERE/run_p4_ablation.sh" "$key" >> "$PIPELOG" 2>&1; then
       log "✅ 实践4/$key 完成"
     else
-      log "❌ 实践4/$key 失败，见 ~/p4_${key}.log"
+      log "❌ 实践4/$key 失败，见 $(hp_log p4 "$key")"
     fi
   done
 }
@@ -112,16 +115,16 @@ step_p5() {
     log "开始 实践5/$key"
     # 同时起健康巡检：实践 5 有"站着不动"这个局部最优，
     # 只看 episode_length / reward 会把它误判为健康（详见 docs 第九节）。
-    P5_LOG="$HOME/p5_${key}.log" nohup "$HERE/watch_p5.sh" --loop 600 \
-      > "$HOME/p5_watch_${key}.log" 2>&1 &
+    P5_LOG="$(hp_log p5 "$key")" nohup "$HERE/watch_p5.sh" --loop 600 \
+      > "$(hp_log p5 "watch_$key")" 2>&1 &
     local watch_pid=$!
     if ITERS="$ITERS" "$HERE/run_p5p6_compare.sh" p5 "$key" >> "$PIPELOG" 2>&1; then
       log "✅ 实践5/$key 完成"
     else
-      log "❌ 实践5/$key 失败，见 ~/p5_${key}.log"
+      log "❌ 实践5/$key 失败，见 $(hp_log p5 "$key")"
     fi
     kill "$watch_pid" 2>/dev/null || true
-    log "   巡检结果见 ~/p5_watch_${key}.log"
+    log "   巡检结果见 $(hp_log p5 "watch_$key")"
   done
 }
 
@@ -134,7 +137,7 @@ step_p6() {
     if ITERS="$ITERS" "$HERE/run_p5p6_compare.sh" p6 "$key" >> "$PIPELOG" 2>&1; then
       log "✅ 实践6/$key 完成"
     else
-      log "❌ 实践6/$key 失败，见 ~/p6_${key}.log"
+      log "❌ 实践6/$key 失败，见 $(hp_log p6 "$key")"
     fi
   done
 }
@@ -177,7 +180,7 @@ step_p6_aligned() {
        "$HERE/run_p5p6_compare.sh" p6 "$key" >> "$PIPELOG" 2>&1; then
       log "✅ 实践6-aligned/$key 完成"
     else
-      log "❌ 实践6-aligned/$key 失败，见 ~/p6_${key}.log"
+      log "❌ 实践6-aligned/$key 失败，见 $(hp_log p6 "$key")"
     fi
   done
 }
@@ -194,7 +197,7 @@ step_p9() {
   log "════ 实践 9 P2 轨迹跟踪训练（$ITERS iter）════"
   wait_for_gpu
   log "开始 实践9/dance_tracking"
-  local log_file="$HOME/p9_dance.log"
+  local log_file; log_file="$(hp_log p9 dance)"
   cd "$HW6_DIR" || { log "❌ 找不到 $HW6_DIR"; return 1; }
   if HW6_MOTION_SOURCE=motion_data_cfg_hw9_dance.yaml \
      ./.venv/bin/train Mjlab-Humanoid-HW6-Teacher-G1 \

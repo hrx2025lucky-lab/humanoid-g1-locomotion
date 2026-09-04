@@ -27,6 +27,10 @@
 # ═══════════════════════════════════════════════════════════════════════════
 set -euo pipefail
 
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=log_paths.sh
+source "$HERE/log_paths.sh"
+
 ISAACLAB_PY="/home/limx/workspace/Roxan_warmup/envs/isaaclab/bin/python"
 HW5="/home/limx/workspace/Roxan_warmup/shenlan_hw/hw5_navigation/unitree_rl_lab"
 HW6="/home/limx/workspace/Roxan_warmup/shenlan_hw/hw6_distill"
@@ -42,7 +46,7 @@ run_p5() {
     random_arena) task="Unitree-G1-29dof-Navigation-HRL-RandomArena" ;;
     *) echo "实践5 未知组别 '$key'，可选: baseline random_arena" >&2; return 2 ;;
   esac
-  local log="$HOME/p5_${key}.log"
+  local log; log="$(hp_log p5 "$key")"
   echo "──── 实践5 / $key ────  task=$task  envs=$NUM_ENVS  iters=$ITERS  seed=$SEED"
   echo "     日志: $log"
   cd "$HW5"
@@ -64,7 +68,7 @@ run_p6() {
     teacher)         task="Mjlab-Humanoid-HW6-Teacher-G1" ;;
     *) echo "实践6 未知组别 '$key'，可选: action_matching kl_matching teacher" >&2; return 2 ;;
   esac
-  local log="$HOME/p6_${key}.log"
+  local log; log="$(hp_log p6 "$key")"
   echo "──── 实践6 / $key ────  task=$task  envs=$NUM_ENVS  iters=$ITERS  seed=$SEED"
   echo "     日志: $log"
   cd "$HW6"

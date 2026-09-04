@@ -23,6 +23,10 @@
 # ═══════════════════════════════════════════════════════════════════════════
 set -euo pipefail
 
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=log_paths.sh
+source "$HERE/log_paths.sh"
+
 HW4="/home/limx/workspace/Roxan_warmup/shenlan_hw/hw4_mjlab"
 TRAIN="$HW4/.venv/bin/train"
 
@@ -48,7 +52,7 @@ ORDER=(baseline no_height_rew blind_actor)
 
 run_one() {
   local key="$1" task="${TASKS[$1]}"
-  local log="$HOME/p4_${key}.log"
+  local log; log="$(hp_log p4 "$key")"
   echo "════════════════════════════════════════════════════════════"
   echo " 组别   : $key"
   echo " 任务   : $task"
