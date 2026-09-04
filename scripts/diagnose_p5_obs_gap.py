@@ -37,6 +37,8 @@
 from __future__ import annotations
 
 import argparse
+import json
+import pathlib
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--cmd", type=float, nargs=3, default=[0.5, 0.0, 0.0],
@@ -45,6 +47,17 @@ parser.add_argument("--steps", type=int, default=150)
 parser.add_argument("--num-envs", type=int, default=16)
 parser.add_argument("--smoothing", type=float, default=1.0,
                     help="导航侧的 EMA 平滑（1.0=关闭，与 §12.2 扫描一致）")
+# ★ 一次只跑一侧。在同一进程里连续建两个 IsaacLab 环境会卡死
+# （实测第二个环境构建到一半后 26 分钟无输出，GPU 空转）。
+# 这个坑在 probe_p5_exploration.py 里已经踩过并写进注释，
+# 我却没在这里应用 —— 教训要落到代码上才算学到。
+parser.add_argument("--max-age", type=float, default=3600,
+                    help="JSON 里超过这么多秒的旧结果直接丢弃，防止拿陈旧数据做对比")
+parser.add_argument("--only", choices=["low", "nav"],
+                    help="只跑一侧（low=低层环境，nav=导航环境）")
+parser.add_argument("--out", default=str(pathlib.Path.home() / "humanoid_logs"
+                    / "p5_navigation" / "obs_gap.json"),
+                    help="结果 JSON，两侧分别跑完后自动汇总")
 args_cli, _ = parser.parse_known_args()
 
 from isaaclab.app import AppLauncher  # noqa: E402
@@ -184,28 +197,62 @@ def run_nav() -> dict:
 
 
 def main() -> int:
+    out = pathlib.Path(args_cli.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    saved = json.loads(out.read_text()) if out.exists() else {}
+    # ★ 陈旧结果防护。实测踩过一次：一轮实验崩溃后留下上一轮的 JSON，
+    # 我拿新数据和它对比，得到"两组完全相同到每位小数"的假结论。
+    # 每条结果都带时间戳，读的时候若超过 --max-age 秒就拒绝使用。
+    import time
+    now = time.time()
+    for k in list(saved):
+        ts = saved[k].get("_timestamp", 0) if isinstance(saved[k], dict) else 0
+        age = now - ts
+        if age > args_cli.max_age:
+            print(f"  ⚠️ 丢弃陈旧结果 '{k}'（{age/60:.0f} 分钟前，超过 "
+                  f"{args_cli.max_age/60:.0f} 分钟阈值）", flush=True)
+            saved.pop(k)
+
     print("=" * 74, flush=True)
     print(f"实践 5 §13：低层观测逐项对比   指令 {tuple(args_cli.cmd)}", flush=True)
     print("=" * 74, flush=True)
 
-    print("\n[1/2] 低层自己的环境 …", flush=True)
-    low = run_low_level()
-    print("[2/2] 导航环境 …", flush=True)
-    nav = run_nav()
+    if args_cli.only in (None, "low"):
+        print("\n跑「低层自己的环境」…", flush=True)
+        import time as _t
+        saved["low"] = run_low_level()
+        saved["low"]["_timestamp"] = _t.time()
+        out.write_text(json.dumps(saved, indent=2, ensure_ascii=False))
+        print(f"  已写入 {out}", flush=True)
+    if args_cli.only in (None, "nav"):
+        print("\n跑「导航环境」…", flush=True)
+        import time as _t
+        saved["nav"] = run_nav()
+        saved["nav"]["_timestamp"] = _t.time()
+        out.write_text(json.dumps(saved, indent=2, ensure_ascii=False))
+        print(f"  已写入 {out}", flush=True)
 
+    if "low" not in saved or "nav" not in saved:
+        have = sorted(saved)
+        print(f"\n已有 {have}，还差另一侧才能对比。", flush=True)
+        print(f"  跑法： --only {'nav' if 'low' in saved else 'low'}", flush=True)
+        return 0
+
+    low, nav = saved["low"], saved["nav"]
     print("\n" + "=" * 74)
     print(f"  {'观测项':<20}{'低层环境':>18}{'导航环境':>18}{'倍数':>10}")
     print(f"  {'':20}{'均值 / 最大':>18}{'均值 / 最大':>18}")
     print("  " + "-" * 68)
 
     ratios = {}
-    names = [k for k in low if not k.startswith("_")]
-    for name in names:
+    for name in [k for k in low if not k.startswith("_")]:
+        if name not in nav:
+            continue
         lm, lx = low[name]
         nm, nx = nav[name]
         r = nm / lm if lm > 1e-9 else float("inf")
         ratios[name] = r
-        mark = "  ★" if name in ("velocity_commands", "last_action") else ""
+        mark = "  ★" if name in REWIRED else ""
         print(f"  {name:<20}{lm:>8.3f} /{lx:>7.2f}{nm:>9.3f} /{nx:>7.2f}"
               f"{r:>9.2f}x{mark}")
 
@@ -213,30 +260,32 @@ def main() -> int:
     lm, lx = low["_output"]
     nm, nx = nav["_output"]
     print(f"  {'低层输出 |a|':<20}{lm:>8.3f} /{lx:>7.2f}{nm:>9.3f} /{nx:>7.2f}"
-          f"{(nm/lm if lm>1e-9 else 0):>9.2f}x")
-    print(f"  {'非超时终止':<20}{low['_terminations'][0]:>8d} 次"
-          f"{nav['_terminations'][0]:>13d} 次"
+          f"{(nm / lm if lm > 1e-9 else 0):>9.2f}x")
+    print(f"  {'非超时终止':<20}{low['_terminations'][0]:>8.0f} 次"
+          f"{nav['_terminations'][0]:>13.0f} 次"
           f"   （每 env {low['_terminations'][1]:.2f} vs "
           f"{nav['_terminations'][1]:.2f}）")
 
     print("\n" + "=" * 74)
     print("结论")
     print("=" * 74)
-    rewired = {k: ratios[k] for k in ("velocity_commands", "last_action")}
-    native = {k: v for k, v in ratios.items() if k not in rewired}
-    worst_rw = max(rewired, key=lambda k: rewired[k])
-    worst_nv = max(native, key=lambda k: native[k])
-    print(f"  重接线项最大偏差：{worst_rw} {rewired[worst_rw]:.2f}x")
-    print(f"  原生项最大偏差：  {worst_nv} {native[worst_nv]:.2f}x")
-
-    if rewired[worst_rw] > 3 * native[worst_nv]:
-        print(f"\n  ✅ 偏差集中在重接线项 `{worst_rw}` 上 —— 支持"
+    rw = {k: v for k, v in ratios.items() if k in REWIRED}
+    nv = {k: v for k, v in ratios.items() if k not in REWIRED}
+    if not rw or not nv:
+        print("  ⚠️ 观测项名称与预期不符，无法归因。")
+        return 0
+    wr = max(rw, key=lambda k: rw[k])
+    wn = max(nv, key=lambda k: nv[k])
+    print(f"  重接线项最大偏差：{wr} {rw[wr]:.2f}x")
+    print(f"  原生项最大偏差：  {wn} {nv[wn]:.2f}x")
+    if rw[wr] > 3 * nv[wn]:
+        print(f"\n  ✅ 偏差集中在重接线项 `{wr}` 上 —— 支持"
               "「HRL 接线导致观测分布外」的假设。")
-        if worst_rw == "last_action":
+        if wr == "last_action":
             print("     且是 last_action，说明存在正反馈：")
             print("     输出触顶 → last_action 异常 → 观测分布外 → 输出更极端")
-    elif native[worst_nv] > 3 * rewired[worst_rw]:
-        print(f"\n  ❌ 偏差主要在原生项 `{worst_nv}` 上 —— 不是接线问题，"
+    elif nv[wn] > 3 * rw[wr]:
+        print(f"\n  ❌ 偏差主要在原生项 `{wn}` 上 —— 不是接线问题，"
               "应查资产/物理/初始状态差异。")
     else:
         print("\n  ⚠️ 各项偏差量级相当，无法归因到单一项，需要换角度。")
