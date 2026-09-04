@@ -96,12 +96,36 @@ def run_nav_zero_command() -> int:
         #（实测零指令也能"走出" 26 m，全是重置跳变）。
         # 机体系速度是瞬时量，不受重置影响，且与指令同一坐标系可直接比。
         gz_hist, vx_hist, proc_hist = [], [], []
+        # 低层输出的量级：这是区分"输入没接对"与"输出被玩坏了"的关键。
+        # 正常关节动作在 ±1 量级（×action_scale=0.25 → ±0.25 rad）。
+        # 若接近 _LOW_LEVEL_ACTION_LIMIT=10，说明低层已经在分布外乱吐 ——
+        # 限幅只是拦住了数值爆炸，机器人照样会被 2.5 rad 的目标角扭到摔倒。
+        ll_abs_hist, ll_max_hist, clip_frac_hist = [], [], []
+        # ★ 必须统计终止次数，不能只看最后一帧的姿态。
+        # IsaacLab 在 episode 终止时会自动重置并把机器人放回直立初始姿态，
+        # 所以"最后一帧投影重力 = -1.0"在自动重置的环境里恒成立，
+        # 哪怕机器人一路上摔了几十次。本脚本早期版本就是被这一点骗过，
+        # 给出过"接线验证通过"的错误结论（实际摔倒率 92%）。
+        n_term = 0
+        limit = 10.0
+        try:
+            # 限幅常量的唯一真源在 action term 所在模块，别在这里复制一份数值
+            from unitree_rl_lab.tasks.navigation.mdp import pre_trained_policy_action as _pt
+            limit = float(getattr(_pt, "_LOW_LEVEL_ACTION_LIMIT", limit))
+        except Exception:
+            pass
         with torch.no_grad():
             for _ in range(args_cli.steps):
-                env.step(action)
+                _, _, terminated, _, _ = env.step(action)
+                n_term += int(terminated.sum().item())
                 gz_hist.append(robot.data.projected_gravity_b[:, 2].mean().item())
                 vx_hist.append(robot.data.root_lin_vel_b[:, 0].mean().item())
                 proc_hist.append(action_term.processed_actions[:, 0].mean().item())
+                ll = getattr(action_term, "low_level_actions", None)
+                if ll is not None:
+                    ll_abs_hist.append(ll.abs().mean().item())
+                    ll_max_hist.append(ll.abs().max().item())
+                    clip_frac_hist.append((ll.abs() >= limit * 0.99).float().mean().item())
 
         # 取后半段均值，跳过起步瞬态
         half = len(vx_hist) // 2
@@ -111,6 +135,17 @@ def run_nav_zero_command() -> int:
         print(f"     投影重力 z 最终   {gz_hist[-1]:+.3f}   （直立 = -1.0）")
         print(f"     机体系实际 vx     {vx_mean:+.3f} m/s   （指令 {cmd[0]}）")
         print(f"     低层读到的 vx     {proc_hist[-1]:+.3f}   （应等于指令）")
+        if ll_abs_hist:
+            print(f"     低层输出 |a| 均值 {sum(ll_abs_hist)/len(ll_abs_hist):.3f}"
+                  f"   （正常 ≈0.3~1.0）")
+            print(f"     低层输出 |a| 峰值 {max(ll_max_hist):.3f}"
+                  f"   （限幅 {limit}）")
+            print(f"     触顶比例          "
+                  f"{max(clip_frac_hist)*100:.1f}%   （>0 即已在分布外）")
+        # 每 env 平均终止次数才是"摔没摔"的真判据
+        per_env = n_term / max(env.num_envs, 1)
+        print(f"     非超时终止次数    {n_term}   （每 env {per_env:.2f} 次）"
+              f"{'  ← 在摔' if per_env > 0.1 else ''}")
 
     print("\n" + "═" * 66)
     gz0, vx0, _ = results["零指令"]
