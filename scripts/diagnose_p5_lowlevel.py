@@ -30,6 +30,11 @@ parser.add_argument("--nan-hunt", action="store_true",
                     help="随机高层指令下检测观测/奖励的 NaN 与 inf，并统计摔倒率")
 parser.add_argument("--smoothing", type=float, default=1.0,
                     help="高层指令 EMA 平滑系数（1.0 = 关闭）")
+parser.add_argument("--resample-every", type=int, default=0,
+                    help="每 N 步重采样一次速度指令（0=恒定）。"
+                         "低层训练时指令每 10 秒才换一次，而 HRL 里高层每 0.2 秒"
+                         "就下发新指令 —— 用这个开关在低层自己的环境里复现那种"
+                         "高变化率，判断它是不是导航环境摔倒的病因。")
 parser.add_argument("--cmd", type=float, nargs=3, default=[0.0, 0.0, 0.0],
                     metavar=("VX", "VY", "WZ"),
                     help="底层任务下发的恒定速度指令。默认全零（测站立）；"
@@ -218,12 +223,21 @@ def main() -> int:
 
     gz_hist, height_hist = [], []
     start_xy = robot.data.root_pos_w[:, :2].clone()
+    n_term_low = 0
     with torch.inference_mode():
         for step in range(args_cli.steps):
+            if args_cli.resample_every > 0 and step % args_cli.resample_every == 0:
+                # 在 velocity_clip 同量级的范围内均匀重采样，模拟高层输出
+                cmd_vec = torch.stack([
+                    torch.empty(1, device=env.device).uniform_(-0.5, 1.0)[0],
+                    torch.empty(1, device=env.device).uniform_(-0.5, 0.5)[0],
+                    torch.empty(1, device=env.device).uniform_(-0.5, 0.5)[0],
+                ])
             cmd_term.vel_command_b[:] = cmd_vec
             obs = env.observation_manager.compute_group("policy")
             action = policy(obs)
-            env.step(action)
+            _, _, terminated, _, _ = env.step(action)
+            n_term_low += int(terminated.sum().item())
 
             gz = robot.data.projected_gravity_b[:, 2]
             gz_hist.append(gz.mean().item())
@@ -232,7 +246,9 @@ def main() -> int:
     travelled = float(torch.norm(
         robot.data.root_pos_w[:, :2] - start_xy, dim=1).mean().item())
 
-    label = "零指令" if is_zero_cmd else f"指令 {tuple(args_cli.cmd)}"
+    label = ("零指令" if is_zero_cmd else f"指令 {tuple(args_cli.cmd)}")
+    if args_cli.resample_every > 0:
+        label = f"每 {args_cli.resample_every} 步重采样的随机指令"
     print(f"\n── {label}下的姿态演化（{args_cli.steps} 步）──")
     print(f"  {'步':>6}{'投影重力 z':>14}{'根节点高度 m':>14}")
     for i in (0, 10, 25, 50, 100, args_cli.steps - 1):
@@ -242,6 +258,9 @@ def main() -> int:
     final_gz = gz_hist[-1]
     print(f"\n  投影重力 z 最终 {final_gz:+.3f}   （直立 = -1.0，> -0.7 判为摔倒）")
     print(f"  根节点高度 最终 {height_hist[-1]:.3f} m   （站立约 0.78 m）")
+    # ★ 判据用"过程中摔了几次"，不是"最后一帧姿态" —— 自动重置会把最终姿态复位
+    print(f"  非超时终止 {n_term_low} 次   （每 env {n_term_low/env.num_envs:.2f} 次）"
+          f"{'  ← 在摔' if n_term_low/env.num_envs > 0.1 else ''}")
     if not is_zero_cmd:
         dt = float(getattr(env, "step_dt", 0.02))
         want = (args_cli.cmd[0] ** 2 + args_cli.cmd[1] ** 2) ** 0.5
