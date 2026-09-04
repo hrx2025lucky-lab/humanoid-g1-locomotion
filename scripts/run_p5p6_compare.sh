@@ -41,13 +41,26 @@ ITERS="${ITERS:-8000}"
 
 run_p5() {
   local key="$1" task
+  # 探索类修复组共用 Baseline 任务，只改环境变量 —— 这样地形、目标采样、
+  # 奖励权重全部与已跑完的 baseline 严格一致，差异可归因到单一因子。
   case "$key" in
     baseline)     task="Unitree-G1-29dof-Navigation-HRL-Baseline" ;;
     random_arena) task="Unitree-G1-29dof-Navigation-HRL-RandomArena" ;;
-    *) echo "实践5 未知组别 '$key'，可选: baseline random_arena" >&2; return 2 ;;
+    fix_smoothing)
+      task="Unitree-G1-29dof-Navigation-HRL-Baseline"
+      # 单因子：只关 EMA 平滑。实测平滑把探索速度压到 1/5
+      # （0.045 vs 0.223 m/s，理论 sqrt(0.1/1.9)=0.229）。
+      export NAV_COMMAND_SMOOTHING=1.0 NAV_RUN_NAME="$key" ;;
+    fix_both)
+      task="Unitree-G1-29dof-Navigation-HRL-Baseline"
+      # 在 fix_smoothing 基础上再抬熵系数，对冲 std 0.20→0.07 的过早塌缩
+      export NAV_COMMAND_SMOOTHING=1.0 NAV_ENTROPY_COEF=0.02 NAV_RUN_NAME="$key" ;;
+    *) echo "实践5 未知组别 '$key'，可选: baseline random_arena fix_smoothing fix_both" >&2
+       return 2 ;;
   esac
   local log; log="$(hp_log p5 "$key")"
   echo "──── 实践5 / $key ────  task=$task  envs=$NUM_ENVS  iters=$ITERS  seed=$SEED"
+  echo "     平滑=${NAV_COMMAND_SMOOTHING:-0.1(默认)}  熵系数=${NAV_ENTROPY_COEF:-0.005(默认)}"
   echo "     日志: $log"
   cd "$HW5"
   # 关键：Python 环境里装的 unitree_rl_lab 指向主仓库 repos/unitree_rl_lab，
