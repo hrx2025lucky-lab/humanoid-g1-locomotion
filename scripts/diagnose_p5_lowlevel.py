@@ -30,6 +30,10 @@ parser.add_argument("--nan-hunt", action="store_true",
                     help="随机高层指令下检测观测/奖励的 NaN 与 inf，并统计摔倒率")
 parser.add_argument("--smoothing", type=float, default=1.0,
                     help="高层指令 EMA 平滑系数（1.0 = 关闭）")
+parser.add_argument("--cmd", type=float, nargs=3, default=[0.0, 0.0, 0.0],
+                    metavar=("VX", "VY", "WZ"),
+                    help="底层任务下发的恒定速度指令。默认全零（测站立）；"
+                         "给非零值可测『这个策略到底会不会走』")
 args_cli, _ = parser.parse_known_args()
 
 from isaaclab.app import AppLauncher  # noqa: E402
@@ -166,13 +170,18 @@ def main() -> int:
 
     env.reset()
 
-    # 零速度指令：让 CommandManager 的 base_velocity 恒为 0
+    # 恒定速度指令：每步重写，防止 CommandManager 到点重采样把它覆盖掉。
+    # 默认全零测站立；给非零值就变成"这个低层到底会不会走"的直接测试 ——
+    # 这正是隔离"策略不会走"与"导航环境把策略搞坏了"的关键对照。
     cmd_term = env.command_manager.get_term("base_velocity")
+    cmd_vec = torch.tensor(args_cli.cmd, device=env.device, dtype=torch.float32)
+    is_zero_cmd = bool(cmd_vec.abs().sum() < 1e-6)
 
     gz_hist, height_hist = [], []
+    start_xy = robot.data.root_pos_w[:, :2].clone()
     with torch.inference_mode():
         for step in range(args_cli.steps):
-            cmd_term.vel_command_b[:] = 0.0  # 每步压零，防止重采样覆盖
+            cmd_term.vel_command_b[:] = cmd_vec
             obs = env.observation_manager.compute_group("policy")
             action = policy(obs)
             env.step(action)
@@ -181,7 +190,11 @@ def main() -> int:
             gz_hist.append(gz.mean().item())
             height_hist.append(robot.data.root_pos_w[:, 2].mean().item())
 
-    print(f"\n── 零指令下的姿态演化（{args_cli.steps} 步）──")
+    travelled = float(torch.norm(
+        robot.data.root_pos_w[:, :2] - start_xy, dim=1).mean().item())
+
+    label = "零指令" if is_zero_cmd else f"指令 {tuple(args_cli.cmd)}"
+    print(f"\n── {label}下的姿态演化（{args_cli.steps} 步）──")
     print(f"  {'步':>6}{'投影重力 z':>14}{'根节点高度 m':>14}")
     for i in (0, 10, 25, 50, 100, args_cli.steps - 1):
         if i < len(gz_hist):
@@ -190,16 +203,26 @@ def main() -> int:
     final_gz = gz_hist[-1]
     print(f"\n  投影重力 z 最终 {final_gz:+.3f}   （直立 = -1.0，> -0.7 判为摔倒）")
     print(f"  根节点高度 最终 {height_hist[-1]:.3f} m   （站立约 0.78 m）")
+    if not is_zero_cmd:
+        dt = float(getattr(env, "step_dt", 0.02))
+        want = (args_cli.cmd[0] ** 2 + args_cli.cmd[1] ** 2) ** 0.5
+        got = travelled / max(args_cli.steps * dt, 1e-6)
+        print(f"  实际位移   {travelled:.2f} m   平均速度 {got:.3f} m/s"
+              f"（指令 {want:.3f} m/s）")
 
     print("\n" + "═" * 66)
-    if final_gz < -0.7:
+    if final_gz >= -0.7:
+        print(f"❌ {label}下机器人摔了 → 低层策略本身撑不住这个指令。")
+        print("   若零指令能站住而带速指令会摔，说明策略只会站不会走。")
+        verdict = 1
+    elif is_zero_cmd:
         print("✅ 底层策略能让机器人站住 → 机器人/环境没问题，")
         print("   实践 5 的摔倒来自 HRL 接线（高层指令或观测重接线）。")
         verdict = 0
     else:
-        print("❌ 零指令下机器人就摔了 → 问题在机器人/环境侧，")
-        print("   底层策略与当前机器人资产不匹配（关节顺序/物理属性/观测契约）。")
-        verdict = 1
+        print(f"✅ 低层能在{label}下稳定行走 → 策略没问题，")
+        print("   导航环境里的摔倒来自 HRL 侧（指令分布、地形或观测重接线）。")
+        verdict = 0
     print("═" * 66 + "\n")
 
     env.close()

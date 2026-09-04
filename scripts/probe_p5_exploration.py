@@ -50,6 +50,10 @@ parser.add_argument("--std", type=float, default=0.20,
 parser.add_argument("--alphas", type=float, nargs="+", default=[0.1, 1.0],
                     help="要对照的 EMA 平滑系数")
 parser.add_argument("--seed", type=int, default=0)
+parser.add_argument("--oracle", action="store_true",
+                    help="改用脚本化『朝目标走』的高层策略，测任务的性能上界")
+parser.add_argument("--sweep", action="store_true",
+                    help="扫描恒定前进速度，找低层策略不摔倒的安全速度上限")
 parser.add_argument("--out", default=str(pathlib.Path.home()
                     / "humanoid_logs" / "p5_navigation" / "exploration_probe.json"),
                     help="结果 JSON（多次调用会累积合并，便于一次只跑一个 alpha）")
@@ -141,7 +145,192 @@ def run_one(alpha: float) -> dict:
     return res
 
 
+def _oracle_action(env) -> torch.Tensor:
+    """脚本化高层策略：转向目标 + 前进。用来测这个任务的性能上界。
+
+    动机：训练侧 goals_reached 恒为 0，但"学不会"有两种完全不同的原因 ——
+      A. RL 探索/优化不到位（策略问题，调超参有救）
+      B. 任务本身不可达（成功半径太小、目标在障碍里、时限不够 …… 调什么都没用）
+    用一个不需要学习的控制器就能把两者分开：oracle 到得了就是 A，到不了就是 B。
+
+    pose_command 的前两维是目标在**基座系**下的 xy 偏移，所以航向误差直接
+    就是 atan2(dy, dx)，不需要再做世界系到基座系的变换。
+    """
+    cmd = env.command_manager.get_command("pose_command")
+    dx, dy = cmd[:, 0], cmd[:, 1]
+    heading_err = torch.atan2(dy, dx)
+
+    act = torch.zeros(env.num_envs, 3, device=cmd.device)
+    # 先对准再走：航向偏差大时慢速转身，对准后全速前进。
+    # 这两个阈值不必精调 —— 只要能证明"存在一条策略能到达"即可。
+    aligned = heading_err.abs() < 0.6
+    act[:, 0] = torch.where(aligned, torch.full_like(dx, 1.0), torch.full_like(dx, 0.2))
+    act[:, 2] = torch.clamp(1.5 * heading_err, -0.5, 0.5)
+    return act
+
+
+def run_oracle() -> dict:
+    """让 oracle 跑满一个 episode，统计到达率与末端距离。"""
+    os.environ["NAV_COMMAND_SMOOTHING"] = "1.0"
+    env_cfg = parse_env_cfg(NAV_TASK, device="cuda:0",
+                            num_envs=args_cli.num_envs, use_fabric=True)
+    env = gym.make(NAV_TASK, cfg=env_cfg)
+    torch.manual_seed(args_cli.seed)
+    env.reset()
+    u = env.unwrapped
+
+    cmd0 = u.command_manager.get_command("pose_command")
+    d0 = torch.norm(cmd0[:, :2], dim=1).clone()
+    # success_radius 决定"多近算到"，是判定 B 类故障的关键参数之一
+    radius = float(u.command_manager.get_term("pose_command").cfg.success_radius)
+
+    reached = torch.zeros(args_cli.num_envs, dtype=torch.bool, device="cuda:0")
+    fell = torch.zeros(args_cli.num_envs, dtype=torch.bool, device="cuda:0")
+    d_min = d0.clone()
+
+    for _ in range(args_cli.steps):
+        obs, _, terminated, truncated, _ = env.step(_oracle_action(u))
+        d = torch.norm(u.command_manager.get_command("pose_command")[:, :2], dim=1)
+        # 只在未结束的 env 上更新，避免重生后的新目标污染统计
+        live = ~(reached | fell)
+        d_min = torch.where(live, torch.minimum(d_min, d), d_min)
+        reached |= live & (d < radius)
+        fell |= live & terminated
+
+    res = {
+        "mode": "oracle",
+        "success_radius": radius,
+        "start_dist_mean": float(d0.mean().item()),
+        "reached_rate": float(reached.float().mean().item()),
+        "fell_rate": float(fell.float().mean().item()),
+        "min_dist_mean": float(d_min.mean().item()),
+        "min_dist_best": float(d_min.min().item()),
+    }
+    env.close()
+    return res
+
+
+def run_sweep() -> dict:
+    """扫描恒定前进指令，测出低层策略的安全工作区间。
+
+    由来：oracle（转向目标 + vx=1.0 前进）摔倒率 84%、到达率 0。
+    这说明失败不在高层 RL，而在低层跟不住大速度指令。
+    但"跟不住"要量化成一条可用的边界才有指导意义 ——
+    我们需要知道：**最快能跑多少而不摔**，以及那个速度够不够在时限内走到目标。
+
+    判据不是"摔没摔"，而是"在时限内能推进多远"：
+    时限 = steps × step_dt，目标在 5~10 m 外，
+    所以有效射程 = 安全速度 × 时限，必须 > 目标距离才可能完成任务。
+    """
+    os.environ["NAV_COMMAND_SMOOTHING"] = "1.0"
+    env_cfg = parse_env_cfg(NAV_TASK, device="cuda:0",
+                            num_envs=args_cli.num_envs, use_fabric=True)
+    env = gym.make(NAV_TASK, cfg=env_cfg)
+    u = env.unwrapped
+    dt = float(getattr(u, "step_dt", 0.2))
+    horizon = args_cli.steps * dt
+
+    rows = []
+    for vx in [0.2, 0.3, 0.4, 0.5, 0.7, 1.0]:
+        torch.manual_seed(args_cli.seed)
+        env.reset()
+        act = torch.zeros(args_cli.num_envs, 3, device="cuda:0")
+        act[:, 0] = vx
+
+        start_xy = u.scene["robot"].data.root_pos_w[:, :2].clone()
+        prev_xy = start_xy.clone()
+        path = torch.zeros(args_cli.num_envs, device="cuda:0")
+        alive = torch.ones(args_cli.num_envs, dtype=torch.bool, device="cuda:0")
+        alive_steps = 0
+        first_fall = torch.full((args_cli.num_envs,), float(args_cli.steps),
+                                device="cuda:0")
+
+        for t in range(args_cli.steps):
+            _, _, terminated, truncated, _ = env.step(act)
+            cur = u.scene["robot"].data.root_pos_w[:, :2]
+            valid = alive & ~(terminated | truncated)
+            path += torch.where(valid, torch.norm(cur - prev_xy, dim=1),
+                                torch.zeros_like(path))
+            just_fell = alive & terminated
+            first_fall = torch.where(just_fell,
+                                     torch.full_like(first_fall, float(t)), first_fall)
+            prev_xy = cur
+            alive = valid
+            alive_steps += int(valid.sum().item())
+
+        fell = (first_fall < args_cli.steps)
+        speed = float(path.sum().item()) / max(alive_steps, 1) / dt
+        rows.append({
+            "cmd_vx": vx,
+            "actual_speed": speed,
+            "fall_rate": float(fell.float().mean().item()),
+            "survive_steps": float(first_fall.mean().item()),
+            # 有效射程：按实际速度和"平均能活多久"折算，比单看速度更贴近任务
+            "reach_in_horizon": speed * min(horizon,
+                                            float(first_fall.mean().item()) * dt),
+        })
+        print(f"  vx={vx:<4} 实际速度 {speed:.3f} m/s   摔倒率 "
+              f"{rows[-1]['fall_rate']*100:5.1f}%   存活 "
+              f"{rows[-1]['survive_steps']:5.1f} 步   有效射程 "
+              f"{rows[-1]['reach_in_horizon']:.2f} m", flush=True)
+
+    env.close()
+    return {"horizon_s": horizon, "step_dt": dt, "rows": rows}
+
+
 def main() -> int:
+    if args_cli.sweep:
+        print("=" * 68, flush=True)
+        print("实践 5 低层安全速度扫描", flush=True)
+        print(f"  每档 {args_cli.steps} 步，并行环境 = {args_cli.num_envs}", flush=True)
+        print("=" * 68, flush=True)
+        r = run_sweep()
+        out = Path(args_cli.out).with_name("speed_sweep.json")
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(r, indent=2, ensure_ascii=False))
+        print("\n" + "=" * 68, flush=True)
+        best = max(r["rows"], key=lambda x: x["reach_in_horizon"])
+        print(f"  时限 {r['horizon_s']:.0f} s   目标距离 5~10 m", flush=True)
+        print(f"  最优档位 vx={best['cmd_vx']}：有效射程 "
+              f"{best['reach_in_horizon']:.2f} m（摔倒率 "
+              f"{best['fall_rate']*100:.1f}%）", flush=True)
+        if best["reach_in_horizon"] >= 5.0:
+            print("\n  ✅ 存在可用速度档能覆盖最近的目标 —— "
+                  "把高层指令限幅收到该档即可让任务可解。", flush=True)
+        else:
+            print("\n  ❌ 任何速度档的有效射程都够不到 5 m —— "
+                  "必须先把低层练好，或缩短目标距离课程。", flush=True)
+        print(f"  已写入 {out}", flush=True)
+        return 0
+
+    if args_cli.oracle:
+        print("=" * 68, flush=True)
+        print("实践 5 性能上界探针：脚本化『朝目标走』的高层策略", flush=True)
+        print(f"  步数 = {args_cli.steps}，并行环境 = {args_cli.num_envs}", flush=True)
+        print("=" * 68, flush=True)
+        r = run_oracle()
+        print(f"\n  成功半径     {r['success_radius']:.2f} m", flush=True)
+        print(f"  初始距离     {r['start_dist_mean']:.2f} m", flush=True)
+        print(f"  到达率       {r['reached_rate']*100:.1f} %", flush=True)
+        print(f"  摔倒率       {r['fell_rate']*100:.1f} %", flush=True)
+        print(f"  最近距离     均值 {r['min_dist_mean']:.2f} m / "
+              f"最好 {r['min_dist_best']:.2f} m", flush=True)
+        print("\n" + "=" * 68, flush=True)
+        if r["reached_rate"] > 0.3:
+            print("  ✅ oracle 能到达 —— 任务可解，失败原因在 RL 探索/优化，", flush=True)
+            print("     继续调 entropy_coef / init_noise_std / 目标距离课程。", flush=True)
+        elif r["min_dist_mean"] < r["start_dist_mean"] * 0.5:
+            print("  ⚠️ oracle 能明显靠近但进不了成功半径 —— 先查 success_radius "
+                  "是否过小、时限是否够。", flush=True)
+        else:
+            print("  ❌ oracle 也走不过去 —— 任务侧有硬伤（低层跟踪、地形阻挡、"
+                  "指令朝向定义），调 RL 超参无用。", flush=True)
+        out = Path(args_cli.out).with_name("oracle_probe.json")
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(r, indent=2, ensure_ascii=False))
+        print(f"  已写入 {out}", flush=True)
+        return 0
+
     print("=" * 68, flush=True)
     print("实践 5 探索探针：EMA 平滑对随机策略位移的影响", flush=True)
     print(f"  随机策略 std = {args_cli.std}（与 init_noise_std 对齐）", flush=True)
