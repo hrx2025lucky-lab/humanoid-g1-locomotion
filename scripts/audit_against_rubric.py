@@ -225,6 +225,92 @@ def audit_p11() -> None:
     rec("ok" if n > 0 else "warn", 11, "验证结果有记录", f"{n} 处")
 
 
+def audit_p1() -> None:
+    print("\n══ 实践 1 · 环境搭建 ══")
+    print("   官方：PDF 报告 3-6 页，≥3 项环境截图 + 项目理解 5 问 + 简短分析 3 问")
+    d = DOCS / "实践1_环境搭建与项目理解.md"
+    rec("ok" if d.exists() else "bad", 1, "实践 1 报告存在")
+    # 官方 §5.2 项目理解 5 问 + §5.3 简短分析 3 问
+    for name, pats in [
+        ("三栈可用（IsaacSim/IsaacLab/MuJoCo）",
+         [r"Isaac ?Sim", r"Isaac ?Lab", r"MuJoCo"]),
+        ("①任务入口文件", [r"gym\.register|__init__\.py"]),
+        ("②环境配置文件", [r"velocity_env_cfg"]),
+        ("③PPO 配置文件", [r"rsl_rl_ppo_cfg"]),
+        ("④训练入口", [r"scripts/rsl_rl/train\.py"]),
+        ("⑤checkpoint 目录", [r"logs/rsl_rl"]),
+        ("分析1 --task 到环境创建流程", [r"parse_env_cfg|gym\.make"]),
+        ("分析2 训练与播放配置为何分开", [r"RobotPlayEnvCfg|播放配置"]),
+        ("分析3 play 如何找 checkpoint", [r"get_checkpoint_path"]),
+    ]:
+        n = has(d, *pats)
+        rec("ok" if n > 0 else "warn", 1, name, f"{n} 处")
+    # 环境实际可用比截图更硬
+    py = WS / "envs/isaaclab/bin/python"
+    rec("ok" if py.exists() else "bad", 1, "IsaacLab 环境存在")
+    rec("ok" if (WS / "repos/IsaacLab").exists() else "bad", 1, "IsaacLab 仓库存在")
+
+
+def audit_p5() -> None:
+    print("\n══ 实践 5 · 分层导航 ══")
+    print("   官方 Part1(50)：7个TODO + smoke test + 低层 eval 无梯度 + actor 376维")
+    print("   官方 Part2(50)：难度扩展 + 可复现配置 + 公平对照 + 定量定性 + 失败模式")
+    H5 = WS / ("shenlan_hw/hw5_navigation/unitree_rl_lab/source/unitree_rl_lab"
+               "/unitree_rl_lab/tasks/navigation")
+    act = H5 / "mdp/pre_trained_policy_action.py"
+    # Part 1：评分清单里写死的几条
+    left = subprocess.run(
+        ["grep", "-rl", "HOMEWORK_TODO", str(H5), "--include=*.py"],
+        capture_output=True, text=True).stdout
+    n_raise = has(act, r"raise NotImplementedError")
+    rec("ok" if n_raise <= 0 else "bad", 5, "7 个 TODO 无残留 NotImplementedError",
+        f"{max(n_raise,0)} 处")
+    rec("ok" if has(act, r"HOMEWORK_TODO_\d+_(START|END)") > 0 else "warn", 5,
+        "边界标记保留", f"{has(act, r'HOMEWORK_TODO')} 处")
+    rec("ok" if has(act, r"\.eval\(\)") > 0 else "bad", 5, "低层策略 .eval()")
+    rec("ok" if has(act, r"torch\.inference_mode\(\)|torch\.no_grad\(\)") > 0 else "bad",
+        5, "推理无梯度")
+    # ★ 本轮根因：带 history 的 ObservationManager 必须传 update_history=True
+    rec("ok" if has(act, r"update_history=True") > 0 else "bad", 5,
+        "低层观测历史正确更新（update_history=True）")
+    cfg = H5 / "robots/g1/29dof/navigation_env_cfg.py"
+    rec("ok" if has(cfg, r"376") > 0 else "warn", 5, "actor 观测 376 维有记录")
+    # Part 2：难度扩展与对照
+    d = DOCS / "实践5_分层强化学习导航.md"
+    for name, pats in [
+        ("难度扩展（V5 混合障碍/单目标）", [r"V5|MixedObstacle|SingleGoal"]),
+        ("定量指标", [r"到达.{0,4}(率|占比)|error_pos_2d"]),
+        ("失败模式分析", [r"失败模式|根因|排除"]),
+        ("可复现配置", [r"NAV_[A-Z_]+=|scripts/run_p5"]),
+    ]:
+        n = has(d, *pats)
+        rec("ok" if n > 0 else "warn", 5, name, f"{n} 处")
+    log = Path.home() / "humanoid_logs/p5_navigation/p5_baseline.log"
+    if log.exists():
+        t = log.read_text(errors="ignore")
+        g = re.findall(r"Episode_Termination/goal_reached: ([0-9.]+)", t)
+        rec("ok" if g and float(g[-1]) > 0.5 else "warn", 5,
+            "baseline 可训练且能到达目标",
+            f"到达终止占比 {g[-1]}" if g else "无数据")
+    else:
+        rec("bad", 5, "baseline 训练日志不存在")
+
+
+def audit_p10() -> None:
+    print("\n══ 实践 10 · HOI 人-物交互 ══")
+    print("   官方：3 组 TODO（metadata loader / RayCaster 配置 / 观测接线）")
+    hoi = None
+    for cand in (WS / "shenlan_hw/HOI_Mimic", WS / "shenlan_hw/hoi_mimic"):
+        if cand.exists():
+            hoi = cand
+            break
+    if hoi is None:
+        rec("warn", 10, "代码包未下载",
+            "pan.baidu.com/s/1fbSggWFaxc_mL-ZXyYMANg 提取码 nk8r")
+        return
+    rec("ok", 10, "代码包已下载", str(hoi.name))
+
+
 def audit_cross_cutting() -> None:
     """跨实践的通用陷阱检查。
 
@@ -261,9 +347,9 @@ def audit_cross_cutting() -> None:
         f"漏传 {len(bad)} 处: {bad[:3]}" if bad else "")
 
 
-AUDITS = {2: audit_p2, 3: audit_p3, 4: audit_p4, 6: audit_p6,
-          7: audit_p7, 8: audit_p8, 9: audit_p9, 11: audit_p11,
-          0: audit_cross_cutting}
+AUDITS = {1: audit_p1, 2: audit_p2, 3: audit_p3, 4: audit_p4, 5: audit_p5,
+          6: audit_p6, 7: audit_p7, 8: audit_p8, 9: audit_p9,
+          10: audit_p10, 11: audit_p11, 0: audit_cross_cutting}
 
 
 def main() -> int:
