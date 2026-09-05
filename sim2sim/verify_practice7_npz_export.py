@@ -118,7 +118,22 @@ def main() -> int:
     check("无全局漂移（确认是局部坐标而非世界坐标）", drift < 0.5,
           f"首尾质心位移 {drift:.3f} m")
 
-    print("\n── 5. 与实践 8 的接口契约 ──")
+    print("\n── 5. 坐标约定（官方 §6.3）──")
+    # 官方："建议将第一帧的 x、y 平移到原点"。参考样例确实这么做了，
+    # 说明是数据集既定约定而非可选项。
+    rp = ref["root_pos"]
+    check("首帧 xy 已平移到原点",
+          bool(abs(rp[0, 0]) < 1e-6 and abs(rp[0, 1]) < 1e-6),
+          f"首帧 xy = {rp[0, :2].round(4)}")
+    # z 不该平移：要保持"脚接近地面"的绝对高度
+    check("z 未被平移（脚接近地面）", 0.3 < float(rp[:, 2].mean()) < 1.2,
+          f"z 均值 {rp[:, 2].mean():.3f} m")
+    # 我们自己的导出脚本是否实现了这条
+    src = (GMR / "scripts/smplx_to_robot_npz.py").read_text()
+    check("导出脚本实现了首帧平移",
+          "root_pos[:, :2] -= root_pos[0, :2]" in src)
+
+    print("\n── 6. 与实践 8 的接口契约 ──")
     key_links = ["left_ankle_roll_link", "right_ankle_roll_link",
                  "left_wrist_yaw_link", "right_wrist_yaw_link"]
     have = [k for k in key_links if k in list(ref["link_body_list"])]
