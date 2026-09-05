@@ -60,7 +60,7 @@ run_p5() {
   esac
   local log; log="$(hp_log p5 "$key")"
   echo "──── 实践5 / $key ────  task=$task  envs=$NUM_ENVS  iters=$ITERS  seed=$SEED"
-  echo "     平滑=${NAV_COMMAND_SMOOTHING:-0.1(默认)}  熵系数=${NAV_ENTROPY_COEF:-0.005(默认)}"
+  echo "     平滑=${NAV_COMMAND_SMOOTHING:-1.0(默认,已关闭)}  熵系数=${NAV_ENTROPY_COEF:-0.005(默认)}"
   echo "     日志: $log"
   cd "$HW5"
   # 关键：Python 环境里装的 unitree_rl_lab 指向主仓库 repos/unitree_rl_lab，
