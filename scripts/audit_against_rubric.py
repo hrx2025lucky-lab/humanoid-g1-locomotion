@@ -26,6 +26,7 @@
 from __future__ import annotations
 
 import argparse
+import pathlib
 import re
 import subprocess
 from pathlib import Path
@@ -224,13 +225,51 @@ def audit_p11() -> None:
     rec("ok" if n > 0 else "warn", 11, "验证结果有记录", f"{n} 处")
 
 
+def audit_cross_cutting() -> None:
+    """跨实践的通用陷阱检查。
+
+    目前只有一项：手动建的 ObservationManager 若带 history，
+    调 compute_group 时必须传 update_history=True。
+    实践 5 因为漏传这个参数，低层策略的 5 帧历史从未更新
+    （"当前帧重复 5 次"），排查了十一轮才找到 —— 因为它不改变任何量级。
+    """
+    print("\n══ 跨实践 · 通用陷阱 ══")
+    bad = []
+    roots = [WS / "shenlan_hw", WS / "repos/unitree_rl_lab"]
+    for root in roots:
+        if not root.exists():
+            continue
+        out = subprocess.run(
+            ["grep", "-rn", "compute_group(", str(root), "--include=*.py"],
+            capture_output=True, text=True, timeout=120).stdout
+        for line in out.splitlines():
+            if ".venv" in line or "def compute_group" in line:
+                continue
+            # 只关心"没传 update_history"的调用；显式传 False 可能是有意的
+            if "update_history" not in line:
+                # 同一次调用可能跨行，取文件+行号再看一眼
+                path, lineno = line.split(":")[0], line.split(":")[1]
+                try:
+                    ctx = "".join(pathlib.Path(path).read_text(
+                        errors="ignore").splitlines(True)[int(lineno) - 1:int(lineno) + 3])
+                except Exception:
+                    ctx = line
+                if "update_history" not in ctx:
+                    bad.append(f"{pathlib.Path(path).name}:{lineno}")
+    rec("ok" if not bad else "warn", 0,
+        "compute_group 调用均已处理 update_history",
+        f"漏传 {len(bad)} 处: {bad[:3]}" if bad else "")
+
+
 AUDITS = {2: audit_p2, 3: audit_p3, 4: audit_p4, 6: audit_p6,
-          7: audit_p7, 8: audit_p8, 9: audit_p9, 11: audit_p11}
+          7: audit_p7, 8: audit_p8, 9: audit_p9, 11: audit_p11,
+          0: audit_cross_cutting}
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--practice", type=int, choices=sorted(AUDITS))
+    ap.add_argument("--practice", type=int, choices=sorted(AUDITS),
+                help="0 = 跨实践通用陷阱检查")
     args = ap.parse_args()
 
     if not COURSE.exists():
@@ -241,7 +280,8 @@ def main() -> int:
     print("对照官方评分细则的闭环审计")
     print("=" * 70)
 
-    todo = [args.practice] if args.practice else sorted(AUDITS)
+    # 用 is not None 而不是真值判断：--practice 0（跨实践检查）会被当成 falsy
+    todo = [args.practice] if args.practice is not None else sorted(AUDITS)
     for n in todo:
         AUDITS[n]()
 
