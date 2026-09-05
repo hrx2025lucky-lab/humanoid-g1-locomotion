@@ -56,7 +56,14 @@ draw() {
 
   echo
   echo "  ── 真实任务指标 ──"
-  printf "     %-24s %s\n" "goals_reached"  "$(metric 'goals_reached:' 3)"
+  # ★ 判据用 Episode_Termination/goal_reached 而不是 goals_reached。
+  # 后者只在 update_goal_on_success=True（到达后重采新目标）时才累加，
+  # 而 Baseline 用的是 SingleGoal 配置：到达即终止、不重采，
+  # 所以 goals_reached **恒为 0**，是这个任务下的无效指标。
+  # 实测踩过：修复 update_history 后 95.44% 的 episode 以到达目标结束，
+  # 而 goals_reached 仍显示 0.0000，差点被误判为训练失败。
+  printf "     %-24s %s\n" "到达终止占比" "$(metric 'Episode_Termination/goal_reached:' 3)"
+  printf "     %-24s %s\n" "摔倒终止占比" "$(metric 'Episode_Termination/bad_orientation:' 3)"
   printf "     %-24s %s\n" "error_pos_2d"   "$(metric 'error_pos_2d:' 3)"
   printf "     %-24s %s\n" "position_progress" "$(metric 'position_progress:' 3)"
 

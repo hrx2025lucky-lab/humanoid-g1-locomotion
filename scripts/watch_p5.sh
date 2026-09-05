@@ -39,7 +39,10 @@ check_once() {
   iter=$(grep -oE "Learning iteration [0-9]+/[0-9]+" "$LOG" 2>/dev/null | tail -1)
   ep_len=$(last "Mean episode length")
   prog=$(last "Episode_Reward/position_progress")
-  goals=$(last "Metrics/pose_command/goals_reached")
+  # ★ goals_reached 只在 update_goal_on_success=True 时累加，
+  # 而 Baseline 是 SingleGoal（到达即终止、不重采目标），所以它恒为 0。
+  # 真正的判据是"多少 episode 以到达目标结束"。
+  goals=$(last "Episode_Termination/goal_reached")
   err_now=$(last "Metrics/pose_command/error_pos_2d")
   err_early=$(nth_from_start "Metrics/pose_command/error_pos_2d" 5)
   term_out=$(last "Episode_Termination/time_out")
@@ -54,7 +57,7 @@ check_once() {
   printf "     %-26s %s\n" "bad_orientation 占比" "${bad:-—}"
   echo "  ── 真实任务指标 ──"
   printf "     %-26s %s\n" "position_progress" "${prog:-—}"
-  printf "     %-26s %s\n" "goals_reached" "${goals:-—}"
+  printf "     %-26s %s\n" "到达终止占比" "${goals:-—}"
   printf "     %-26s %s  (早期 ${err_early:-—})\n" "error_pos_2d" "${err_now:-—}"
 
   # 判据。训练早期（< WARMUP iter）高层还是随机策略，
