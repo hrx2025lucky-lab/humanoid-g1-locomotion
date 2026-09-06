@@ -1,0 +1,186 @@
+# 实践 10 · 基于 PHP 的 HOI 人-物交互运动跟踪
+
+> **状态**：代码包未下载（`pan.baidu.com/s/1fbSggWFaxc_mL-ZXyYMANg` 提取码 `nk8r`），
+> 目标路径 `shenlan_hw/HOI_Mimic/`。本文是**下载前就能做完的准备**：
+> 把官方规格逐条拆成可核对的清单，代码一到直接按清单实现，
+> 不用再回头读一遍 PDF。
+
+---
+
+## 一、任务是什么
+
+给 Unitree G1 29DoF 的 HOI（Human-Object Interaction）运动跟踪任务
+**接上 RayCaster 地形感知**。
+
+原本的 `Unitree-G1-29dof-Mimic-HOI_terrain` 是 **blind** 任务 ——
+机器人靠本体感知做动作跟踪，看不见地形。本作业把 height scanner 接进去，
+让 policy 和 critic 都能看到脚下 1.6×1.6 m 的高度图。
+
+只需完成**三组 TODO**，环境、奖励、PPO 都是现成的。
+
+## 二、三组 TODO 的逐条规格
+
+官方分值 20 + 20 + 20 = 60，其余 40 分是 smoke train、可视化、训练回放、代码质量。
+
+### TODO 1 · metadata loader（20 分）
+
+**文件**：`source/unitree_rl_lab/unitree_rl_lab/tasks/mimic/mdp/hoi_height_scan.py`
+
+补两个函数。验收重点是「数据读取、字段校验、full_size 转换、shape、dtype、device 正确」。
+
+#### `_normalize_box_record(entry, idx)`
+
+| # | 要求 | 容易漏的点 |
+|---|---|---|
+| a | 从 entry 读 `pos` / `quat` / `half_size` | |
+| b | 没有 `half_size` 但有 `full_size` 时，**每个边长除以 2** | 是 full→half，别搞反 |
+| c | 校验 `pos` 长度为 3 | |
+| d | 校验 `quat` 长度为 4，**顺序保持 wxyz** | 不要转成 xyzw（实践 7 那边才要转） |
+| e | 校验 `half_size` 长度为 3 | |
+| f | 数据非法抛 `ValueError`，**错误信息里必须带 box 下标 `idx`** | 这是明确的评分点，别只写"invalid box" |
+
+返回 `pos`(3) / `quat`(4, wxyz) / `half_size`(3)。
+
+#### `_load_boxes(metadata_file, device)`
+
+| # | 要求 |
+|---|---|
+| a | **UTF-8** 打开 metadata_file 读 JSON |
+| b | 读 `mjcf_boxes` 字段 |
+| c | 确认它是**非空 list** |
+| d | 每个 box 调 `_normalize_box_record()` |
+| e | 转成 `torch.float32` tensor |
+| f | tensor 必须落在**调用方传入的 device** |
+
+返回三个 tensor：
+
+```
+box_pos_local   [num_boxes, 3]
+box_quat_local  [num_boxes, 4]
+box_half        [num_boxes, 3]
+```
+
+**性能约束**（官方明确写了）：JSON 不能在每个仿真 step 重复读。
+RayCaster 只在 mesh bake 阶段调 loader，可按 `(metadata_file, device)` 做缓存，
+但**不要把逐帧文件 I/O 引入 observation 计算**。
+
+> `_build_grid_xy()`、`compute_hoi_height_scan()`、`hoi_height_scan()`
+> **不在作业范围**，不要动。
+
+### TODO 2 · RayCaster height scanner 配置（20 分）
+
+**文件**：`.../g1_29dof/hoi_mimic_terrain_perceptive_raycast/tracking_env_cfg.py`
+
+把 `RobotSceneCfg.height_scanner` 从 `None` 换成 `HoiMergedTerrainRayCasterCfg`：
+
+| 配置项 | 值 | 官方给的理由 |
+|---|---|---|
+| `prim_path` | `{ENV_REGEX_NS}/Robot/torso_link` | 扫描器随 torso 移动 |
+| `ray_alignment` | `"yaw"` | 网格保持水平，只跟随朝向 |
+| `pattern_cfg` | `GridPatternCfg(resolution=0.1, size=[1.6, 1.6])` | **17×17 = 289 点** |
+| `terrain_prim_path` | 每个环境中的 `HOI_Terrain` | 找到要烘焙的地形 prim |
+| `metadata_file` | `blind_cfg.TERRAIN_META_FILE` | 与 blind task 共用同一份 metadata |
+| `use_mjcf_boxes_mesh` | `True` | 用 mjcf_boxes 构建 mesh |
+| `include_ground_plane` | `True` | 否则 box 之外的射线全 miss |
+| `rebake_on_reset` | `False` | 地形位姿固定，不必每次 reset 重建 |
+
+**算一遍点数**：`size 1.6 / resolution 0.1 = 16`，`16 + 1 = 17` → 17×17 = 289。
+边界含两端，所以是 17 不是 16 —— 这个 off-by-one 直接决定观测维度对不对。
+
+### TODO 3 · observation 接入（20 分）
+
+**同一个文件**。分别补 `ObservationsCfg.PolicyCfg.height_scanner`
+和 `ObservationsCfg.PrivilegedCfg.height_scanner`。
+
+两者共同：
+
+```python
+func           = mdp.height_scan
+sensor_cfg     = SceneEntityCfg("height_scanner")
+offset         = 0.5
+clip           = (-1.0, 5.0)
+history_length = blind_cfg.PROPRIO_HISTORY_LENGTH
+```
+
+差异 —— **policy 加噪，critic 不加**：
+
+```python
+# 只有 PolicyCfg
+noise = Unoise(n_min=-0.02, n_max=0.02)
+```
+
+这是标准的非对称 actor-critic：critic 训练时可以用特权信息（无噪真值），
+actor 必须在带噪观测下学会鲁棒，否则 sim2real 会垮。
+实践 6 的教师-学生蒸馏是同一思路的另一种实现。
+
+**观测维度自检**：289 点 × `PROPRIO_HISTORY_LENGTH` 帧。
+下载后先把 `PROPRIO_HISTORY_LENGTH` 的实际值查出来，
+再核对 policy 输入层维度对不对。
+
+## 三、和已完成实践的复用关系
+
+| 技术点 | 已有实现 | 能否直接搬 |
+|---|---|---|
+| RayCaster + GridPattern | 实践 2 `hw2_sim2sim`、实践 5 `height_scan_pooled` | 配置写法可参考，参数不同 |
+| `mdp.height_scan` 的 offset/clip 语义 | 实践 5 用过 `offset=0.5` | 语义相同，直接对齐 |
+| policy 加噪 / critic 不加噪 | 实践 6 教师-学生 | 思路相同 |
+| 观测 history_length | **实践 5 的根因就在这**（§14） | ⚠️ 见下 |
+
+> ⚠️ **实践 5 的教训必须带过来**：`history_length` 只是声明观测要存几帧，
+> 真正让缓冲区滚动的是 `compute_group(..., update_history=True)`。
+> 实践 5 因为漏传这个参数，5 帧历史退化成"当前帧重复 5 次"，
+> 排查了十一轮才找到 —— 因为它不改变任何张量形状、不报错、不改变量级。
+>
+> 实践 10 走的是 IsaacLab 标准 `ManagerBasedRLEnv`（不是 HRL 那种自建低层
+> obs manager），正常路径会传 `update_history=True`，**大概率不受影响**。
+> 但接完 TODO 3 后值得花一分钟验证，方法见实践 5 文档 §14 的
+> `verify_p5_history_frozen.py`：抓两帧观测，比较历史槽位是否真的在滚动。
+
+## 四、验收顺序（官方建议，别跳步）
+
+官方明确写了：「如果 blind 任务无法创建，优先检查 Isaac Lab 安装、任务注册、
+数据路径和 rsl_rl，**不要先调试 RayCaster TODO**」。
+
+```bash
+cd "${PROJECT_ROOT}" && source set_project_root.sh
+
+# ① 可选：blind 基线 smoke train —— 先证明基础环境是好的
+python scripts/rsl_rl/train.py --task Unitree-G1-29dof-Mimic-HOI_terrain \
+    --num_envs 64 --max_iterations 10 --headless --logger tensorboard
+
+# ② 必做：感知任务 smoke train
+#    验收：连续运行、无 NaN/Inf、无路径/shape 错误、无 NotImplementedError
+
+# ③ RayCaster 可视化：截图命中点，检查网格是否随 yaw 转动、高度统计是否合理
+
+# ④ 正式训练 → checkpoint → play 回放
+```
+
+这个顺序的价值在于**把"基础环境坏了"和"我的 TODO 写错了"分开**。
+实践 5 排查时吃过亏：一开始没有隔离变量，把环境问题当成算法问题查了很久。
+
+## 五、评分表（对照用）
+
+| 项目 | 分值 | 验收重点 |
+|---|---|---|
+| TODO 1 metadata loader | 20 | 读取、字段校验、full_size 转换、shape/dtype/device |
+| TODO 2 RayCaster 配置 | 20 | 挂载、扫描网格、地形 mesh、reset 策略 |
+| TODO 3 observation 接入 | 20 | height 语义、history、noise、clipping |
+| Smoke train 与数值检查 | 10 | 连续运行且无 NaN/Inf |
+| RayCaster 可视化 | 10 | 扫描点、网格运动方式、高度统计合理 |
+| 训练与回放 | 15 | 生成 checkpoint 并成功播放，tracking 表现合理 |
+| 代码质量与改动范围 | 5 | 实现清晰、无无关改动 |
+
+**提交物**：补全的 `hoi_height_scan.py`、补全的 `tracking_env_cfg.py`、
+smoke train 终端输出、RayCaster 命中点截图/录屏、正式训练日志 + checkpoint 路径
++ 回放截图/视频。提交整个项目时还要附 `git diff --stat`。
+
+## 六、下载后的第一步
+
+```bash
+cd "/home/limx/workspace/Roxan_warmup/motion control/humanoid_practice/g1_locomotion"
+python3 scripts/check_downloads.py          # 确认放对位置
+python3 scripts/audit_against_rubric.py --practice 10
+```
+
+审计脚本已经按上面的评分细则写好断言，会告诉你哪几条还没做到。

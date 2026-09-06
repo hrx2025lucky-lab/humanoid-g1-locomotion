@@ -357,6 +357,78 @@ def audit_p10() -> None:
         return
     rec("ok", 10, "代码包已下载", str(hoi.name))
 
+    # ── TODO 1（20 分）：metadata loader ──
+    scan = find_file("hoi_height_scan.py", hoi)
+    if scan is None:
+        rec("bad", 10, "找不到 hoi_height_scan.py")
+    else:
+        rec("ok" if has(scan, r"raise NotImplementedError") <= 0 else "bad",
+            10, "TODO1 无残留 NotImplementedError")
+        for name, pats in [
+            # full_size → half_size 是除以 2，方向别搞反
+            ("full_size 转 half_size", [r"full_size", r"/\s*2|\*\s*0\.5|/=\s*2"]),
+            # 官方明确要求错误信息里带 box 下标，便于定位 metadata
+            ("ValueError 带 box 下标 idx", [r"raise ValueError"]),
+            ("转 float32", [r"float32|torch\.float"]),
+            ("落在传入的 device", [r"device\s*=\s*device|to\(device\)"]),
+            ("读 mjcf_boxes 字段", [r"mjcf_boxes"]),
+            ("UTF-8 读 JSON", [r"utf-8|utf8"]),
+        ]:
+            n = has(scan, *pats)
+            rec("ok" if n > 0 else "bad", 10, f"TODO1 {name}", f"{n} 处")
+
+        # 错误信息必须含 idx，只写 raise ValueError 不够
+        try:
+            text = scan.read_text(errors="ignore")
+            idx_in_err = bool(re.search(
+                r"ValueError\([^)]*\{?\s*idx", text)) or bool(
+                re.search(r"ValueError\(f?['\"][^'\"]*\{idx", text))
+        except OSError:
+            idx_in_err = False
+        rec("ok" if idx_in_err else "warn", 10,
+            "TODO1 ValueError 信息里含 idx",
+            "" if idx_in_err else "官方要求错误信息带 box 下标，便于定位记录")
+
+    # ── TODO 2 + 3（各 20 分）：都在 tracking_env_cfg.py ──
+    cfg = find_file("tracking_env_cfg.py", hoi)
+    if cfg is None:
+        rec("bad", 10, "找不到 tracking_env_cfg.py")
+        return
+
+    for name, pats in [
+        ("挂在 torso_link", [r"torso_link"]),
+        ("ray_alignment=yaw", [r"ray_alignment\s*=\s*['\"]yaw['\"]"]),
+        ("GridPattern resolution=0.1", [r"resolution\s*=\s*0\.1"]),
+        ("GridPattern size=[1.6,1.6]", [r"1\.6"]),
+        ("terrain_prim_path 指向 HOI_Terrain", [r"HOI_Terrain"]),
+        ("metadata_file 复用 blind cfg", [r"TERRAIN_META_FILE"]),
+        ("use_mjcf_boxes_mesh=True", [r"use_mjcf_boxes_mesh\s*=\s*True"]),
+        ("include_ground_plane=True", [r"include_ground_plane\s*=\s*True"]),
+        ("rebake_on_reset=False", [r"rebake_on_reset\s*=\s*False"]),
+    ]:
+        n = has(cfg, *pats)
+        rec("ok" if n > 0 else "bad", 10, f"TODO2 {name}", f"{n} 处")
+
+    for name, pats in [
+        ("offset=0.5", [r"offset\s*=\s*0\.5"]),
+        ("clip=(-1.0, 5.0)", [r"-1\.0\s*,\s*5\.0"]),
+        ("history_length 用 PROPRIO_HISTORY_LENGTH", [r"PROPRIO_HISTORY_LENGTH"]),
+        ("policy 加 Unoise ±0.02", [r"0\.02"]),
+    ]:
+        n = has(cfg, *pats)
+        rec("ok" if n > 0 else "bad", 10, f"TODO3 {name}", f"{n} 处")
+
+    # 非对称 actor-critic 的关键：policy 加噪、critic 不加。
+    # 两处都写了 Unoise 就说明 critic 也被加了噪，等于白做特权观测。
+    try:
+        n_unoise = len(re.findall(r"Unoise", cfg.read_text(errors="ignore")))
+    except OSError:
+        n_unoise = 0
+    # 文件里其它观测项也会用 Unoise，所以只能给出提示而非硬判定
+    rec("ok" if n_unoise > 0 else "warn", 10,
+        "TODO3 policy/critic 噪声不对称",
+        f"全文件 {n_unoise} 处 Unoise —— 需人工确认 critic 的 height_scanner 没加")
+
 
 def audit_cross_cutting() -> None:
     """跨实践的通用陷阱检查。
