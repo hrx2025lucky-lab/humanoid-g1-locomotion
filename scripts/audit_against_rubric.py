@@ -201,6 +201,31 @@ def audit_p7() -> None:
     rec("ok" if npzs else "warn", 7, "ACCAD 动作数据已就位",
         "" if npzs else "缺动作素材，下载 1uOQoYtDs6-hwgDHBjMgpag 提取码 kh5i（1.04G）")
 
+    # 官方 §4.1 把"GMR 环境配置与流程跑通"单列为 20 分，
+    # 而此前所有环境都没装 smplx / general_motion_retargeting ——
+    # 22/22 的产物验证是用构造数据做的，没跑过 GMR 本体，所以没暴露。
+    gmr_py = WS / "envs/gmr/bin/python"
+    if not gmr_py.exists():
+        rec("warn", 7, "GMR 运行环境已建",
+            "作业 §4.1 要求 conda create -p envs/gmr python=3.10")
+    else:
+        try:
+            out = subprocess.run(
+                [str(gmr_py), "-c",
+                 "import general_motion_retargeting, smplx, torch, numpy;"
+                 "print(numpy.__version__)"],
+                capture_output=True, text=True, timeout=120)
+            ok = out.returncode == 0
+            ver = out.stdout.strip()
+        except (subprocess.TimeoutExpired, OSError):
+            ok, ver = False, ""
+        rec("ok" if ok else "warn", 7, "GMR 依赖可导入",
+            "" if ok else "envs/gmr 存在但 import 失败，检查安装是否中断")
+        # 官方 §4.1 要求装依赖前先把 numpy 钉到 1.26.4
+        if ok:
+            rec("ok" if ver.startswith("1.26") else "warn", 7,
+                "numpy 按官方要求锁 1.26.4", f"实测 {ver}")
+
 
 def audit_p8() -> None:
     print("\n══ 实践 8 · AMP 拟人走跑 ══")
