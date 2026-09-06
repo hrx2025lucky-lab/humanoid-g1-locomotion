@@ -26,9 +26,11 @@
 from __future__ import annotations
 
 import argparse
+import json
 import pathlib
 import re
 import subprocess
+import textwrap
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -216,7 +218,9 @@ def audit_p7() -> None:
                  "print(numpy.__version__)"],
                 capture_output=True, text=True, timeout=120)
             ok = out.returncode == 0
-            ver = out.stdout.strip()
+            # GMR 导入时会打 xrobotoolkit_sdk 之类的提示，
+            # 整块 stdout 拿来比对版本号会被这些噪声污染，只取最后一行
+            ver = out.stdout.strip().splitlines()[-1].strip() if out.stdout.strip() else ""
         except (subprocess.TimeoutExpired, OSError):
             ok, ver = False, ""
         rec("ok" if ok else "warn", 7, "GMR 依赖可导入",
@@ -225,6 +229,72 @@ def audit_p7() -> None:
         if ok:
             rec("ok" if ver.startswith("1.26") else "warn", 7,
                 "numpy 按官方要求锁 1.26.4", f"实测 {ver}")
+
+    # 上面查的都是"代码里有没有写"，查不出产物对不对。
+    # 作业讲解（参考答案）给了五条可直接验证的硬指标，逐条查真实 npz。
+    out_dirs = [WS / "datasets/g1_amp_npz",
+                WS / ("shenlan_hw/unitree_lab_amp/source/unitree_rl_lab/unitree_rl_lab"
+                      "/tasks/locomotion/amp/data")]
+    prods = [p for d in out_dirs if d.is_dir() for p in d.rglob("*.npz")]
+    if not prods:
+        rec("warn", 7, "已有重定向产物可校验", "还没产出 npz")
+        return
+    if not gmr_py.exists():
+        return
+
+    probe = textwrap.dedent(f"""
+        import numpy as np, sys, json
+        f = r"{prods[0]}"
+        out = {{}}
+        # 参考答案：必须能 allow_pickle=False 读取（不能存成 dtype=object）
+        try:
+            d = np.load(f, allow_pickle=False); out["nopickle"] = True
+        except Exception:
+            d = np.load(f, allow_pickle=True); out["nopickle"] = False
+        out["fields"] = sorted(d.files)
+        out["dof29"] = list(d["dof_pos"].shape[1:]) == [29]
+        rr = d["root_rot"]
+        out["quat_unit"] = bool(np.allclose(np.linalg.norm(rr, axis=1), 1.0, atol=1e-4))
+        links = [str(x).lower() for x in d["link_body_list"]]
+        out["ankles"] = sum("ankle" in l for l in links)
+        out["wrists"] = sum("wrist" in l for l in links)
+        out["local_min_z"] = float(d["local_body_pos"][:, :, 2].min())
+        # 参考答案：根高应使双脚贴近地面
+        ank = [i for i, l in enumerate(links) if "ankle_roll" in l]
+        if ank:
+            wz = d["root_pos"][:, 2][:, None] + d["local_body_pos"][:, ank, 2]
+            out["foot_min_z"] = float(wz.min())
+        print(json.dumps(out))
+    """)
+    try:
+        r = subprocess.run([str(gmr_py), "-c", probe],
+                           capture_output=True, text=True, timeout=180)
+        info = json.loads(r.stdout.strip().splitlines()[-1])
+    except Exception:  # noqa: BLE001
+        rec("warn", 7, "产物校验未跑成", "gmr 环境或 npz 有问题")
+        return
+
+    need = {"root_pos", "root_rot", "dof_pos", "local_body_pos", "link_body_list", "fps"}
+    checks = [
+        ("产物 allow_pickle=False 可读", info.get("nopickle"),
+         "存成了 dtype=object，AMP 侧读不了"),
+        ("六个必需字段齐全", need <= set(info.get("fields", [])),
+         f"实际 {info.get('fields')}"),
+        ("dof_pos 形状 (T,29)", info.get("dof29"), "维度不是 29"),
+        ("四元数已归一化", info.get("quat_unit"), "模长偏离 1"),
+        ("含双脚踝与双手腕连杆", info.get("ankles", 0) >= 2 and info.get("wrists", 0) >= 2,
+         f"ankle {info.get('ankles')} · wrist {info.get('wrists')}"),
+        ("local_body_pos 最低点为负", info.get("local_min_z", 1) < 0,
+         "根未置原点或存了世界坐标"),
+    ]
+    for name, ok, why in checks:
+        rec("ok" if ok else "bad", 7, f"[产物] {name}", "" if ok else why)
+
+    fz = info.get("foot_min_z")
+    if fz is not None:
+        # 脚踝 roll 关节离地还有鞋底厚度，贴地时约在 0~0.12 m
+        rec("ok" if abs(fz) < 0.12 else "warn", 7,
+            "[产物] 双脚贴近地面", f"最低脚踝 z={fz:.4f} m")
 
 
 def audit_p8() -> None:
@@ -328,10 +398,43 @@ def audit_p9() -> None:
 
 def audit_p11() -> None:
     print("\n══ 实践 11 · Instinct 跑酷 ══")
+    print("   官方：深度图管线 + sim2sim 接口对齐 + Instinct 训练")
     d = DOCS / "实践11_跑酷与深度感知.md"
     rec("ok" if d.exists() else "bad", 11, "实验文档存在")
     n = has(d, r"\d+\s*/\s*\d+\s*(通过|项)")
     rec("ok" if n > 0 else "warn", 11, "验证结果有记录", f"{n} 处")
+
+    # 作业讲解（参考答案）把"两套仿真器接口不对齐"列为核心挑战，
+    # 点名六项必须显式对齐。文档一度只写了深度图管线，漏掉整块。
+    for name, pats in [
+        ("文档覆盖关节顺序对齐", [r"关节顺序|POLICY_JOINT_NAMES"]),
+        ("文档覆盖关节正方向", [r"正方向|JOINT_SIGNS"]),
+        ("文档覆盖动作尺度", [r"动作尺度|ACTION_SCALES"]),
+        ("文档覆盖默认姿态", [r"默认姿态|DEFAULT_JOINT_POS"]),
+        ("文档覆盖 decimation 控制频率", [r"DECIMATION|decimation"]),
+        ("文档覆盖六类本体观测", [r"projected_gravity", r"joint_pos_rel"]),
+    ]:
+        n = has(d, *pats)
+        rec("ok" if n > 0 else "warn", 11, name, f"{n} 处")
+
+    # 深度图队列的两个确定数字，参考答案明确给了
+    for name, pats in [("60 帧队列抽 8 帧", [r"60\s*帧", r"8\s*帧"])]:
+        n = has(d, *pats)
+        rec("ok" if n > 0 else "warn", 11, name, f"{n} 处")
+
+    # 实跑深度管线验证，而不是只看文档里写了几分之几
+    v = REPO / "sim2sim/verify_practice11_depth.py"
+    if v.exists():
+        py = WS / "envs/isaaclab/bin/python"
+        try:
+            out = subprocess.run([str(py), str(v)], capture_output=True,
+                                 text=True, timeout=300, cwd=str(REPO))
+            m = re.search(r"结果：(\d+)/(\d+)", out.stdout)
+            ok = bool(m) and m.group(1) == m.group(2)
+            rec("ok" if ok else "bad", 11, "深度管线验证实跑通过",
+                m.group(0) if m else "没解析到结果")
+        except (subprocess.TimeoutExpired, OSError):
+            rec("warn", 11, "深度管线验证实跑通过", "脚本没跑成")
 
 
 def audit_p1() -> None:
@@ -485,6 +588,9 @@ def audit_p10() -> None:
         ("use_mjcf_boxes_mesh=True", [r"use_mjcf_boxes_mesh\s*=\s*True"]),
         ("include_ground_plane=True", [r"include_ground_plane\s*=\s*True"]),
         ("rebake_on_reset=False", [r"rebake_on_reset\s*=\s*False"]),
+        # 参考答案强调三次（讲解 57/93/113 行 + 优化建议第 1 条），
+        # 但官方作业正文的配置表里没有 —— 只看作业 PDF 会漏掉
+        ("OffsetCfg(z=20) 射线起点抬高", [r"OffsetCfg", r"20\.0|20\)"]),
     ]:
         n = has(cfg, *pats)
         rec("ok" if n > 0 else "bad", 10, f"TODO2 {name}", f"{n} 处")
@@ -493,6 +599,7 @@ def audit_p10() -> None:
         ("offset=0.5", [r"offset\s*=\s*0\.5"]),
         ("clip=(-1.0, 5.0)", [r"-1\.0\s*,\s*5\.0"]),
         ("history_length 用 PROPRIO_HISTORY_LENGTH", [r"PROPRIO_HISTORY_LENGTH"]),
+        # 参考答案给了确定值：289 点 × 8 帧 = 2312 维
         ("policy 加 Unoise ±0.02", [r"0\.02"]),
     ]:
         n = has(cfg, *pats)

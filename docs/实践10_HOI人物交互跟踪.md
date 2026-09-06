@@ -83,6 +83,20 @@ RayCaster 只在 mesh bake 阶段调 loader，可按 `(metadata_file, device)` �
 | `use_mjcf_boxes_mesh` | `True` | 用 mjcf_boxes 构建 mesh |
 | `include_ground_plane` | `True` | 否则 box 之外的射线全 miss |
 | `rebake_on_reset` | `False` | 地形位姿固定，不必每次 reset 重建 |
+| **`offset`** | **`OffsetCfg(pos=(0.0, 0.0, 20.0))`** | **射线起点抬到 20 m 高处垂直向下测高，减少自碰、内嵌与 miss** |
+
+> ⚠️ **`OffsetCfg(z=20)` 是参考答案强调了三次的点**（作业讲解第 57、93、113 行，
+> 以及"作业优化与常见问题"第 1 条："与参考写法一致，起点更稳"）。
+> 官方作业正文的配置表里没有它，只有讲解里提 —— 光看作业 PDF 会漏掉。
+>
+> **注意这里有两套 offset，别混**：
+>
+> | | 是什么 | 值 |
+> |---|---|---|
+> | `RayCasterCfg.offset` | 传感器的**几何起点**，射线从哪儿发出 | `pos=(0,0,20)` |
+> | `ObsTerm(offset=...)` | **观测的高度基准**，扫描高度减去它再喂给网络 | `0.5` |
+>
+> 一个是物理位置，一个是数值平移，同名但完全无关。
 
 **算一遍点数**：`size 1.6 / resolution 0.1 = 16`，`16 + 1 = 17` → 17×17 = 289。
 边界含两端，所以是 17 不是 16 —— 这个 off-by-one 直接决定观测维度对不对。
@@ -113,9 +127,11 @@ noise = Unoise(n_min=-0.02, n_max=0.02)
 actor 必须在带噪观测下学会鲁棒，否则 sim2real 会垮。
 实践 6 的教师-学生蒸馏是同一思路的另一种实现。
 
-**观测维度自检**：289 点 × `PROPRIO_HISTORY_LENGTH` 帧。
-下载后先把 `PROPRIO_HISTORY_LENGTH` 的实际值查出来，
-再核对 policy 输入层维度对不对。
+**观测维度自检**：参考答案直接给了确定值 —— `PROPRIO_HISTORY_LENGTH = 8`，
+所以 **289 × 8 = 2312**。接完 TODO3 打出实际维度对一下，不等于 2312 就是哪里错了。
+
+常见错法是 `size 1.6 / resolution 0.1 = 16` 就当 16×16=256，
+漏了边界含两端应该是 17 —— 256×8=2048，差 264 维，网络照样能建起来不报错。
 
 ## 三、和已完成实践的复用关系
 
@@ -174,6 +190,70 @@ python scripts/rsl_rl/train.py --task Unitree-G1-29dof-Mimic-HOI_terrain \
 **提交物**：补全的 `hoi_height_scan.py`、补全的 `tracking_env_cfg.py`、
 smoke train 终端输出、RayCaster 命中点截图/录屏、正式训练日志 + checkpoint 路径
 + 回放截图/视频。提交整个项目时还要附 `git diff --stat`。
+
+## 五点五、参考答案额外提的（作业 PDF 里没有）
+
+作业讲解（参考答案）除了三组 TODO，还给了一批只在讲解里出现的要求和建议。
+
+### 提交时的六个注意事项
+
+参考答案"作业优化与常见问题"逐条点名，都是**会丢分但容易忽略**的：
+
+1. RayCaster 补 `OffsetCfg(z=20)`，与参考写法一致
+2. `_load_boxes` 按 `(metadata_file, device)` 缓存 tensor
+   —— 注意讲解特意澄清："**用 numpy 做校验 ≠ 会每 step 读盘；反复读盘是因为未缓存**"
+3. 提交的必须是**感知版** `tracking_env_cfg`，别交错成 `HOI_Box` 的 cfg
+4. smoke train 要交**完整训练终端日志**，不要只交 `[HEIGHT_SCAN]` 打印截图
+5. 正式训练要交 `.pt` checkpoint + 回放视频/截图
+6. play 异常时**先关 curriculum/DR 再查** —— 代码对齐不代表策略已收敛
+
+第 6 条值得展开：实践 5 排查时吃过同类亏 —— 没隔离变量就查算法，
+把环境/课程设置的问题当成实现 bug 追了很久。
+
+### blind vs perceptive 消融（讲解建议的验收方式）
+
+参考答案把它列为"把当前感知链路做扎实"的收尾动作：
+**同一段 motion 下，比较 blind 与 perceptive 两版的跟踪误差与终止率**。
+
+这比"感知版能跑起来"强得多 —— 后者只证明代码没崩，
+前者才证明**height scan 真的被策略用上了**。
+
+官方建议的 blind 基线命令本来只是用来排查环境问题的：
+
+```bash
+python scripts/rsl_rl/train.py --task Unitree-G1-29dof-Mimic-HOI_terrain \
+    --num_envs 64 --max_iterations 10 --headless --logger tensorboard
+```
+
+把它跑满同样轮数，就成了对照组。**两组训练量必须对齐** ——
+实践 6 栽过这个跟头（KL 组 1515 轮 vs action 组 2999 轮），
+实践 5 的对照脚本现在会在 iter 相差超 20% 时拒绝给结论。
+
+### 其它可选进阶
+
+- 调扫描几何 `size` / `resolution`：更大视野 vs 更细网格的算力权衡
+- 试不同 `history_length`：更长历史有助于看趋势，但增大观测与网络负担
+- 关注 hit 分布：box 顶面 vs ground，**避免大面积 inf 污染梯度**
+- 分析 height scan 时序：攀爬前后局部高度场怎么变、策略是否用上了
+- 记录 motion error / anchor 与 ee 终止 / reward 分解，
+  用来定位瓶颈在**感知**还是**跟踪**
+
+### 这个作业在论文里的位置
+
+对应论文 *Perceptive Humanoid Parkour — Chaining Dynamic Human Skills via Motion Matching*
+中「**特权状态 + height scan 的 motion-tracking expert**」这一段。
+
+完整链路是：
+
+```
+OmniRetarget → Motion Matching → height-scan expert → 深度图 student（DAgger/PPO）→ 真机
+                                  ↑ 本作业在这里
+```
+
+打通后可继续向 student 蒸馏（正是实践 6 的技术）、技能组合与真机迁移推进
+（实践 11 的深度图流水线就是 student 侧）。
+
+---
 
 ## 六、下载后的第一步
 
