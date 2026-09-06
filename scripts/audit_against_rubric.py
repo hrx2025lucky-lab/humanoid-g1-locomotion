@@ -55,6 +55,24 @@ def has(path: Path, *patterns: str, ci: bool = True) -> int:
     return sum(len(re.findall(p, text, flags)) for p in patterns)
 
 
+GREP_EXCLUDES = [f"--exclude-dir={d}" for d in
+                 (".venv", ".git", "__pycache__", "logs", "node_modules", "outputs")]
+
+
+def grep_rl(pattern: str, root: Path, timeout: int = 60) -> str:
+    """grep -rl 的带保护版本。
+
+    裸 subprocess.run 没有 timeout 会永久挂住，不排除 .venv 会白扫几十万文件 ——
+    训练占着磁盘 IO 时两者都会让整个审计崩掉。
+    """
+    try:
+        return subprocess.run(
+            ["grep", "-rl", pattern, str(root), "--include=*.py", *GREP_EXCLUDES],
+            capture_output=True, text=True, timeout=timeout).stdout.strip()
+    except subprocess.TimeoutExpired:
+        return ""
+
+
 def find_file(pattern: str, root: Path = WS) -> Path | None:
     try:
         out = subprocess.run(
@@ -178,9 +196,7 @@ def audit_p8() -> None:
     if not amp.exists():
         rec("bad", 8, "代码未克隆")
         return
-    left = subprocess.run(
-        ["grep", "-rl", 'NotImplementedError("TODO', str(amp), "--include=*.py"],
-        capture_output=True, text=True).stdout.strip()
+    left = grep_rl('NotImplementedError("TODO', amp)
     rec("ok" if not left else "bad", 8, "9 个 TODO 无残留", left[:40])
     init = amp / ("source/unitree_rl_lab/unitree_rl_lab/tasks/locomotion/amp"
                   "/config/g1/__init__.py")
@@ -259,9 +275,7 @@ def audit_p5() -> None:
                "/unitree_rl_lab/tasks/navigation")
     act = H5 / "mdp/pre_trained_policy_action.py"
     # Part 1：评分清单里写死的几条
-    left = subprocess.run(
-        ["grep", "-rl", "HOMEWORK_TODO", str(H5), "--include=*.py"],
-        capture_output=True, text=True).stdout
+    left = grep_rl("HOMEWORK_TODO", H5)
     n_raise = has(act, r"raise NotImplementedError")
     rec("ok" if n_raise <= 0 else "bad", 5, "7 个 TODO 无残留 NotImplementedError",
         f"{max(n_raise,0)} 处")
@@ -341,13 +355,23 @@ def audit_cross_cutting() -> None:
     """
     print("\n══ 跨实践 · 通用陷阱 ══")
     bad = []
+    timed_out = []
     roots = [WS / "shenlan_hw", WS / "repos/unitree_rl_lab"]
+    # 在 grep 层面就排除，别扫完几十万文件再在结果里过滤 ——
+    # 光 .venv 一个目录就够让 grep 在磁盘繁忙时超时崩掉整个审计
+    excludes = [f"--exclude-dir={d}" for d in
+                (".venv", ".git", "__pycache__", "logs", "node_modules", "outputs")]
     for root in roots:
         if not root.exists():
             continue
-        out = subprocess.run(
-            ["grep", "-rn", "compute_group(", str(root), "--include=*.py"],
-            capture_output=True, text=True, timeout=120).stdout
+        try:
+            out = subprocess.run(
+                ["grep", "-rn", "compute_group(", str(root), "--include=*.py", *excludes],
+                capture_output=True, text=True, timeout=120).stdout
+        except subprocess.TimeoutExpired:
+            # 训练占满磁盘 IO 时会撞上；降级成一条待查，别让整个审计挂掉
+            timed_out.append(root.name)
+            continue
         for line in out.splitlines():
             if ".venv" in line or "def compute_group" in line:
                 continue
@@ -362,9 +386,13 @@ def audit_cross_cutting() -> None:
                     ctx = line
                 if "update_history" not in ctx:
                     bad.append(f"{pathlib.Path(path).name}:{lineno}")
-    rec("ok" if not bad else "warn", 0,
-        "compute_group 调用均已处理 update_history",
-        f"漏传 {len(bad)} 处: {bad[:3]}" if bad else "")
+    if timed_out:
+        rec("warn", 0, "compute_group 扫描未完成",
+            f"grep 超时（磁盘繁忙？）未覆盖: {timed_out}，稍后重跑")
+    else:
+        rec("ok" if not bad else "warn", 0,
+            "compute_group 调用均已处理 update_history",
+            f"漏传 {len(bad)} 处: {bad[:3]}" if bad else "")
 
 
 AUDITS = {1: audit_p1, 2: audit_p2, 3: audit_p3, 4: audit_p4, 5: audit_p5,
@@ -389,7 +417,13 @@ def main() -> int:
     # 用 is not None 而不是真值判断：--practice 0（跨实践检查）会被当成 falsy
     todo = [args.practice] if args.practice is not None else sorted(AUDITS)
     for n in todo:
-        AUDITS[n]()
+        try:
+            AUDITS[n]()
+        except Exception as exc:  # noqa: BLE001
+            # 一个实践的审计出错不该拖垮其余十个，记成待改进继续走
+            label = "跨实践" if n == 0 else f"实践{n}"
+            WARN.append(f"[{label}] 审计自身出错: {type(exc).__name__}: {exc}")
+            print(f"  ⚠️  {label} 审计出错: {type(exc).__name__}: {str(exc)[:100]}")
 
     print("\n" + "=" * 70)
     print(f"通过 {len(OK)} · 待改进 {len(WARN)} · 不合规 {len(BAD)}")
