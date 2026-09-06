@@ -545,8 +545,18 @@ def audit_p10() -> None:
     if scan is None:
         rec("bad", 10, "找不到 hoi_height_scan.py")
     else:
-        rec("ok" if has(scan, r"raise NotImplementedError") <= 0 else "bad",
-            10, "TODO1 无残留 NotImplementedError")
+        # 只看作业范围内的两个函数。文件里另有三个 legacy analytical scanner
+        # 函数（_build_grid_xy / compute_hoi_height_scan / hoi_height_scan），
+        # 作业明确写"不在本次范围内，不需要实现"，它们的 NotImplementedError
+        # 是上游有意保留的，不能当成未完成。
+        try:
+            text = scan.read_text(errors="ignore")
+            todo_left = len(re.findall(r'NotImplementedError\("TODO\(student\)', text))
+        except OSError:
+            todo_left = -1
+        rec("ok" if todo_left == 0 else "bad", 10,
+            "TODO1 两个函数已实现",
+            "" if todo_left == 0 else f"还剩 {todo_left} 处 TODO(student)")
         for name, pats in [
             # full_size → half_size 是除以 2，方向别搞反
             ("full_size 转 half_size", [r"full_size", r"/\s*2|\*\s*0\.5|/=\s*2"]),

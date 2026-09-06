@@ -1,9 +1,10 @@
 # 实践 10 · 基于 PHP 的 HOI 人-物交互运动跟踪
 
-> **状态**：代码包未下载（`pan.baidu.com/s/1fbSggWFaxc_mL-ZXyYMANg` 提取码 `nk8r`），
-> 目标路径 `shenlan_hw/HOI_Mimic/`。本文是**下载前就能做完的准备**：
-> 把官方规格逐条拆成可核对的清单，代码一到直接按清单实现，
-> 不用再回头读一遍 PDF。
+> **状态（2026-09-06 21:5x 更新）**：代码包已下载，**三组 TODO 已全部实现**，
+> 审计 24 项通过 · 0 不合规。剩下的是 smoke train 与正式训练（等 GPU）。
+>
+> 本文前半部分是下载前写的实施预案（把官方规格拆成可核对的清单），
+> 后半部分 §七 记录实际实现时遇到的问题。
 
 ---
 
@@ -252,6 +253,102 @@ OmniRetarget → Motion Matching → height-scan expert → 深度图 student（
 
 打通后可继续向 student 蒸馏（正是实践 6 的技术）、技能组合与真机迁移推进
 （实践 11 的深度图流水线就是 student 侧）。
+
+---
+
+## 七、实现记录（2026-09-06）
+
+### 三组 TODO 都已完成
+
+| TODO | 文件 | 状态 |
+|---|---|---|
+| 1 metadata loader | `mdp/hoi_height_scan.py` | ✅ `_normalize_box_record` + `_load_boxes` |
+| 2 RayCaster 配置 | `.../perceptive_raycast/tracking_env_cfg.py` | ✅ 9 项配置齐全 |
+| 3 观测接入 | 同上 | ✅ policy 加噪 / critic 不加 |
+
+审计：`python3 scripts/audit_against_rubric.py --practice 10` → **24 项通过 · 0 不合规**。
+
+### 踩的坑：把 `OffsetCfg(z=20)` 判成了与 `clip` 冲突
+
+写 TODO2 时按参考答案加了 `OffsetCfg(pos=(0,0,20))`，随即怀疑它与
+作业要求的 `clip=(-1.0, 5.0)` 冲突。推理链是这样的：
+
+```
+height_scan = pos_w[:,2] - ray_hits_w[...,2] - offset      # isaaclab observations.py:300
+若 pos_w.z 含 +20  →  平地 20.25 / 台阶 19.95 / 障碍 19.65
+clip 到 (-1,5) 后  →  全部变成 5.00，高度场信息完全丢失
+```
+
+数值一算，三种地形 clip 后完全相同，看着像是实锤。
+
+**但结论是错的。** 转折点是发现 `OffsetCfg(pos=(0,0,20))` 是 IsaacLab
+的标准惯例写法 —— h1、go2、g1 的 `velocity_env_cfg` 和官方
+`interactive_scene_cfg` 全都这么写，且配的正是 `clip=(-1,1)`。
+**如果我的推理成立，官方所有地形任务的 height scan 都是废的。**
+
+回去读代码，找到了错处：
+
+```python
+# ray_caster.py:243  —— 我误以为这里在应用 cfg.offset
+pos_w, quat_w = math_utils.combine_frame_transforms(
+    pos_w, quat_w, self._offset[0][env_ids], self._offset[1][env_ids])
+```
+
+`self._offset` 不是 `cfg.offset`。它来自
+`_obtain_trackable_prim_view()`，文档写得很清楚：
+「the relative pose between the mesh and its corresponding physics prim」
+—— 是 **mesh 相对物理刚体的位姿修正**，与配置项无关。
+
+`cfg.offset` 真正的落点在第 224 行：
+
+```python
+offset_pos = torch.tensor(list(self.cfg.offset.pos), device=self._device)
+self.ray_starts += offset_pos          # ← 只加到射线起点
+```
+
+所以：**`cfg.offset` 只抬高射线起点，不进 `pos_w`**。
+`height_scan` 的基准仍是 torso 高度，两者完全兼容。
+
+修正后：
+
+| 地形 | height_scan | clip 后 |
+|---|---|---|
+| 平地 | 0.25 | 0.25 |
+| 0.3 m 台阶 | −0.05 | −0.05 |
+| 0.6 m 障碍 | −0.35 | −0.35 |
+
+> **这次的教训**：数值算得再干净，也只是在验证「假设 A 成立时会怎样」，
+> 不能反过来证明 A 成立。真正救回来的是那个**外部矛盾**——
+> "官方所有任务都这么写"与"这么写是错的"不可能同时为真。
+>
+> 遇到"我发现官方/参考答案错了"的时刻，先假设是自己读错了。
+> 这次是第二次了：上一次是实践 11 判定"必须另建 20GB 环境"，
+> 同样是只读了声明没读实现。
+
+### TODO1 的实测
+
+用真实 metadata 验证（`datasets/hoi_mimic_data/*.terrain.json`）：
+
+```
+✅ climb_15 的 2 个 box：pos(2,3) quat(2,4) half(2,3)  dtype=float32
+✅ 缓存二次命中 2.3 µs
+✅ climb_00 的 mjcf_boxes 为空 → 正确抛 ValueError
+✅ full_size[2,4,6] → half_size[1,2,3]
+✅ pos 长度错 / quat 长度错 / 缺 half_size → 报错都带下标 42
+```
+
+**`climb_00` 那份 metadata 的 `mjcf_boxes` 真的是空的**，正好撞上作业
+要求的"非空校验"。它不是默认地形（默认是 `climb_15`），所以严格抛错是对的。
+
+顺带一提，测这两个函数时不能直接 import 模块 —— 文件顶部
+`import isaaclab.utils.math` 会连带拉 `pxr`，而 `pxr` 要 IsaacSim 运行时。
+把那一行替换掉再 `exec` 就能单测纯函数部分。
+
+### 还没做的
+
+- [ ] smoke train（等 GPU，实践 5/11/8 排在前面）
+- [ ] RayCaster 命中点可视化截图
+- [ ] 正式训练 + checkpoint + 回放
 
 ---
 
