@@ -278,13 +278,33 @@ def audit_p5() -> None:
     # Part 2：难度扩展与对照
     d = DOCS / "实践5_分层强化学习导航.md"
     for name, pats in [
-        ("难度扩展（V5 混合障碍/单目标）", [r"V5|MixedObstacle|SingleGoal"]),
         ("定量指标", [r"到达.{0,4}(率|占比)|error_pos_2d"]),
         ("失败模式分析", [r"失败模式|根因|排除"]),
         ("可复现配置", [r"NAV_[A-Z_]+=|scripts/run_p5"]),
     ]:
         n = has(d, *pats)
         rec("ok" if n > 0 else "warn", 5, name, f"{n} 处")
+
+    # ★ 难度扩展必须看**训练数据**而不是文档关键词。
+    # 此前这条只 grep 文档里有没有 "V5|MixedObstacle|SingleGoal"，
+    # 而这些词在讲配置继承链时也会出现 —— 文档提到 ≠ 真做了对照实验。
+    # 官方 Part 2 要求"在相同训练预算下比较 baseline 与更难任务"，
+    # 所以判据是：扩展组有训练日志，且轮数与 baseline 相当。
+    logdir = Path.home() / "humanoid_logs/p5_navigation"
+    base_log, ext_log = logdir / "p5_baseline.log", logdir / "p5_random_arena.log"
+    def _iters(p: Path) -> int:
+        if not p.exists():
+            return 0
+        m = re.findall(r"Learning iteration (\d+)", p.read_text(errors="ignore"))
+        return int(m[-1]) if m else 0
+    bi, ei = _iters(base_log), _iters(ext_log)
+    rec("ok" if ei > 0 else "warn", 5, "难度扩展组有真实训练数据",
+        f"baseline {bi} 轮 · 扩展组 {ei} 轮")
+    if ei > 0:
+        # "相同预算"允许一定偏差，但不该差一倍（实践 6 就栽在这上面）
+        ratio = min(bi, ei) / max(bi, ei) if max(bi, ei) else 0
+        rec("ok" if ratio > 0.8 else "warn", 5, "两组训练预算相当",
+            f"比值 {ratio:.2f}（<0.8 视为不对等）")
     log = Path.home() / "humanoid_logs/p5_navigation/p5_baseline.log"
     if log.exists():
         t = log.read_text(errors="ignore")
