@@ -119,6 +119,69 @@ def check_smplx() -> Result:
     return r
 
 
+def check_accad() -> Result:
+    """ACCAD 动作数据：实践 7 的动作素材，与 SMPL-X 模型缺一不可。
+
+    只看目录非空不够 —— 得确认里面是 SMPL-X 格式的 npz。
+    作业明确要求「不要下载 SMPL+H 版本」，两者文件名相似但字段不同，
+    下错了要到重定向跑起来才报错。
+    """
+    r = Result()
+    target = ROOT / "datasets/AMASS/ACCAD"
+
+    npzs: list[Path] = []
+    if target.is_dir():
+        npzs = [p for p in target.rglob("*.npz")][:2000]
+
+    if not npzs:
+        r.state = "missing"
+        r.lines.append(f"  {DIM}目标目录：{target}{RESET}")
+        strays = find_stray("*_stageii.npz", [Path.home() / "Downloads", Path("/tmp")], 3)
+        strays += find_stray("ACCAD", [Path.home() / "Downloads", Path("/tmp"), ROOT], 2)
+        # 刚 mkdir 出来的空目标目录会被自己搜到，排掉
+        strays = [s for s in dict.fromkeys(strays) if s.resolve() != target.resolve()]
+        if strays:
+            r.warn("检测到疑似位置：")
+            for s in strays:
+                r.hint(str(s))
+            r.hint(f"移动到：{target}/")
+        return r
+
+    total_mb = sum(p.stat().st_size for p in npzs) / 1e6
+    r.ok(f"{len(npzs)} 个 .npz，共 {total_mb:.0f} MB")
+
+    # 真打开一个，确认是 SMPL-X 而不是 SMPL+H
+    import numpy as np
+
+    sample = npzs[0]
+    try:
+        with np.load(sample, allow_pickle=True) as d:
+            keys = set(d.files)
+    except Exception as exc:  # noqa: BLE001
+        r.bad(f"{sample.name} 打不开：{type(exc).__name__}")
+        return r
+
+    # 判据要选真有区分度的字段。
+    # `poses` 两种格式都有，拿它当 SMPL-X 标记会把 SMPL+H 误判成合格（踩过）。
+    # 真正互斥的是：SMPL-X 把姿态拆成 pose_body/pose_jaw/pose_eye 等独立项，
+    # SMPL+H 则有自己特有的 dmpls（动态软组织系数）。
+    smplx_marks = {"pose_body", "pose_jaw", "pose_eye", "pose_hand"} & keys
+    smplh_marks = {"dmpls"} & keys
+
+    if smplx_marks:
+        r.ok(f"格式确认 SMPL-X（{sample.name} 含 {sorted(smplx_marks)[:3]}）")
+    elif smplh_marks:
+        r.bad(f"这是 SMPL+H 不是 SMPL-X（含 {sorted(smplh_marks)}）")
+        r.hint("作业 §3.2 明确要求 AMASS → SMPL-X → ACCAD，不要下 SMPL+H 版本")
+        r.hint("重定向会跑到一半才失败，现在换掉省事")
+    else:
+        r.warn(f"认不出格式，字段：{sorted(keys)[:6]}")
+
+    if total_mb < 500:
+        r.warn(f"作业说约 1.04 G，当前只有 {total_mb:.0f} MB —— 可能没解压全")
+    return r
+
+
 def check_hoi_mimic() -> Result:
     """实践 10 代码：要能看到 scripts/rsl_rl/train.py 才算放对。"""
     r = Result()
@@ -196,9 +259,10 @@ def check_unitree_usd() -> Result:
 
 def main() -> int:
     items = [
-        ("① SMPL-X 人体模型", check_smplx, "解锁实践 7 → 连带实践 8"),
-        ("② 实践 10 代码 HOI_Mimic", check_hoi_mimic, "解锁实践 10"),
-        ("③ unitree_model USD", check_unitree_usd, "可选，实践 8 已有 URDF 替代"),
+        ("① SMPL-X 人体模型", check_smplx, "实践 7 的人体骨架模板"),
+        ("② ACCAD 动作数据", check_accad, "实践 7 的动作素材，与①缺一不可"),
+        ("③ 实践 10 代码 HOI_Mimic", check_hoi_mimic, "解锁实践 10"),
+        ("④ unitree_model USD", check_unitree_usd, "可选，实践 8 已有 URDF 替代"),
     ]
 
     print(f"\n{BOLD}下载包位置自检{RESET}")
@@ -219,16 +283,21 @@ def main() -> int:
     print(f"{BOLD}下一步{RESET}\n")
 
     smplx_ok = states["① SMPL-X 人体模型"] == "ok"
-    p10_ok = states["② 实践 10 代码 HOI_Mimic"] == "ok"
+    accad_ok = states["② ACCAD 动作数据"] == "ok"
+    p10_ok = states["③ 实践 10 代码 HOI_Mimic"] == "ok"
 
-    if smplx_ok:
+    if smplx_ok and accad_ok:
         print(f"  {GREEN}▸{RESET} 实践 7 可以跑了：")
         print(f"    {DIM}cd {ROOT}/repos/GMR && source .venv/bin/activate{RESET}")
         print(f"    {DIM}python scripts/smplx_to_robot_dataset_npz.py \\{RESET}")
-        print(f"    {DIM}    --profile walk_to_run --robot unitree_g1{RESET}")
-        print(f"    产出 10 段专家数据后，实践 8 的正式训练就能接上（代码 44/44 已就绪）\n")
+        print(f"    {DIM}    --src_folder {ROOT}/datasets/AMASS/ACCAD \\{RESET}")
+        print(f"    {DIM}    --tgt_folder <输出目录>/g1_amp_npz \\{RESET}")
+        print(f"    {DIM}    --robot unitree_g1 --num_cpus 1{RESET}")
+        print(f"    {DIM}（先 --num_cpus 1 跑通一条，再加并行）{RESET}")
+        print(f"    产出专家数据后实践 8 就能接上（代码 44/44 已就绪）\n")
     else:
-        print(f"  {DIM}▸ 实践 7、8 等 SMPL-X 模型{RESET}\n")
+        waiting = [n for n, ok in (("SMPL-X 模型", smplx_ok), ("ACCAD 数据", accad_ok)) if not ok]
+        print(f"  {DIM}▸ 实践 7、8 还差：{'、'.join(waiting)}{RESET}\n")
 
     if p10_ok:
         print(f"  {GREEN}▸{RESET} 实践 10 可以开工了：3 组 TODO")

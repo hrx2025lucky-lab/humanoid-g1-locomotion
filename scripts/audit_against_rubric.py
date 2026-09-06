@@ -188,6 +188,19 @@ def audit_p7() -> None:
         n = has(p, *pats)
         rec("ok" if n > 0 else "bad", 7, name, f"{n} 处")
 
+    # 实践 7 需要两个下载包，不是一个。ACCAD 一度被漏掉：
+    # 提取的文本里链接后面是 ?******（环境把 pwd= 参数当凭据脱敏了），
+    # 看起来像课程自己打的码，就没意识到那是第二个必需下载。
+    smplx_dir = WS / "repos/GMR/assets/body_models/smplx"
+    pkls = list(smplx_dir.glob("SMPLX_*.pkl")) if smplx_dir.is_dir() else []
+    rec("ok" if pkls else "warn", 7, "SMPL-X 人体模型已就位",
+        "" if pkls else "缺 SMPLX_*.pkl，下载 1Luax709F_KAIPf5rVUK0Ow 提取码 7mq2")
+
+    accad = WS / "datasets/AMASS/ACCAD"
+    npzs = list(accad.rglob("*.npz"))[:5] if accad.is_dir() else []
+    rec("ok" if npzs else "warn", 7, "ACCAD 动作数据已就位",
+        "" if npzs else "缺动作素材，下载 1uOQoYtDs6-hwgDHBjMgpag 提取码 kh5i（1.04G）")
+
 
 def audit_p8() -> None:
     print("\n══ 实践 8 · AMP 拟人走跑 ══")
