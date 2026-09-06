@@ -288,13 +288,14 @@ def main() -> int:
 
     if smplx_ok and accad_ok:
         print(f"  {GREEN}▸{RESET} 实践 7 可以跑了：")
-        print(f"    {DIM}cd {ROOT}/repos/GMR && source .venv/bin/activate{RESET}")
-        print(f"    {DIM}python scripts/smplx_to_robot_dataset_npz.py \\{RESET}")
+        print(f"    {DIM}cd {ROOT}/repos/GMR{RESET}")
+        print(f"    {DIM}{ROOT}/envs/gmr/bin/python scripts/smplx_to_robot_dataset_npz.py \\{RESET}")
         print(f"    {DIM}    --src_folder {ROOT}/datasets/AMASS/ACCAD \\{RESET}")
-        print(f"    {DIM}    --tgt_folder <输出目录>/g1_amp_npz \\{RESET}")
+        print(f"    {DIM}    --tgt_folder {ROOT}/datasets/g1_amp_npz \\{RESET}")
         print(f"    {DIM}    --robot unitree_g1 --num_cpus 1{RESET}")
-        print(f"    {DIM}（先 --num_cpus 1 跑通一条，再加并行）{RESET}")
-        print(f"    产出专家数据后实践 8 就能接上（代码 44/44 已就绪）\n")
+        print(f"    {DIM}（先 --num_cpus 1 跑通一条，再加并行；我们的实现走 CPU，")
+        print(f"      不占 GPU，可与训练并行）{RESET}")
+        print(f"    实践 8 只缺 1 条跑步动作 —— 挑 ACCAD 里 Running 目录的即可\n")
     else:
         waiting = [n for n, ok in (("SMPL-X 模型", smplx_ok), ("ACCAD 数据", accad_ok)) if not ok]
         print(f"  {DIM}▸ 实践 7、8 还差：{'、'.join(waiting)}{RESET}\n")
@@ -306,7 +307,9 @@ def main() -> int:
     else:
         print(f"  {DIM}▸ 实践 10 等代码包{RESET}\n")
 
-    if smplx_ok and p10_ok:
+    # 三个必需包都到位才算"全部就绪"。
+    # 漏掉 accad_ok 会出现"实践 7 还差 ACCAD"和"全部就绪"同时打印的矛盾。
+    if smplx_ok and accad_ok and p10_ok:
         print(f"  {GREEN}全部就绪 —— 11 个实践的最后 3 个可以收尾了{RESET}\n")
 
     return 0 if not any(s == "broken" for s in states.values()) else 1
