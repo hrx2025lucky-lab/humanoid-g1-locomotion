@@ -215,12 +215,64 @@ FullPlay 任务注册成功，lin_vel_x=(-0.7, 2.5) wz=(-0.4, 0.4)
 - [x] 9 个 TODO 全部实现
 - [x] 44/44 离线验证
 - [x] 实机冒烟：环境构建、任务注册、判别器行为、训练循环全部跑通
-- [ ] 正式训练 —— **卡在专家数据**，需先完成实践 7 的 GMR 重定向（缺 SMPL-X 模型）
+- [ ] 正式训练 —— **只差 1 条跑步动作**
 
-训练命令（数据补齐后）：
+### 6.1 精确的缺口（2026-09-06 复核）
+
+此前这里写的是"卡在专家数据，需先完成实践 7（缺 SMPL-X 模型）"，
+**说得太笼统，把已有的东西也算成了缺口**。实际查了一遍产物：
+
+`source/unitree_rl_lab/unitree_rl_lab/tasks/locomotion/amp/data/` 下**已有 2 条真实数据**：
+
+| 文件 | 帧数 | 时长 | 类别 |
+|---|---|---|---|
+| `B1_-_stand_to_walk_stageii.npz` | 186 | 6.23 s | 走路 ✅ |
+| `B12_-_walk_turn_right_(90)_stageii.npz` | 232 | 7.76 s | 转弯 ✅ |
+
+确认是真实重定向产物而非构造数据 —— 判据是数值特征而不是文件存在：
+
+```
+fps        29.88            AMASS 的典型帧率
+根位移 xy   3.165 m          6 秒走 3 米，符合 stand_to_walk
+根高 z     0.739 ~ 0.796 m  G1 站立高度的合理范围
+四元数模长  1.00000 ~ 1.00000  严格归一化
+关节角     [-0.729, 1.318] rad
+帧间变化   均值 0.0167 rad   连续平滑，不是随机数
+link 名    pelvis / left_hip_pitch_link / …  真实 G1 拓扑
+```
+
+作业 §7 要求**至少 3 条**，且必须覆盖三类：1 条走路、1 条跑步、
+1 条走跑切换或转弯。所以**只缺跑步这一类**。
+
+ACCAD 数据下载后，重定向 1 条 `Running` 目录下的动作就能补齐，
+不需要重跑全部十段。
+
+### 6.2 训练只跑到 5 轮
+
+`logs/rsl_rl_amp/unitree_g1_29dof_amp_walk_to_run/2026-09-04_14-06-36/`
+最大只有 `model_5.pt` —— 那是冒烟测试，不是正式训练。
+
+**"有 checkpoint"不等于"训练过"**。审计脚本一开始就是这么误判的：
+只检查 `model_*.pt` 存不存在，于是 5 轮 smoke test 被判成"已有真实训练"。
+改成看最大轮次、低于 100 轮直接标为冒烟测试。
+
+### 6.3 环境是好的（但有个隐性约束）
+
+`rsl_rl_amp`（AMP 算法、判别器、经验回放、AMP Runner）**没有被 pip 安装**，
+靠 cwd 落进 `sys.path`。所以**必须在项目根目录运行**，换个目录就
+`ModuleNotFoundError: No module named 'rsl_rl_amp'`。
+
+`./unitree_rl_lab.sh --install` 只装了 `unitree_lab_amp` 本体和
+`source/unitree_rl_lab/`，没装 `rsl_rl_amp` —— 这是上游的设计，不是漏装。
+
+> 顺带一提：环境里的 `rsl_rl` 只有 `ppo` 和 `distillation` 两个算法。
+> 我一度以为缺 AMP 实现，其实是查错了对象 —— AMP 在项目自带的
+> `rsl_rl_amp` 里。**验证前先确认自己在验哪个包。**
+
+训练命令（补齐跑步数据后）：
 
 ```bash
-cd ~/workspace/Roxan_warmup/shenlan_hw/unitree_lab_amp
+cd ~/workspace/Roxan_warmup/shenlan_hw/unitree_lab_amp   # ← cwd 不能变
 PYTHONPATH="$PWD/source/unitree_rl_lab:$PWD" \
 ~/workspace/Roxan_warmup/envs/isaaclab/bin/python scripts/rsl_rl/train.py \
   --task Unitree-G1-29dof-AMP-WalkToRun --num_envs 4096 --headless
@@ -236,7 +288,7 @@ PYTHONPATH="$PWD/source/unitree_rl_lab:$PWD" \
 ## 7. 官方验收标准逐条对照（2026-09-05）
 
 作业 §7.5 列了 8 个必须验证的场景。当前代码与验证已就绪，
-但**正式训练缺专家数据**（需实践 7 的 GMR 产物），
+但**正式训练缺跑步类专家数据**（见 §6.1），
 所以这里标注的是"能否验证"而非"已验证"。
 
 | # | 官方验收内容 | 支撑手段 | 状态 |

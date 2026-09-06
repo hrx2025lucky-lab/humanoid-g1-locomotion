@@ -248,6 +248,61 @@ def audit_p8() -> None:
         n = has(d, *pats)
         rec("ok" if n > 0 else "warn", 8, name, f"{n} 处")
 
+    # 上面全是"代码写了没""文档提了没"，查不出"到底能不能跑"。
+    # 实践 7 正是栽在这：22/22 全绿，但 GMR 压根没装。
+    # 下面三条查的是产物与运行时。
+    py = WS / "envs/isaaclab/bin/python"
+    if py.exists():
+        try:
+            # AMP 算法在项目自带的 rsl_rl_amp 里，不是环境里的 rsl_rl
+            #（后者只有 ppo/distillation，一度让我以为缺 AMP 实现）。
+            # 它没被 pip 安装，靠 cwd 落进 sys.path —— 必须指定 cwd，
+            # 否则从别处调用会报 ModuleNotFoundError（假阴性）。
+            ok = subprocess.run(
+                [str(py), "-c",
+                 "import rsl_rl_amp.algorithms.amp, rsl_rl_amp.algorithms.discriminator"],
+                capture_output=True, timeout=120, cwd=str(amp)).returncode == 0
+        except (subprocess.TimeoutExpired, OSError):
+            ok = False
+        rec("ok" if ok else "bad", 8, "rsl_rl_amp 判别器可导入（须在项目根目录）",
+            "" if ok else "跑 ./unitree_rl_lab.sh --install")
+
+    # 专家数据来自实践 7。官方 §7 验收要求"至少 3 条"且必须覆盖三类：
+    # 1 条走路、1 条跑步、1 条走跑切换或转弯 —— 只数总数会漏掉类别缺口。
+    data_dirs = [d for d in amp.glob("source/**/amp/data") if d.is_dir()]
+    npz = sorted({p.name for d in data_dirs for p in d.rglob("*.npz")})
+    if not npz:
+        rec("warn", 8, "实践7 的专家数据已就位", "等实践 7 产出 g1_amp_npz")
+    else:
+        low = " ".join(npz).lower()
+        cats = {
+            "走路": bool(re.search(r"walk", low)),
+            "跑步": bool(re.search(r"run|jog", low)),
+            "切换/转弯": bool(re.search(r"turn|walk_to_run|walk2run", low)),
+        }
+        missing = [k for k, v in cats.items() if not v]
+        rec("ok" if not missing else "warn", 8,
+            f"专家数据覆盖官方三类动作（现有 {len(npz)} 条）",
+            "" if not missing else f"缺 {'、'.join(missing)}：{npz[:3]}")
+
+    # 官方要求提交训练日志与 checkpoint。但"有 checkpoint"不等于"训练过"——
+    # 5 轮 smoke test 也会存下 model_0/model_5。判据要看最大轮次。
+    ck_runs = []
+    if (amp / "logs").is_dir():
+        for run in (amp / "logs").glob("*/*/*/"):
+            nums = [int(m.group(1)) for p in run.glob("model_*.pt")
+                    if (m := re.search(r"model_(\d+)\.pt", p.name))]
+            if nums:
+                ck_runs.append((run.name, max(nums)))
+    if not ck_runs:
+        rec("warn", 8, "已有真实训练 checkpoint", "尚未训练")
+    else:
+        best = max(ck_runs, key=lambda x: x[1])
+        # 低于 100 轮基本只能是冒烟测试，不足以支撑"训练完成"的结论
+        rec("ok" if best[1] >= 100 else "warn", 8,
+            f"训练达到有意义的轮次（最大 model_{best[1]}）",
+            "" if best[1] >= 100 else f"{best[0]} 只到 {best[1]} 轮，是 smoke test 不是正式训练")
+
 
 def audit_p9() -> None:
     print("\n══ 实践 9 · BeyondMimic ══")
