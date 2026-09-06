@@ -177,8 +177,19 @@ def check_accad() -> Result:
     else:
         r.warn(f"认不出格式，字段：{sorted(keys)[:6]}")
 
-    if total_mb < 500:
-        r.warn(f"作业说约 1.04 G，当前只有 {total_mb:.0f} MB —— 可能没解压全")
+    # 官方文档写"约 1.04 G"，但实测网盘里的 ACCAD 解压后就是 ~249 MB / 84 条。
+    # 拿文档数字当阈值会一直报假警，改成检查动作类别是否覆盖作业要求。
+    cats = {
+        "走路": [p for p in npzs if re.search(r"walk", p.name, re.I)],
+        "跑步": [p for p in npzs if re.search(r"run|jog", p.name, re.I)],
+        "转弯/切换": [p for p in npzs if re.search(r"turn", p.name, re.I)],
+    }
+    missing = [k for k, v in cats.items() if not v]
+    if missing:
+        r.warn(f"缺少动作类别：{'、'.join(missing)}（作业 §7 要求三类都有）")
+    else:
+        detail = "  ".join(f"{k} {len(v)}条" for k, v in cats.items())
+        r.ok(f"动作类别齐全 — {detail}")
     return r
 
 
