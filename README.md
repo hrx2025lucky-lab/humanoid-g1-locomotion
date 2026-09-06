@@ -32,9 +32,13 @@
 
 | # | 卡在哪 | 需要的人工动作 |
 |---|---|---|
-| 7 | SMPL-X 人体模型缺失，完整的 SMPL-X → G1 链路跑不了（重定向产物的验证不受影响，已 22/22 通过） | 在 [smpl-x.is.tue.mpg.de](https://smpl-x.is.tue.mpg.de/) 注册下载，放到 `repos/GMR/assets/body_models/smplx/` |
-| 8 · 11-训练 | `instinct_rl` 要求 Python `>=3.12,<3.13`，而 `envs/isaaclab` 是 3.11.15、系统是 3.10.12 | 另建 Python 3.12 环境 + 配套 Isaac Sim（不能升级现有环境，会波及实践 1~9 与按 mujoco 3.12.0 编译的 raycaster 插件） |
-| 10 | 只有 PDF，没有代码包与数据 | 需要课程提供 PHP/HOI 的代码与数据 |
+| 7 | 缺三样：SMPL-X 模型、ACCAD 动作数据、GMR 运行环境 | 下载两个网盘包（见 `docs/下载包放置指引.md`）；GMR 环境已在后台安装 |
+| 8 | 只缺 1 条跑步类专家动作 | 等实践 7 重定向 1 条 `Running` 动作即可 |
+| 10 | 代码包未下载 | 下载 `pan.baidu.com/s/1fbSggWFaxc_mL-ZXyYMANg` 提取码 `nk8r` → `shenlan_hw/HOI_Mimic/` |
+
+> 实践 11 曾被判为"需另建 Python 3.12 环境"，2026-09-06 实测推翻：
+> 那是 setup.py 的过度声明，现有 `envs/isaaclab` 直接可用，只补装了
+> `pytorch_kinematics`。详见 `docs/待解决卡点清单.md` §②。
 
 ## 已实现
 
