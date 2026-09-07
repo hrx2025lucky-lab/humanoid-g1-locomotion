@@ -80,10 +80,19 @@ def load(run_dir: str) -> EventAccumulator | None:
     return ea if ea.Tags()["scalars"] else None
 
 
-def tail_mean(ea, tag: str, frac: float = 0.1) -> float | None:
+def tail_mean(ea, tag: str, frac: float = 0.1, max_step: int | None = None) -> float | None:
+    """取尾部 frac 比例的均值。
+
+    max_step 用于把长跑的一组截到与短跑的一组同一 iter 再比较 ——
+    两组训练量差一截时直接比末值是不公平的（实践 6 栽过），
+    但重跑短的那组要几小时，截取长的那组同样能得到对等口径。
+    """
     if tag not in ea.Tags()["scalars"]:
         return None
-    vals = [x.value for x in ea.Scalars(tag)]
+    pts = ea.Scalars(tag)
+    if max_step is not None:
+        pts = [x for x in pts if x.step <= max_step]
+    vals = [x.value for x in pts]
     if not vals:
         return None
     n = max(int(len(vals) * frac), 1)
@@ -224,9 +233,27 @@ def main() -> int:
             print(f"  random_arena  {r:6.2%}   （每 episode 重排，至 {r_it} iter）")
             gap = b - r
             if abs(b_it - r_it) > 0.2 * max(b_it, r_it):
-                # 训练量差一截时不能直接比高低，实践 6 在这上面栽过
-                print(f"\n  ⚠️ 两组训练量相差较大（{b_it} vs {r_it} iter），")
-                print(f"     现在比较高低不公平 —— 等两边都跑满再下结论。")
+                # 训练量差一截时直接比末值不公平（实践 6 栽过）。
+                # 重跑短的那组要几小时，改为把长的那组截到同一 iter。
+                cut = min(b_it, r_it)
+                b2 = tail_mean(runs["baseline"][0],
+                               "Episode_Termination/goal_reached", max_step=cut)
+                r2 = tail_mean(runs["random_arena"][0],
+                               "Episode_Termination/goal_reached", max_step=cut)
+                print(f"\n  两组训练量不等（{b_it} vs {r_it} iter），"
+                      f"截到共同的 {cut} iter 再比：")
+                print(f"    baseline      {b2:6.2%}")
+                print(f"    random_arena  {r2:6.2%}")
+                g2 = b2 - r2
+                if abs(g2) < 0.02:
+                    print(f"    差距 {g2:+.2%}，在噪声范围内 —— 随机重排障碍没有"
+                          f"明显损害到达率，\n    说明策略学的不是记住固定布局，"
+                          f"而是真的会绕障。")
+                else:
+                    worse = "random_arena" if g2 > 0 else "baseline"
+                    print(f"    差距 {g2:+.2%}，{worse} 更低。")
+                print(f"\n  末值口径 {b:.2%} vs {r:.2%} 仅供参考"
+                      f"（训练量不同，不可直接比）")
             elif abs(gap) < 0.02:
                 print(f"\n  差距 {gap:+.2%}，在噪声范围内：随机重排障碍没有明显损害"
                       f"到达率，\n     说明策略学到的不是记住固定布局，而是真的会绕障。")
