@@ -59,6 +59,17 @@ SPECS = [
     ("9", "轨迹跟踪",
      f"{WS}/shenlan_hw/hw6_distill/logs/rsl_rl/g1_hw6_teacher/2026-09-05_23-41-39*",
      "Metrics/motion/error_joint_pos", True, None, 0.3),
+    ("10", "HOI 感知跟踪",
+     # 日志根路径来自 HOI_Mimic/scripts/rsl_rl/train.py:188
+     #   os.path.join("logs", "rsl_rl", agent_cfg.experiment_name)
+     # experiment_name 见 mimic/agents/rsl_rl_ppo_cfg.py:68
+     f"{WS}/shenlan_hw/HOI_Mimic/logs/rsl_rl/unitree_g1_29dof_mimic_hoi_terrain_perceptive_raycast/*",
+     # error_joint_pos 已从源码核实存在（mimic 任务的 metrics 字典），
+     # 与实践 9 同名；seg5 会按后缀模糊匹配，前缀不一致也能找到。
+     "Metrics/motion/error_joint_pos", True,
+     # 终止项名称与奖励 std 都没在源码里核实到，宁可留空也不写猜测值——
+     # 填错会让第三层「梯度是否消失」判据给出看似有据实则无效的结论。
+     None, None),
     ("11", "跑酷",
      f"{WS}/repos/instinctlab/logs/instinct_rl/g1_parkour/*",
      "Metrics/base_velocity/error_vel_xy", True,
@@ -74,7 +85,15 @@ def load(pattern: str):
     for d in sorted(dirs, reverse=True):
         files = sorted(glob.glob(os.path.join(d, "events.out.tfevents.*")))
         if files:
-            ea = EventAccumulator(files[0], size_guidance={"scalars": 0})
+            # size_guidance 里 0 表示"全部保留"。原来写的是 {"scalars": 0}，
+            # 一次把每个 tag 的全部标量点都读进内存；实践 11 一个 run 就有
+            # 119 个 tag，多个 run 叠加会明显吃内存（实测能把机器拖卡）。
+            # 这里改成有限上限：5000 点足够算五段均值，
+            # 且当前最长的 run 也只有 3000 轮，不会触发降采样、结论不受影响。
+            ea = EventAccumulator(files[0], size_guidance={
+                "scalars": 5000, "histograms": 1, "compressedHistograms": 1,
+                "images": 1, "audio": 1, "tensors": 1,
+            })
             ea.Reload()
             if ea.Tags()["scalars"]:
                 return ea, os.path.basename(d.rstrip("/"))
@@ -121,6 +140,8 @@ def main() -> int:
     print("=" * 88)
 
     problems = []
+    skipped = []
+    passed = 0
     for pid, name, pat, metric, lower_better, stab, std in SPECS:
         if args.practice and args.practice != pid:
             continue
@@ -128,12 +149,14 @@ def main() -> int:
         label = f"{pid:<4}{name:<16}"
         if not got:
             print(f"{label}{D}（无数据）{N}")
+            skipped.append((pid, name, "没有训练日志"))
             continue
         ea, run = got
 
         s = seg5(ea, metric)
         if s is None:
             print(f"{label}{D}找不到 {metric.split('/')[-1]}{N}")
+            skipped.append((pid, name, f"日志里没有 {metric.split('/')[-1]}"))
             continue
 
         leaf = metric.split("/")[-1]
@@ -142,6 +165,7 @@ def main() -> int:
 
         if improved:
             print(f"{label}{G}✅{N} {leaf} {curve}")
+            passed += 1
             continue
 
         # 指标变差 —— 先看能否用课程难度解释
@@ -154,6 +178,7 @@ def main() -> int:
             print(f"{'':<20}{D}课程 {cname} 涨 {crise:.2f}×{N}", end="")
             if ratio <= crise * 1.3:
                 print(f"  {G}→ 误差涨幅在难度范围内，正常{N}")
+                passed += 1
                 continue
             print(f"  {R}→ 超出难度可解释范围{N}")
 
@@ -173,6 +198,7 @@ def main() -> int:
             if st and st[-1] < st[0] * 0.5:
                 print(f"{'':<20}{G}→ 但 {stab.split('/')[-1]} "
                       f"{st[0]:.3f}→{st[-1]:.3f} 大幅改善，属设计权衡{N}")
+                passed += 1
                 continue
         problems.append((pid, name, "指标变差且无法归因"))
 
@@ -181,9 +207,20 @@ def main() -> int:
         print(f"\n{R}{B}需要处理{N}")
         for pid, name, why in problems:
             print(f"  实践 {pid} {name}：{why}")
-    else:
-        print(f"\n{G}全部通过 —— 每个实践的任务指标要么在改善，"
+    elif passed:
+        print(f"\n{G}已验证 {passed} 项 —— 任务指标要么在改善，"
               f"要么变差可被课程难度或设计权衡解释{N}")
+
+    # 「无数据」不等于「通过」。之前这两种情况直接 continue 掉，
+    # 于是一个还没开始训练的实践也会被计进"全部通过"——
+    # 假阳性比漏报危险，必须单独列出来。
+    if skipped:
+        print(f"\n{Y}未验证 {len(skipped)} 项（缺数据，不算通过）{N}")
+        for pid, name, why in skipped:
+            print(f"  实践 {pid} {name}：{why}")
+
+    if not problems and not passed and not skipped:
+        print(f"\n{D}没有匹配的实践{N}")
 
     print(f"\n{D}判据说明：{N}")
     print(f"  {D}① 任务指标在改善吗（不是 reward）{N}")

@@ -71,12 +71,19 @@ NUM_ENVS="${NUM_ENVS:-512}"
 # 配置默认 max_iterations=30000，按其它实践的经验那远超收敛所需，
 # 也远超一晚能跑完的量。先跑 3000 轮看曲线，不够再续。
 ITERS=3000
+# 配置里 save_interval=5000 是配 max_iterations=30000 的。
+# 一旦用 --max_iterations 把总轮数压到 3000，save_interval 就大于总轮数，
+# 训练全程一个 checkpoint 都不落，只在结束时存一次——
+# 等于十几个小时“全有或全无”，中途崩溃或想提前收工都颗粒无收。
+# train.py 没有 --save_interval，但它走 hydra，可以用 agent.xxx=yyy 覆盖。
+SAVE_INTERVAL=200
 TRAIN_LOG="$LOG_DIR/p11_parkour_train.log"
-log "正式训练：--num_envs $NUM_ENVS --max_iterations $ITERS"
+log "正式训练：--num_envs $NUM_ENVS --max_iterations $ITERS save_interval=$SAVE_INTERVAL"
 log "日志 → $TRAIN_LOG"
 
 "$PY" scripts/instinct_rl/train.py \
   --headless --task="$TASK" --num_envs "$NUM_ENVS" --max_iterations "$ITERS" \
+  agent.save_interval="$SAVE_INTERVAL" \
   > "$TRAIN_LOG" 2>&1
 train_rc=$?
 

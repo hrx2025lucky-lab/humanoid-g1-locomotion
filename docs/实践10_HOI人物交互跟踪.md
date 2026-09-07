@@ -361,3 +361,137 @@ python3 scripts/audit_against_rubric.py --practice 10
 ```
 
 审计脚本已经按上面的评分细则写好断言，会告诉你哪几条还没做到。
+
+---
+
+## 八、smoke 训练崩了：一个"写一个字典、读另一个字典"的 bug（2026-09-07）
+
+### 现象
+
+```
+File ".../isaaclab/sensors/ray_caster/ray_caster.py", line 304, in _update_buffers_impl
+    mesh=RayCaster.meshes[self.cfg.mesh_prim_paths[0]],
+KeyError: '/World/ground'
+```
+
+`/World/ground` 正是我在 `tracking_env_cfg.py:44` 填的 `mesh_prim_paths`。
+第一反应是"路径填错了"——**这个方向是错的**。
+
+### 排除法：为什么不是路径填错
+
+看基类的注册逻辑（`ray_caster.py:170-211`）：
+
+```python
+for mesh_prim_path in self.cfg.mesh_prim_paths:
+    ...
+    if mesh_prim is None or not mesh_prim.IsValid():
+        raise RuntimeError(f"Invalid mesh prim path: {mesh_prim_path}")   # ← 路径错走这里
+    ...
+    RayCaster.meshes[mesh_prim_path] = wp_mesh
+```
+
+**路径填错会抛 `RuntimeError`，不是 `KeyError`。**
+拿到 `KeyError` 说明：注册那段代码压根没往字典里写这个键。
+
+### 真因：实例属性把类属性遮蔽了
+
+本任务用的是子类 `HoiMergedTerrainRayCaster`，它把烘焙推迟到第一次更新时做，
+于是重写了 `_initialize_warp_meshes`：
+
+```python
+# 修复前
+def _initialize_warp_meshes(self):
+    self.meshes = {}            # ← 问题在这一行
+    self._hoi_mesh_baked = False
+```
+
+而基类的声明是（`ray_caster.py:60`）：
+
+```python
+meshes: ClassVar[dict[str, wp.Mesh]] = {}
+```
+
+`meshes` 是**类属性**。`self.meshes = {}` 不会清空类属性，
+而是**新建一个同名实例属性把它遮蔽掉**。之后：
+
+| 代码 | 实际操作的字典 |
+|---|---|
+| 子类 `self.meshes[key] = wp_mesh`（`:328` 烘焙结果） | **实例**字典 |
+| 基类 `RayCaster.meshes[key]`（`:304` 读取） | **类**字典 |
+
+写进一个字典，从另一个字典里取，必然 `KeyError`。
+而且这个 bug **没有任何静态检查能发现**——两边语法都完全合法。
+
+### 最小复现（不需要 IsaacSim，几行就能验证）
+
+```python
+from typing import ClassVar
+
+class Base:
+    meshes: ClassVar[dict] = {}
+    def read(self, k): return Base.meshes[k]      # 模拟 ray_caster.py:304
+
+class Old(Base):
+    def init(self): self.meshes = {}              # 修复前
+    def bake(self, k): self.meshes[k] = "mesh"
+
+o = Old(); o.init(); o.bake("/World/ground")
+o.read("/World/ground")     # KeyError: '/World/ground'
+print(o.meshes is Base.meshes)   # False ← 两个不同的字典
+```
+
+实跑输出与线上报错逐字一致。**能用十行纯 Python 复现的问题，
+就不要占着 GPU 反复试** —— 当时 GPU 正被实践 11 的训练占满，
+等一轮验证要十几个小时。
+
+### 修法
+
+```python
+def _initialize_warp_meshes(self):
+    self.meshes = RayCaster.meshes   # 绑定同一个类字典（是引用，不是拷贝）
+    self._hoi_mesh_baked = False
+
+def ensure_mesh_baked(self) -> None:
+    key = self.cfg.mesh_prim_paths[0]
+    if not getattr(self, "_hoi_mesh_baked", False) or key not in self.meshes:
+        self._bake_hoi_merged_mesh()
+```
+
+第二处是顺带加固：原来只看 `_hoi_mesh_baked` 这个布尔标志位，
+但 `meshes` 是全局共享的类字典，基类 `__del__` 在最后一个 RayCaster 销毁时会
+`RayCaster.meshes.clear()`（`ray_caster.py:428`）。清空之后标志位仍是 `True`
+而字典已空，会再次 `KeyError`。所以判据要落在**字典里到底有没有**，
+而不是"我以为我烘焙过了"。
+
+> 可复用的教训：**在子类里给一个名字赋值前，先确认基类有没有同名的类属性。**
+> Python 的赋值语义是"绑定名字"，不是"修改对象"；
+> `self.x = {}` 和 `self.x[k] = v` 在有类属性时行为完全不同——
+> 后者会穿透到类属性，前者会遮蔽它。
+
+### 连带修掉的检查漏洞
+
+这次 smoke 明明失败了，`check_deliverables.py` 却报：
+
+```
+✅ smoke train 终端日志    1 个，最新 p10_smoke.log
+```
+
+因为它只判断"日志文件存不存在"——**而失败的日志同样是个文件**。
+于是"根本没跑起来"被报成了"材料齐全"。已改为要求日志里真的出现
+`Learning iteration N/`，否则提取异常类型报出来：
+
+```
+❌ smoke train 终端日志    1 份日志都没跑起训练循环（p10_smoke.log→KeyError）
+```
+
+同一批还修了另外两个同类假阳性：
+
+| 检查项 | 原来的判据 | 假阳性表现 | 现在的判据 |
+|---|---|---|---|
+| checkpoint | 有 `model_*.pt` 文件 | 冒烟存的 `model_3.pt` 也算数 | 解析文件名轮数，< 100 判为冒烟 |
+| 消融实验 | 有 ≥3 个 `.pt` 文件 | 单次训练就能存出几十个 | 按 run 目录去重，要 3 次**独立**训练 |
+| 效果验收 | 无 problems 即"全部通过" | 没训练过的实践也算通过 | "无数据"单列为**未验证**，不计入通过 |
+
+> 这三个是同一种错误：**把"没有证据说明它坏"当成"有证据说明它好"。**
+> 对交付检查来说，假阳性比漏报危险得多——漏报只是多看一眼，
+> 假阳性会让人以为做完了而停止追查。
