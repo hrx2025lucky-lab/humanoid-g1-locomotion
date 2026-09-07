@@ -29,6 +29,15 @@ ITERS="${P9_ITERS:-8000}"
 log "════ 实践 9 重训（std=$STD）════"
 
 # mjlab 走 MuJoCo Warp，与 IsaacSim 抢同一张卡
+# ── GPU 互斥锁 ─────────────────────────────────────────────
+# 逐个 pgrep 列举对方的任务名不可靠：新增任务时要改所有脚本，
+# 漏一个就会两个训练同时抢卡。改用文件锁，谁先拿到谁跑。
+GPU_LOCK="/tmp/humanoid_gpu.lock"
+exec 9>"$GPU_LOCK"
+log "等待 GPU 锁…"
+flock 9
+log "已获得 GPU 锁"
+
 log "等 GPU 空闲…"
 while pgrep -f "Instinct-Parkour" >/dev/null 2>&1 \
    || pgrep -f "AMP-WalkToRun" >/dev/null 2>&1 \

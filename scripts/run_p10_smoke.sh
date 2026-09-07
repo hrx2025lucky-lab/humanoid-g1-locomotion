@@ -24,6 +24,15 @@ log() { echo "[$(date '+%m-%d %H:%M:%S')] $*" | tee -a "$PIPE"; }
 log "════ 实践 10 smoke train 接续 ════"
 [ -d "$HOI" ] || { log "❌ 找不到 $HOI"; exit 1; }
 
+# ── GPU 互斥锁 ─────────────────────────────────────────────
+# 逐个 pgrep 列举对方的任务名不可靠：新增任务时要改所有脚本，
+# 漏一个就会两个训练同时抢卡。改用文件锁，谁先拿到谁跑。
+GPU_LOCK="/tmp/humanoid_gpu.lock"
+exec 9>"$GPU_LOCK"
+log "等待 GPU 锁…"
+flock 9
+log "已获得 GPU 锁"
+
 log "等所有 GPU 任务让出显存…"
 while pgrep -f "Navigation-HRL-RandomArena" >/dev/null 2>&1 \
    || pgrep -f "Instinct-Parkour" >/dev/null 2>&1 \
