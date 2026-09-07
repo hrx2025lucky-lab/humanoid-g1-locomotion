@@ -495,3 +495,85 @@ def ensure_mesh_baked(self) -> None:
 > 这三个是同一种错误：**把"没有证据说明它坏"当成"有证据说明它好"。**
 > 对交付检查来说，假阳性比漏报危险得多——漏报只是多看一眼，
 > 假阳性会让人以为做完了而停止追查。
+
+---
+
+## 九、正式训练：4096 环境会 OOM（2026-09-07）
+
+修好 RayCaster 后 smoke（64 环境）通过，正式训练用配置默认的 4096
+却在**第 0 轮结束时**炸掉：
+
+```
+torch.OutOfMemoryError: CUDA out of memory.
+Tried to allocate 24.00 MiB. GPU 0 has a total capacity of 23.54 GiB
+of which 33.56 MiB is free.
+```
+
+**为什么这个任务特别吃显存**：观测维度远超普通 locomotion。
+
+| 观测组 | 维度 | 其中 height_scanner |
+|---|---|---|
+| policy | 3120 | **2312**（= 289 射线 × 8 帧历史） |
+| critic | 3252 | 2312 |
+
+rollout 缓冲区是 `num_steps_per_env × num_envs × obs_dim`：
+
+```
+24 × 4096 × (3120 + 3252) × 4 B ≈ 2.5 GB
+```
+
+PPO 每轮还要保存旧动作、旧价值、优势等，更新阶段峰值再翻几倍。
+
+**注意"只差 24 MiB"这个细节**：它说明 4096 不是差得远，而是刚好越线。
+这种情况更不能贴着上限跑——第 0 轮只是最低水位，PPO 更新阶段的峰值更高，
+勉强跑起来也可能在第几百轮才崩，那时已经烧掉几小时。
+所以默认降到 **2048**（显存对半），而不是试 3072 去榨那点余量。
+
+实测 2048：跑到 320 轮，显存稳定 20.5 GB，**零 OOM**。
+
+**脚本层面加了自动降档**（`run_p10_full.sh`）：
+
+```bash
+while [ "$rc" -ne 0 ] && grep -q "OutOfMemoryError" "$T_LOG" && [ "$NUM_ENVS" -gt 512 ]; do
+    NUM_ENVS=$(( NUM_ENVS / 2 ))
+    log "⚠️ CUDA OOM，降到 --num_envs $NUM_ENVS 重试"
+    sleep 30    # 等上一个进程把显存真正还回来
+    run_train "$NUM_ENVS"
+    rc=$?
+done
+```
+
+显存占用主要由 `num_envs` 线性决定，减半基本能过；退到 512 就停，
+再小没有训练意义。这样一次 OOM 不会浪费整夜。
+
+---
+
+## 十、回放录像：两处上游 API 变更（2026-09-07）
+
+实践 5 和实践 8 的视频一直录不出来，**但训练都是正常的**。
+原因是两个 `play.py` 各自撞上一处上游 API 变更，而 `train.py` 不引用它们，
+所以问题只在回放路径上暴露：
+
+| 实践 | 报错 | 原因 | 修法 |
+|---|---|---|---|
+| 8 | `ModuleNotFoundError: No module named 'isaaclab.utils.pretrained_checkpoint'` | 模块挪到了 `isaaclab_rl.utils` | try 新路径，except 回退旧路径 |
+| 5 | `ImportError: cannot import name 'handle_deprecated_rsl_rl_cfg'` | 新版删除了这个兼容垫片 | 可选导入，缺失时退化成 no-op |
+
+第二个能安全退化，是因为那个垫片本来就只做"把过时字段翻译成新字段"，
+而我们的 cfg 本身就是新格式，对它来说是恒等变换。
+
+> 教训：**训练能跑不代表回放能跑。** 两条代码路径的依赖并不相同，
+> 交付材料里的视频要单独验证，不能因为训练正常就默认回放没问题。
+
+### 顺带修掉的第三个问题：play 录完不退出
+
+各框架的 `play.py` 录完视频后都会进入交互式 viewer
+（mjlab 是 `play.py:227` 的 `NativeMujocoViewer.run()`），**永不自行退出**。
+实测视频 8 分钟就落盘了，进程却一直挂到 1 小时超时才被杀——
+三段消融于是从 25 分钟变成 3 小时。
+
+解法是在录像脚本里加看门狗 `play_until_video()`：轮询目标目录的 mp4，
+**文件大小连续两次不变**就判定写完并结束进程。
+
+判据用"大小不再变化"而不是"文件出现"很关键：mp4 是边写边落盘的，
+刚出现时还在写，此时杀掉只会得到一个截断的坏文件。
