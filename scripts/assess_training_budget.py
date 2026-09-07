@@ -54,12 +54,13 @@ SPECS = [
     Spec("5", "分层导航 · RandomArena",
          f"{WS}/shenlan_hw/hw5_navigation/**/2026-09-06_16-37-04",
          "Episode_Termination/goal_reached", 30000, note="Part2 难度扩展"),
+    # 蒸馏也是跟踪类，同样看误差不看 reward（与实践 9 口径一致）
     Spec("6", "蒸馏 · KL",
          f"{WS}/shenlan_hw/hw6_distill/logs/rsl_rl/g1_hw6_student_kl_matching/2026-09-05*",
-         "Train/mean_reward", 5000),
+         "Metrics/motion/error_joint_pos", 5000, higher_better=False),
     Spec("6", "蒸馏 · Action",
          f"{WS}/shenlan_hw/hw6_distill/logs/rsl_rl/g1_hw6_student_action_matching_aligned/*",
-         "Train/mean_reward", 5000),
+         "Metrics/motion/error_joint_pos", 5000, higher_better=False),
     # ★ 模仿/跟踪类任务不能用 mean_reward 判收敛 ★
     # 实践 9 的 reward 涨 343%，但那是 episode 变长带来的累积，
     # 单步跟踪质量其实在变差（error_joint_pos 1.161→1.900）。
