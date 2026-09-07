@@ -87,6 +87,9 @@ checkpoint、验证脚本的实跑结果。
   §6 —— 所有指标都好看，但录像显示机器人在原地踏步
 
 **想看工程方法**：
+- [`scripts/verify_training_outcome.py`](scripts/verify_training_outcome.py)
+  —— **按真实任务指标验收，不看 reward**。能自动区分"训练有 bug"与
+  "设计权衡"：判据是奖励函数在当前误差量级上还有没有梯度
 - [`scripts/audit_against_rubric.py`](scripts/audit_against_rubric.py)
   —— 把评分细则变成 111 条可复现断言
 - [`scripts/assess_training_budget.py`](scripts/assess_training_budget.py)
