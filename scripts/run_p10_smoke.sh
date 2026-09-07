@@ -58,18 +58,42 @@ if grep -qE "Learning iteration [0-9]+/" "$S_LOG"; then
     it=$(grep -oE "Learning iteration [0-9]+/[0-9]+" "$S_LOG" | tail -1)
     log "✅ 训练循环已启动（$it）"
 
-    # 官方 10 分项明确要求"无 NaN/Inf"。只匹配独立词，
-    # 避免 "info"/"inference" 这类词里的 inf 造成误报。
-    if grep -qiE "(^|[^a-z])(nan|inf)([^a-z]|$)" "$S_LOG"; then
-        log "⚠️ 疑似 NaN/Inf，相关行："
-        grep -inE "(^|[^a-z])(nan|inf)([^a-z]|$)" "$S_LOG" | head -5 | tee -a "$PIPE"
+    # 官方 10 分项明确要求"无 NaN/Inf"。但要分清两种 NaN：
+    #
+    #   1. 训练发散的 NaN —— reward / loss 变成 NaN，是真故障；
+    #   2. "尚未评估"的哨兵 NaN —— curriculum_HOI.py:872-875 把
+    #      last_agg_episode_length / last_time_out_ratio /
+    #      last_length_ratio_to_max 显式初始化成 float("nan")，
+    #      要等仿真步数超过 eval_steps（:896）才会被真实值替换。
+    #      smoke 只跑 10 轮 × 24 步 = 240 步，远不到评估点，
+    #      这三个必然是 NaN，属于设计如此，不是训练坏了。
+    #
+    # 一律报警会让真故障淹没在必然出现的噪声里，所以只查危险的那一类。
+    danger=$(grep -inE "(reward|loss|value_function|surrogate)[^0-9-]*(nan|inf)([^a-z]|$)" "$S_LOG" | head -5)
+    if [ -n "$danger" ]; then
+        log "❌ reward/loss 出现 NaN/Inf —— 训练发散："
+        echo "$danger" | tee -a "$PIPE"
     else
-        log "✅ 无 NaN/Inf"
+        log "✅ reward/loss 无 NaN/Inf"
+        sentinel=$(grep -coE "Curriculum/(agg_episode_length|time_out_ratio|length_ratio_to_max): *nan" "$S_LOG")
+        [ "${sentinel:-0}" -gt 0 ] && \
+            log "   （另有 $sentinel 处 Curriculum 哨兵 NaN，是「未到评估步」的初值，正常）"
     fi
 
-    # 观测维自检：参考答案给了确定值 289×8=2312
-    dim=$(grep -oE "policy[^0-9]*([0-9]{3,5})" "$S_LOG" | grep -oE "[0-9]{3,5}" | head -1)
-    [ -n "$dim" ] && log "   观测维线索: $dim（height_scan 部分应为 289×8=2312）"
+    # 观测维自检：参考答案给了确定值 289×8=2312。
+    # 注意要取 height_scanner **这一项**，不是 policy 组的总维度——
+    # 组总维还包含 motion_command / joint_pos_rel 等，
+    # 之前抓成 3120 险些以为实现错了（3120 = 2312+58+6+24+24+232×3，其实是对的）。
+    dim=$(grep -oE "height_scanner *\| *\(([0-9]+),\)" "$S_LOG" | grep -oE "[0-9]+" | head -1)
+    if [ -n "$dim" ]; then
+        if [ "$dim" = "2312" ]; then
+            log "✅ height_scanner 观测维 $dim = 289×8，与规格一致"
+        else
+            log "❌ height_scanner 观测维 $dim，规格要求 289×8=2312"
+        fi
+    else
+        log "⚠️ 日志里没找到 height_scanner 的维度"
+    fi
 else
     log "❌ smoke 失败 rc=$rc，最后 30 行："
     tail -30 "$S_LOG" | tee -a "$PIPE"
