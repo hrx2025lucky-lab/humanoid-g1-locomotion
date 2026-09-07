@@ -22,7 +22,8 @@ log() { echo "[$(date '+%m-%d %H:%M:%S')] $*" | tee -a "$PIPE_LOG"; }
 log "════ 实践 11-C 接续任务启动 ════"
 log "等待实践 5 Part 2 (RandomArena) 让出 GPU…"
 
-while pgrep -f "Navigation-HRL-RandomArena" >/dev/null 2>&1; do
+while pgrep -f "Navigation-HRL-RandomArena" >/dev/null 2>&1 \
+   || pgrep -f "AMP-WalkToRun" >/dev/null 2>&1; do
   sleep 300
 done
 log "GPU 已空闲"
