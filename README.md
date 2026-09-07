@@ -90,8 +90,19 @@ checkpoint、验证脚本的实跑结果。
 - [`scripts/verify_training_outcome.py`](scripts/verify_training_outcome.py)
   —— **按真实任务指标验收，不看 reward**。能自动区分"训练有 bug"与
   "设计权衡"：判据是奖励函数在当前误差量级上还有没有梯度
+- [`scripts/check_stale_imports.py`](scripts/check_stale_imports.py)
+  —— **不启动 IsaacSim 就查出"训练能跑、回放起不来"**。一晚上撞了三次
+  同一处上游 API 迁移（模块从 `isaaclab.utils` 挪到 `isaaclab_rl.utils`），
+  因为 `train.py` 不引用它，问题只在交付录像时才暴露。
+  难点全在消除误报：查子模块会执行父包 `__init__`（需要 IsaacSim 的 carb），
+  所以只对顶层包用 `find_spec`、子模块改查文件系统；
+  还要补上启动脚本里 `export PYTHONPATH` 的运行时路径。
+  用 5 组已知答案自检，做到零误报且不漏检
 - [`scripts/audit_against_rubric.py`](scripts/audit_against_rubric.py)
   —— 把评分细则变成 111 条可复现断言
+- [`scripts/check_deliverables.py`](scripts/check_deliverables.py)
+  —— 交付材料清单。刻意防"假阳性"：冒烟存的 `model_3.pt` 不算训练成果、
+  报错的日志不算跑通、"无数据"不等于"通过"
 - [`scripts/assess_training_budget.py`](scripts/assess_training_budget.py)
   —— 判断训练量是否充分，判据是收敛而非轮数
 
