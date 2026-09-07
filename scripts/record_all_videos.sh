@@ -36,6 +36,47 @@ latest_ckpt() {   # latest_ckpt <run 目录> → 打印完整路径，找不到�
     echo "$dir/model_${best}.pt"
 }
 
+# 跑一个 play 进程，视频一写完就主动结束它。
+#
+# 为什么需要：各框架的 play.py 录完视频后都会进入**交互式 viewer**
+# （mjlab 是 play.py:227 NativeMujocoViewer.run()），永远不会自己退出。
+# 直接跑的话，视频 8 分钟就存好了，进程却要挂到 1 小时超时才被杀，
+# 三段消融就从 25 分钟变成 3 小时——一晚上的预算全耗在等一个死循环上。
+# （同一类问题在 GMR 的 vis_robot_motion.py 也遇到过，那次是 while True 重播。）
+#
+# 判据用"文件大小连续两次不变"而不是"文件出现"：mp4 是边写边落盘的，
+# 刚出现时还在写，这时候杀掉会得到一个截断的坏文件。
+play_until_video() {   # play_until_video <监视目录> <最长秒数> <命令...>
+    local watch="$1" limit="$2"; shift 2
+    local marker; marker="$(mktemp)"
+    "$@" &
+    local pid=$!
+    local waited=0 vid="" size=0 prev=-1
+    while kill -0 "$pid" 2>/dev/null && [ "$waited" -lt "$limit" ]; do
+        sleep 10; waited=$((waited + 10))
+        vid=$(find "$watch" -name "*.mp4" -newer "$marker" 2>/dev/null | head -1)
+        [ -z "$vid" ] && continue
+        size=$(stat -c %s "$vid" 2>/dev/null || echo 0)
+        if [ "$size" -gt 0 ] && [ "$size" = "$prev" ]; then
+            echo "  ✅ 视频写完（$((size / 1024)) KB），结束 play 进程"
+            kill "$pid" 2>/dev/null; sleep 3; kill -9 "$pid" 2>/dev/null
+            wait "$pid" 2>/dev/null
+            rm -f "$marker"
+            return 0
+        fi
+        prev="$size"
+    done
+    kill "$pid" 2>/dev/null; sleep 2; kill -9 "$pid" 2>/dev/null
+    wait "$pid" 2>/dev/null
+    rm -f "$marker"
+    if [ -n "$vid" ]; then
+        echo "  ⚠️ 到 ${limit}s 上限，但视频已存在：$vid"
+        return 0
+    fi
+    echo "  ❌ ${limit}s 内没有视频产出"
+    return 1
+}
+
 # ── 各实践的录制方式 ───────────────────────────────────────
 # video_length = episode_length_s / step_dt，给小了视频会中途断
 declare -A DESC=(
@@ -59,20 +100,25 @@ record_p2() {
 record_p5() {
   cd "$ROOT/shenlan_hw/hw5_navigation/unitree_rl_lab" || return 1
   export PYTHONPATH="$PWD/source/unitree_rl_lab:$PWD"
+  local rc=0
   # 两个任务共用 experiment_name，靠 --load_run 的时间戳区分
-  "$PY_LAB" scripts/rsl_rl/play.py --task Unitree-G1-29dof-Navigation-HRL-Baseline \
+  play_until_video "logs/rsl_rl" 900 \
+    "$PY_LAB" scripts/rsl_rl/play.py --task Unitree-G1-29dof-Navigation-HRL-Baseline \
       --num_envs 1 --video --video_length 750 --headless \
-      --load_run 2026-09-05_20-10-32 || true
-  "$PY_LAB" scripts/rsl_rl/play.py --task Unitree-G1-29dof-Navigation-HRL-RandomArena \
+      --load_run 2026-09-05_20-10-32 || rc=1
+  play_until_video "logs/rsl_rl" 900 \
+    "$PY_LAB" scripts/rsl_rl/play.py --task Unitree-G1-29dof-Navigation-HRL-RandomArena \
       --num_envs 1 --video --video_length 750 --headless \
-      --load_run 2026-09-06_16-37-04
+      --load_run 2026-09-06_16-37-04 || rc=1
+  return $rc
 }
 
 record_p8() {
   cd "$ROOT/shenlan_hw/unitree_lab_amp" || return 1
   # rsl_rl_amp 没被 pip 装，靠 cwd 进 sys.path —— 必须在项目根目录跑
   export PYTHONPATH="$PWD/source/unitree_rl_lab:$PWD"
-  "$PY_LAB" scripts/rsl_rl/play.py --task Unitree-G1-29dof-AMP-WalkToRun-FullPlay \
+  play_until_video "logs" 1200 \
+    "$PY_LAB" scripts/rsl_rl/play.py --task Unitree-G1-29dof-AMP-WalkToRun-FullPlay \
       --num_envs 1 --video --video_length 1500 --headless
 }
 
@@ -107,7 +153,8 @@ record_p4() {
     echo "▸ $run → $(basename "$ck")"
     # 不再吞掉失败（原来结尾是 || true）：三段全失败也会报"完成"，
     # 于是"一个视频都没录出来"被当成录完了。
-    .venv/bin/python -m mjlab.scripts.play Mjlab-VelocityHeight-Flat-Unitree-G1 \
+    play_until_video "$base/$run" 900 \
+      .venv/bin/python -m mjlab.scripts.play Mjlab-VelocityHeight-Flat-Unitree-G1 \
         --checkpoint-file "$ck" \
         --video True --video-length 1000 --video-width 1280 --video-height 720 || rc=1
   done

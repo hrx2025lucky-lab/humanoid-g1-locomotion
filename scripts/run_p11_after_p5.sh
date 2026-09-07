@@ -40,17 +40,36 @@ SMOKE_LOG="$LOG_DIR/p11_smoke.log"
 log "冒烟测试：--num_envs 512 --max_iterations 5"
 cd "$LAB" || { log "❌ 进不去 $LAB"; exit 1; }
 
+# 冒烟必须带上正式训练要用的 hydra 覆盖（agent.save_interval）。
+# 否则这个参数直到正式训练才第一次生效——万一 hydra 不认，
+# 就是等冒烟通过、进入长跑后才崩，白白浪费一个训练时段。
+# 冒烟只跑 5 轮，save_interval 设 2 保证真的会走一次保存分支。
 timeout 1800 "$PY" scripts/instinct_rl/train.py \
   --headless --task="$TASK" --num_envs 512 --max_iterations 5 \
+  agent.save_interval=2 \
   > "$SMOKE_LOG" 2>&1
 smoke_rc=$?
 
 if grep -qE "Learning iteration [0-9]+/" "$SMOKE_LOG"; then
   log "✅ 冒烟通过（训练循环已启动）"
+  # 光看训练跑起来还不够——要确认 agent.save_interval 这个 hydra 覆盖
+  # 真的生效了。hydra 对不认识的键会报错，但如果哪天它改成静默忽略，
+  # 训练照样跑，只是全程不存档，等长跑结束才发现颗粒无收
+  # （实践 11 上一轮就是这么丢掉 2 小时 45 分的）。
+  # 冒烟 save_interval=2、共 5 轮，正常应当落下 model_2.pt / model_4.pt。
+  smoke_run=$(ls -td "$LAB"/logs/instinct_rl/g1_parkour/*/ 2>/dev/null | head -1)
+  if [ -n "$smoke_run" ] && ls "$smoke_run"/model_*.pt >/dev/null 2>&1; then
+    log "   ✅ save_interval 覆盖生效：$(ls "$smoke_run" | grep -c '^model_.*\.pt$') 个 checkpoint"
+  else
+    log "   ❌ 冒烟跑完却没有 checkpoint —— agent.save_interval 没生效，"
+    log "      正式训练会全程不存档，先停下排查"
+    exit 1
+  fi
 elif grep -qiE "out of memory|CUDA error" "$SMOKE_LOG"; then
   log "⚠️ 显存不足，降到 --num_envs 256 重试"
   timeout 1800 "$PY" scripts/instinct_rl/train.py \
     --headless --task="$TASK" --num_envs 256 --max_iterations 5 \
+    agent.save_interval=2 \
     > "$SMOKE_LOG" 2>&1
   if grep -qE "Learning iteration [0-9]+/" "$SMOKE_LOG"; then
     log "✅ 256 env 冒烟通过"
