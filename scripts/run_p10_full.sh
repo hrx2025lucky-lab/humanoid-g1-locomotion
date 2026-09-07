@@ -18,7 +18,14 @@ HOI="$ROOT/shenlan_hw/HOI_Mimic"
 PY_LAB="$ROOT/envs/isaaclab/bin/python"
 TASK="Unitree-G1-29dof-Mimic-HOI_terrain-Perceptive-Raycast"
 ITERS=3000
-NUM_ENVS=4096
+# 为什么不用配置默认的 4096：这个任务的观测特别大——
+# policy 组 3120 维（其中 height_scanner 就占 2312 = 289×8），critic 3252 维。
+# rollout 缓冲区是 num_steps_per_env × num_envs × obs_dim：
+#   24 × 4096 × (3120+3252) × 4 B ≈ 2.5 GB，PPO 多轮更新还要再翻几倍。
+# 实测 4096 在第 0 轮结束时 CUDA OOM（只差 24 MiB，说明就是刚好超）。
+# 差得这么少更要留足余量：后面 PPO 更新阶段的峰值比第 0 轮更高，
+# 卡着上限跑等于把几小时的训练押在一次侥幸上。
+NUM_ENVS="${P10_NUM_ENVS:-2048}"
 
 LOG_DIR="$HOME/humanoid_logs/p10_hoi"
 PIPE="$HOME/humanoid_logs/pipeline/p10_full.log"
@@ -45,9 +52,11 @@ done
 sleep 90
 free_mb=$(nvidia-smi --query-gpu=memory.free --format=csv,noheader,nounits 2>/dev/null | head -1)
 log "GPU 空闲显存：${free_mb:-?} MiB"
-if [ -n "$free_mb" ] && [ "$free_mb" -lt 8000 ]; then
-    log "⚠️ 空闲显存不足 8 GB，$NUM_ENVS 环境很可能 OOM，降到 2048"
-    NUM_ENVS=2048
+# 显存被别的东西占着就再降一档。真正的 OOM 兜底在下面的重试循环里，
+# 这里只是提前一步，省掉一次要跑几十秒才失败的尝试。
+if [ -n "$free_mb" ] && [ "$free_mb" -lt 12000 ] && [ "$NUM_ENVS" -gt 1024 ]; then
+    log "⚠️ 空闲显存不足 12 GB，$NUM_ENVS 环境风险高，先降到 1024"
+    NUM_ENVS=1024
 fi
 
 # ── 确认 smoke 过了 ────────────────────────────────────────
@@ -76,13 +85,28 @@ cd "$HOI" || exit 1
 export PYTHONPATH="$HOI/source/unitree_rl_lab:$HOI:${PYTHONPATH:-}"
 
 log "训练：--num_envs $NUM_ENVS --max_iterations $ITERS → $T_LOG"
-"$PY_LAB" scripts/rsl_rl/train.py \
-    --task "$TASK" --num_envs "$NUM_ENVS" --max_iterations "$ITERS" \
-    --headless --logger tensorboard \
-    > "$T_LOG" 2>&1
+run_train() {   # run_train <num_envs>
+    "$PY_LAB" scripts/rsl_rl/train.py \
+        --task "$TASK" --num_envs "$1" --max_iterations "$ITERS" \
+        --headless --logger tensorboard \
+        > "$T_LOG" 2>&1
+}
+run_train "$NUM_ENVS"
 rc=$?
+
+# 显存不够就自动减半重试，而不是把整夜浪费在一次 OOM 上。
+# 这个任务的显存占用主要由 num_envs 线性决定（rollout 缓冲区），
+# 减半基本就能过；最多退到 512，再小就没有训练意义了。
+while [ "$rc" -ne 0 ] && grep -q "OutOfMemoryError" "$T_LOG" 2>/dev/null && [ "$NUM_ENVS" -gt 512 ]; do
+    NUM_ENVS=$(( NUM_ENVS / 2 ))
+    log "⚠️ CUDA OOM，降到 --num_envs $NUM_ENVS 重试"
+    sleep 30    # 等上一个进程把显存真正还回来
+    run_train "$NUM_ENVS"
+    rc=$?
+done
+
 last=$(grep -oE "Learning iteration [0-9]+/[0-9]+" "$T_LOG" 2>/dev/null | tail -1)
-log "训练结束 rc=$rc  最后：${last:-未知}"
+log "训练结束 rc=$rc  最后：${last:-未知}  (num_envs=$NUM_ENVS)"
 if [ "$rc" -ne 0 ]; then
     log "最后 25 行："
     tail -25 "$T_LOG" | tee -a "$PIPE"
