@@ -60,9 +60,13 @@ SPECS = [
     Spec("6", "蒸馏 · Action",
          f"{WS}/shenlan_hw/hw6_distill/logs/rsl_rl/g1_hw6_student_action_matching_aligned/*",
          "Train/mean_reward", 5000),
+    # ★ 模仿/跟踪类任务不能用 mean_reward 判收敛 ★
+    # 实践 9 的 reward 涨 343%，但那是 episode 变长带来的累积，
+    # 单步跟踪质量其实在变差（error_joint_pos 1.161→1.900）。
+    # 参考答案的诊断表明确写着"奖励升但误差不降 → 查定义"。
     Spec("9", "轨迹跟踪 P2",
          f"{WS}/shenlan_hw/hw6_distill/logs/rsl_rl/g1_hw6_teacher/2026-09-05_23-41-39*",
-         "Train/mean_reward", 20000),
+         "Metrics/motion/error_joint_pos", 20000, higher_better=False),
     Spec("8", "AMP 拟人走跑",
          f"{WS}/shenlan_hw/unitree_lab_amp/logs/**/2026-09-07*",
          "Train/mean_reward", None, note="今日重跑"),
@@ -195,14 +199,22 @@ def main() -> int:
         pct = f"{a['iters']/off:.0%}" if off else "—"
         offs = str(off) if off else "—"
 
-        # 数值跨度大，按量级选格式
-        w = 3 if abs(a["seg"][-1]) < 10 else 1
-        curve = "→".join(f"{v:.{w}f}" for v in a["seg"])
+        # 数值跨度大，按量级选格式。
+        # higher_better=False 时 seg 存的是取负后的值（为了统一"越大越好"的
+        # 内部逻辑），显示时要还原成原始量纲，否则误差会显示成负数。
+        sign = 1 if s.get("higher_better", True) else -1
+        disp = [v * sign for v in a["seg"]]
+        w = 3 if max(abs(x) for x in disp) < 10 else 1
+        curve = "→".join(f"{v:.{w}f}" for v in disp)
 
         if a.get("harder_task"):
             v, color = "课程升难度", B
         elif a["plateau"]:
             v, color = "已收敛 ✅", G
+        elif not s.get("higher_better", True):
+            # 误差类指标没进平台 = 还在变差或还在改善，措辞要分开说
+            v, color = ("误差仍在恶化 ⚠️" if a["rel_last"] < 0
+                        else "误差仍在下降"), Y
         else:
             v, color = "还在涨", Y
         print(f"{label}{a['iters']:>7}{offs:>7}{pct:>6}  {curve:<44}"
