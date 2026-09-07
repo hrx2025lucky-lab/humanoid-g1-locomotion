@@ -511,10 +511,23 @@ def audit_p5() -> None:
     rec("ok" if ei > 0 else "warn", 5, "难度扩展组有真实训练数据",
         f"baseline {bi} 轮 · 扩展组 {ei} 轮")
     if ei > 0:
-        # "相同预算"允许一定偏差，但不该差一倍（实践 6 就栽在这上面）
+        # "相同预算"允许一定偏差，但不该差一倍（实践 6 就栽在这上面）。
+        # 不过训练量不等还有第二条出路：把长的那组截到共同 iter 再比，
+        # 效果与重跑短的那组等价而且省几小时。compare_p5_navigation.py
+        # 已实现（tail_mean 的 max_step 参数），文档记了截取后的结论，
+        # 所以这里认这种对齐方式。
         ratio = min(bi, ei) / max(bi, ei) if max(bi, ei) else 0
-        rec("ok" if ratio > 0.8 else "warn", 5, "两组训练预算相当",
-            f"比值 {ratio:.2f}（<0.8 视为不对等）")
+        d5 = DOCS / "实践5_分层强化学习导航.md"
+        has_cut = has(d5, r"截到共同|max_step|同一 iter") > 0
+        cut_impl = has(REPO / "scripts/compare_p5_navigation.py", r"max_step") > 0
+        if ratio > 0.8:
+            rec("ok", 5, "两组训练预算相当", f"比值 {ratio:.2f}")
+        elif has_cut and cut_impl:
+            rec("ok", 5, "两组已按共同 iter 对齐比较",
+                f"轮数比值 {ratio:.2f}，但已截到共同 iter 做公平对照")
+        else:
+            rec("warn", 5, "两组训练预算相当",
+                f"比值 {ratio:.2f}（<0.8 且未做截取对齐）")
     log = Path.home() / "humanoid_logs/p5_navigation/p5_baseline.log"
     if log.exists():
         t = log.read_text(errors="ignore")
