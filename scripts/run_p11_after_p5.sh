@@ -20,10 +20,25 @@ mkdir -p "$LOG_DIR" "$(dirname "$PIPE_LOG")"
 log() { echo "[$(date '+%m-%d %H:%M:%S')] $*" | tee -a "$PIPE_LOG"; }
 
 log "════ 实践 11-C 接续任务启动 ════"
-log "等待实践 5 Part 2 (RandomArena) 让出 GPU…"
 
-while pgrep -f "Navigation-HRL-RandomArena" >/dev/null 2>&1 \
-   || pgrep -f "AMP-WalkToRun" >/dev/null 2>&1; do
+# ── GPU 互斥锁 ─────────────────────────────────────────────
+# 这个脚本原本只靠 pgrep 列举别的任务名来判断 GPU 空不空，
+# 但另外两个训练脚本（resume_p10_train.sh / retrain_p9_fixed_std.sh）
+# 用的是 /tmp/humanoid_gpu.lock 文件锁。两套机制互不认识：
+# pgrep 的名单里没有对方，对方的锁也拦不住这个脚本，
+# 结果就是两个训练同时抢同一张卡 → CUDA OOM，两边都白跑。
+# 统一用同一把锁。
+GPU_LOCK="/tmp/humanoid_gpu.lock"
+exec 9>"$GPU_LOCK"
+log "等待 GPU 锁…"
+flock 9
+log "已获得 GPU 锁"
+
+log "确认没有别的 GPU 计算进程…"
+while : ; do
+  busy=$(nvidia-smi --query-compute-apps=pid --format=csv,noheader 2>/dev/null | tr -d ' \n')
+  [ -z "$busy" ] && break
+  log "  等待 GPU 上的进程退出（$busy）"
   sleep 300
 done
 log "GPU 已空闲"
