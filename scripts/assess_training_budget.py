@@ -158,6 +158,24 @@ def assess(ea, tag: str, higher_better: bool) -> dict | None:
     # reward 在跌但课程难度在升 —— 单独归一类，别和"还在涨"混为一谈
     harder_task = last_gain < 0 and curriculum_rising
 
+    # 继续训的性价比：按最后 20% 的实际斜率，还要多久才能再改善 10%。
+    #
+    # 为什么要这个数：光说"占官方基准 30%"没法决策——实践 5 只跑了 3%
+    # 就收敛了，实践 9 跑到 200% 反而更差。真正该问的是
+    # "再投入 N 小时能换来多少改善"，而不是"跑够比例了没有"。
+    tail_n = max(n // 5, 5)
+    tv2 = vals[-tail_n:]
+    mx = sum(range(tail_n)) / tail_n
+    my = sum(tv2) / tail_n
+    den = sum((i - mx) ** 2 for i in range(tail_n))
+    slope = (sum((i - mx) * (v - my) for i, v in enumerate(tv2)) / den) if den else 0.0
+    if not higher_better:
+        slope = -slope          # 统一成"正数=在变好"
+    # 每个记录点对应多少轮
+    per_pt = max(pts[-1].step / max(n - 1, 1), 1)
+    want = abs(seg[-1]) * 0.10  # 想再改善 10%
+    iters_needed = (want / (slope / per_pt)) if slope > 1e-12 else None
+
     return {
         "iters": pts[-1].step,
         "points": n,
@@ -169,6 +187,7 @@ def assess(ea, tag: str, higher_better: bool) -> dict | None:
         "plateau": plateau,
         "curriculum": curr,
         "harder_task": harder_task,
+        "iters_for_10pct": iters_needed,
         "tag": tag,
     }
 
@@ -229,6 +248,13 @@ def main() -> int:
             v, color = "还在涨", Y
         print(f"{label}{a['iters']:>7}{offs:>7}{pct:>6}  {curve:<44}"
               f"{a['rel_last']:>+7.1%}  {color}{v}{N}")
+        # 没收敛的，给出"再练多久才值"的估算——比"占官方基准百分之几"更能决策
+        if not a["plateau"] and not a.get("harder_task"):
+            need = a.get("iters_for_10pct")
+            if need and need > 0:
+                print(f"{'':<32}  {D}按当前斜率，再改善 10% 约需 {need:,.0f} 轮{N}")
+            else:
+                print(f"{'':<32}  {D}当前斜率为零或反向，继续训不会更好{N}")
         if a.get("harder_task"):
             for cname, c in list(a["curriculum"].items())[:2]:
                 cc = "→".join(f"{x:.2f}" for x in c["seg"])
