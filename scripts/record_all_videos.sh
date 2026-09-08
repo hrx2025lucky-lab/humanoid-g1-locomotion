@@ -144,17 +144,29 @@ record_p4() {
   # mjlab：任务名是位置参数，选项用中划线
   local base="logs/rsl_rl/g1_velocity_height"
   local rc=0
+  # 三组消融各自的任务名不同——这正是消融的实验变量。
+  # blind_actor 去掉了高度观测（99 维 vs 默认 100 维），
+  # 用默认任务名回放会 state_dict size mismatch。
+  # 任务名取自 run_p4_ablation.sh:45-49，与训练时保持一致。
+  declare -A P4_TASKS=(
+    [ablation_baseline]="Mjlab-VelocityHeight-Flat-Unitree-G1"
+    [ablation_no_height_rew]="Mjlab-VelocityHeight-Flat-Unitree-G1-NoHeightRew"
+    [ablation_blind_actor]="Mjlab-VelocityHeight-Flat-Unitree-G1-BlindActor"
+  )
   for run in 2026-09-02_20-59-11_ablation_baseline \
              2026-09-02_21-52-14_ablation_no_height_rew \
              2026-09-02_22-45-34_ablation_blind_actor; do
     [ -d "$base/$run" ] || continue
-    local ck
+    local ck task
     ck=$(latest_ckpt "$base/$run") || { echo "❌ $run 里没有 model_*.pt"; rc=1; continue; }
-    echo "▸ $run → $(basename "$ck")"
+    # run 目录名形如 <时间戳>_ablation_xxx，取 "ablation_xxx" 当 key
+    task="${P4_TASKS[ablation${run#*_ablation}]:-}"
+    [ -z "$task" ] && { echo "❌ $run 找不到对应任务名"; rc=1; continue; }
+    echo "▸ $run → $(basename "$ck")  [$task]"
     # 不再吞掉失败（原来结尾是 || true）：三段全失败也会报"完成"，
     # 于是"一个视频都没录出来"被当成录完了。
     play_until_video "$base/$run" 900 \
-      .venv/bin/python -m mjlab.scripts.play Mjlab-VelocityHeight-Flat-Unitree-G1 \
+      .venv/bin/python -m mjlab.scripts.play "$task" \
         --checkpoint-file "$ck" \
         --video True --video-length 1000 --video-width 1280 --video-height 720 || rc=1
   done

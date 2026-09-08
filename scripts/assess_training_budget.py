@@ -71,6 +71,15 @@ SPECS = [
     Spec("8", "AMP 拟人走跑",
          f"{WS}/shenlan_hw/unitree_lab_amp/logs/**/2026-09-07*",
          "Train/mean_reward", None, note="今日重跑"),
+    # 实践 10/11 同为跟踪/课程类，一律看任务指标不看 reward
+    Spec("10", "HOI 感知跟踪",
+         f"{WS}/shenlan_hw/HOI_Mimic/logs/rsl_rl/unitree_g1_29dof_mimic_hoi_terrain_perceptive_raycast/*",
+         "Metrics/motion/error_joint_pos", 30000, higher_better=False,
+         note="官方默认 30000，单卡只跑 3000"),
+    Spec("11", "跑酷",
+         f"{WS}/repos/instinctlab/logs/instinct_rl/g1_parkour/*",
+         "Episode/Curriculum/terrain_levels", 30000,
+         note="地形等级上限 9（num_rows=10）"),
 ]
 
 

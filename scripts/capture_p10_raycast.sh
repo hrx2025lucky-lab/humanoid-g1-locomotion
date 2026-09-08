@@ -67,16 +67,33 @@ log "等场景渲染完成…"
 sleep 90
 ok=0
 for n in 1 2 3; do
+    # 每次抓之前确认 play 还活着。昨晚就是 play 早已崩掉
+    # （KeyError: 'policy'），脚本却继续抓，拍下一张锁屏壁纸当"材料"。
+    if ! kill -0 "$pid" 2>/dev/null; then
+        log "  ❌ play 进程已退出，不再抓图。最后 15 行："
+        tail -15 "$LOG"
+        break
+    fi
     shot="$OUT_DIR/p10_raycast_$(date +%H%M%S)_$n.png"
     if ffmpeg -loglevel error -y -f x11grab -video_size "${SCR_W}x${SCR_H}" \
               -i "${DISP}+0,0" -frames:v 1 "$shot" 2>>"$LOG"; then
-        size=$(stat -c %s "$shot" 2>/dev/null || echo 0)
-        # 全黑截图也有几十 KB，这里只挡明显异常的空文件
-        if [ "$size" -gt 20000 ]; then
-            log "  ✅ $(basename "$shot")  $((size / 1024)) KB"
+        # 只看文件大小拦不住假图：昨晚那张锁屏也有 675 KB。
+        # 改为验证图像内容——仿真画面色彩丰富，
+        # 而锁屏/纯色背景的独立颜色数很少。
+        n_colors=$("$PY" - "$shot" <<'PYEOF'
+import sys
+from PIL import Image
+im = Image.open(sys.argv[1]).convert("RGB")
+im.thumbnail((640, 640))
+colors = im.getcolors(maxcolors=1 << 24) or []
+print(len(colors))
+PYEOF
+)
+        if [ "${n_colors:-0}" -ge 3000 ]; then
+            log "  ✅ $(basename "$shot")  独立颜色数 $n_colors"
             ok=$((ok + 1))
         else
-            log "  ⚠️ $(basename "$shot") 只有 ${size} B，丢弃"
+            log "  ⚠️ $(basename "$shot") 颜色数只有 ${n_colors:-0}，像壁纸不像仿真画面，丢弃"
             rm -f "$shot"
         fi
     fi
