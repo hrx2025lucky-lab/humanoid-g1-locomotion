@@ -23,20 +23,26 @@ PIPE="$HOME/humanoid_logs/pipeline/p9_retrain.log"
 mkdir -p "$LOG_DIR" "$(dirname "$PIPE")"
 log() { echo "[$(date '+%m-%d %H:%M:%S')] $*" | tee -a "$PIPE"; }
 
-# ⚠️ std 保持课程默认的 0.3——这是官方参考答案的值
-#   （course_code/shanlan_HW6/.../teacher_env_cfg.py:344 params={"std": 0.3}）
+# 这次重训的理由：**跟踪目标本来就是错的**，不是超参问题。
 #
-# 曾经我判断"std=0.3 让奖励饱和到 4e-18、梯度消失"，那个结论是**错的**。
-# 错因是把两个不同的量当成了同一个：
-#   指标 error_joint_pos = torch.norm(diff)        ← L2 范数（base.py:782）
-#   奖励               = exp(-mean(diff²)/std²)   ← 均值（rewards.py:25）
-# norm² = N × mean(diff²)，N=29 个关节。我直接把 norm 代进奖励公式，
-# 等于把指数项放大了 29 倍，于是 0.28 被算成了 5.9e-17。
+# 原始 npz 的 joint_pos 是广度优先（BFS）列序，而模型是深度优先（DFS）。
+# loader 只按 meta.json 的 body_names 重排了刚体（library.py:129-136），
+# 关节是 `joint_pos=payload.joint_pos` 原样传的（:143），于是错位。
 #
-# 实测奖励值 Reward_per_Sec/motion_joint_pos = 0.643 → 0.469，
-# 梯度充足，根本没有饱和。用正确公式复算也得 0.72 → 0.28，与实测吻合。
+# 用正运动学验证（拿 joint_pos 驱动模型，比对 body_pos_w）：
+#   原始顺序 FK 误差 0.178 m（还不如随机排列）
+#   修正顺序 FK 误差 0.0011 m   ← 163 倍
+# 超限关节 11/29 → 1/29。之前 right_ankle_pitch 被要求转 153°，
+# 而限位只有 ±30°——机器人物理上做不到，误差当然降不下来。
 #
-# 所以这个脚本不改 std。真正的问题另有原因（见 docs/实践9 附三）。
+# 这解释了那组矛盾曲线：error_body_pos ↓75% 而 error_joint_pos ↑97%。
+# 刚体目标是对的所以跟得上，关节目标是错的所以越练越偏。
+#
+# std 保持课程默认的 0.3——官方参考答案就是这个值
+#（course_code/shanlan_HW6/.../teacher_env_cfg.py:344）。
+# 此前判断"std=0.3 让奖励饱和到 4e-18"是错的：那是把 L2 范数
+#（指标 error_joint_pos = torch.norm）代进了用均值的奖励公式
+#（exp(-mean(diff²)/std²)），漏除 29 个关节。实测奖励一直有 0.47。
 STD="${HW9_JOINT_POS_STD:-0.3}"
 ITERS="${P9_ITERS:-8000}"
 
@@ -68,7 +74,7 @@ log "训练 $ITERS 轮 → $T_LOG"
 # 命令形式与首次训练 20k 时一致（见 docs/实践9 §训练命令）：
 # 入口是 ./.venv/bin/train，动作文件走 HW6_MOTION_SOURCE 环境变量，
 # 其余参数是 tyro 的点号路径形式
-HW6_MOTION_SOURCE=motion_data_cfg_hw9_dance.yaml \
+HW6_MOTION_SOURCE=${HW9_MOTION:-motion_data_cfg_hw9_dance_fixed.yaml} \
 HW9_JOINT_POS_STD="$STD" \
 ./.venv/bin/train Mjlab-Humanoid-HW6-Teacher-G1 \
     --env.scene.num-envs=4096 \
