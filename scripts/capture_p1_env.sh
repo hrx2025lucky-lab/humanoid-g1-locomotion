@@ -32,7 +32,12 @@ from PIL import Image, ImageDraw, ImageFont
 txt, out, title = sys.argv[1], sys.argv[2], sys.argv[3]
 lines = open(txt, errors="ignore").read().splitlines()[:40]
 font = None
-for p in ("/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+# 标题里有中文，DejaVu/Liberation 都不含中文字形，会渲染成方块。
+# 优先挑带中文的等宽/黑体，找不到再退回英文字体。
+for p in ("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+          "/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc",
+          "/usr/share/fonts/truetype/arphic/uming.ttc",
+          "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
           "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf"):
     try:
         font = ImageFont.truetype(p, 15); break
