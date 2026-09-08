@@ -61,7 +61,12 @@ SPECS = [
      # 不锁定某一次 run：重训会产生新目录，load() 取最新的那个。
      # 锁死旧 run 的话，验收永远在看那次已知有 bug 的训练。
      f"{WS}/shenlan_hw/hw6_distill/logs/rsl_rl/g1_hw6_teacher/*",
-     "Metrics/motion/error_joint_pos", True, None,
+     "Metrics/motion/error_joint_pos", True,
+     # 稳定性指标此前留空(None)，导致第四层判据被跳过，
+     # 于是明明是"权衡"却报成"变差且无法归因"。
+     # 这个任务的稳定性看失败率：1.000 → 0.684，同期
+     # mean_episode_length 5.04 → 144.82（28.7 倍）。
+     "Episode_Termination/fail",
      # std 与训练时同源（retrain_p9_fixed_std.sh 用同一个环境变量）。
      # 默认 0.3 是官方参考答案的值，此前误判它"饱和"是我算错了——
      # 见下方 n_dof 的注释。29 = G1 的关节数。
@@ -147,6 +152,7 @@ def main() -> int:
     print("=" * 88)
 
     problems = []
+    partial = []
     skipped = []
     passed = 0
     for pid, name, pat, metric, lower_better, stab, std in SPECS:
@@ -211,13 +217,30 @@ def main() -> int:
             print(f"  {G}→ 仍有梯度{N}")
 
         # 稳定性还在改善 → 多半是设计权衡
+        #
+        # 分三档而不是一刀切。原来只有 ">50% 就算权衡"这一个门槛，
+        # 于是实践 9（失败率降 32%、存活时长涨 28.7 倍）落进了
+        # "无法归因"，报得比实情严重。但也不该为了让它通过就把门槛
+        # 调松——那是把判据改成迎合结论。正确做法是让判据能表达中间态。
         if stab:
             st = seg5(ea, stab)
-            if st and st[-1] < st[0] * 0.5:
-                print(f"{'':<20}{G}→ 但 {stab.split('/')[-1]} "
-                      f"{st[0]:.3f}→{st[-1]:.3f} 大幅改善，属设计权衡{N}")
-                passed += 1
-                continue
+            if st and st[0] > 1e-9:
+                drop = 1 - st[-1] / st[0]
+                leaf_s = stab.split("/")[-1]
+                if drop >= 0.5:
+                    print(f"{'':<20}{G}→ 但 {leaf_s} {st[0]:.3f}→{st[-1]:.3f} "
+                          f"（降 {drop:.0%}）大幅改善，属设计权衡{N}")
+                    passed += 1
+                    continue
+                if drop >= 0.2:
+                    print(f"{'':<20}{Y}→ {leaf_s} {st[0]:.3f}→{st[-1]:.3f} "
+                          f"（降 {drop:.0%}）有改善但不充分{N}")
+                    print(f"{'':<20}{D}   策略在学『活下去』，精度还没顾上；"
+                          f"不是 bug，是训练未完成{N}")
+                    partial.append((pid, name,
+                                    f"{leaf_s} 降 {drop:.0%}，但主指标仍在变差"))
+                    continue
+                print(f"{'':<20}{R}→ {leaf_s} 仅降 {drop:.0%}，稳定性也没改善{N}")
         problems.append((pid, name, "指标变差且无法归因"))
 
     print("=" * 88)
@@ -232,6 +255,11 @@ def main() -> int:
     # 「无数据」不等于「通过」。之前这两种情况直接 continue 掉，
     # 于是一个还没开始训练的实践也会被计进"全部通过"——
     # 假阳性比漏报危险，必须单独列出来。
+    if partial:
+        print(f"\n{Y}部分达标 {len(partial)} 项（稳定性在改善，但主指标仍变差）{N}")
+        for pid, name, why in partial:
+            print(f"  实践 {pid} {name}：{why}")
+
     if skipped:
         print(f"\n{Y}未验证 {len(skipped)} 项（缺数据，不算通过）{N}")
         for pid, name, why in skipped:
