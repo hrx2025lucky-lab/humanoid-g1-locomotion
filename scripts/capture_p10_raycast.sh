@@ -46,14 +46,20 @@ win=""
 for i in $(seq 1 40); do
     sleep 15
     kill -0 "$pid" 2>/dev/null || { log "❌ play 进程已退出，最后 15 行："; tail -15 "$LOG"; exit 1; }
-    # 只用 xwininfo 确认 Isaac 窗口**已经出现**，不从它解析几何：
-    # -root -tree 里同名条目的几何经常是 1x1（还没 map 完），
-    # 拿去喂 ffmpeg 会得到 "Error setting option video_size to value 0x1"。
-    # 抓全屏更稳，反正这台机器上此时只有这一个窗口在跑。
-    win=$(DISPLAY="$DISP" xwininfo -root -tree 2>/dev/null | grep -icE "isaac|omniverse")
-    [ "${win:-0}" -gt 0 ] && { log "Isaac 窗口已出现（等了 $((i * 15))s）"; break; }
+    # 找 Isaac 主窗口的 id。-root -tree 里同一个应用会有多个条目
+    # （工具窗、菜单等），只认尺寸够大的那个才是主窗口——
+    # 小条目的几何常是 1x1（还没 map 完），拿去裁剪会得到空图。
+    WIN_ID=""
+    for cand in $(DISPLAY="$DISP" xwininfo -root -tree 2>/dev/null \
+                  | grep -iE "isaac|omniverse" | grep -oE "0x[0-9a-f]+"); do
+        big=$(DISPLAY="$DISP" xwininfo -id "$cand" 2>/dev/null | awk '
+            /^  Width:/ {w=$NF} /^  Height:/ {h=$NF}
+            END {if (w>600 && h>400) print "yes"}')
+        [ "$big" = "yes" ] && { WIN_ID="$cand"; break; }
+    done
+    [ -n "$WIN_ID" ] && { log "Isaac 主窗口 id=$WIN_ID（等了 $((i * 15))s）"; break; }
 done
-[ "${win:-0}" -eq 0 ] && { log "❌ 10 分钟没等到 Isaac 窗口"; kill "$pid" 2>/dev/null; exit 1; }
+[ -z "$WIN_ID" ] && { log "❌ 10 分钟没等到 Isaac 窗口"; kill "$pid" 2>/dev/null; exit 1; }
 
 # 屏幕尺寸从 xwininfo -root 的 Width/Height 取——已实测这两个字段可靠
 SCR_W=$(DISPLAY="$DISP" xwininfo -root 2>/dev/null | awk '/Width:/{print $2}')
@@ -75,8 +81,32 @@ for n in 1 2 3; do
         break
     fi
     shot="$OUT_DIR/p10_raycast_$(date +%H%M%S)_$n.png"
+    full="$OUT_DIR/.full_$n.png"
     if ffmpeg -loglevel error -y -f x11grab -video_size "${SCR_W}x${SCR_H}" \
-              -i "${DISP}+0,0" -frames:v 1 "$shot" 2>>"$LOG"; then
+              -i "${DISP}+0,0" -frames:v 1 "$full" 2>>"$LOG"; then
+        # 抓全屏再裁窗口，而不是让 ffmpeg 直接抓窗口区域：
+        # 全屏抓取不会因为窗口几何暂时读成 1x1 而失败，
+        # 裁剪又能保证交付材料里只有仿真画面，
+        # 不会混进浏览器、聊天窗口这些无关内容。
+        geo=$(DISPLAY="$DISP" xwininfo -id "$WIN_ID" 2>/dev/null | awk '
+            /Absolute upper-left X/ {x=$NF}
+            /Absolute upper-left Y/ {y=$NF}
+            /^  Width:/  {w=$NF}
+            /^  Height:/ {h=$NF}
+            END {if (w>200 && h>200) print x, y, w, h}')
+        if [ -n "$geo" ]; then
+            set -- $geo
+            "$PY" - "$full" "$shot" "$1" "$2" "$3" "$4" <<'PYEOF'
+import sys
+from PIL import Image
+src, dst, x, y, w, h = sys.argv[1], sys.argv[2], *map(int, sys.argv[3:7])
+Image.open(src).crop((x, y, x + w, y + h)).save(dst)
+PYEOF
+            rm -f "$full"
+        else
+            # 查不到几何就退回全屏，总比没有强
+            mv "$full" "$shot"
+        fi
         # 只看文件大小拦不住假图：昨晚那张锁屏也有 675 KB。
         # 改为验证图像内容——仿真画面色彩丰富，
         # 而锁屏/纯色背景的独立颜色数很少。
