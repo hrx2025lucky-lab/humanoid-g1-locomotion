@@ -51,14 +51,21 @@ SPECS = [
      "Episode_Termination/goal_reached", None),
     ("6", "蒸馏 KL",
      f"{WS}/shenlan_hw/hw6_distill/logs/rsl_rl/g1_hw6_student_kl_matching/2026-09-05*",
-     "Metrics/motion/error_joint_pos", True, None, 0.3),
+     # std 与维度成对给出：指标是 L2 范数，奖励用均值，换算要除以维度
+     "Metrics/motion/error_joint_pos", True, None, (0.3, 29)),
     ("8", "AMP 拟人走跑",
      f"{WS}/shenlan_hw/unitree_lab_amp/logs/rsl_rl_amp/*/2026-09-07*",
      "Metrics/base_velocity/error_vel_xy", True,
      "Episode_Termination/bad_orientation", None),
     ("9", "轨迹跟踪",
-     f"{WS}/shenlan_hw/hw6_distill/logs/rsl_rl/g1_hw6_teacher/2026-09-05_23-41-39*",
-     "Metrics/motion/error_joint_pos", True, None, 0.3),
+     # 不锁定某一次 run：重训会产生新目录，load() 取最新的那个。
+     # 锁死旧 run 的话，验收永远在看那次已知有 bug 的训练。
+     f"{WS}/shenlan_hw/hw6_distill/logs/rsl_rl/g1_hw6_teacher/*",
+     "Metrics/motion/error_joint_pos", True, None,
+     # std 与训练时同源（retrain_p9_fixed_std.sh 用同一个环境变量）。
+     # 默认 0.3 是官方参考答案的值，此前误判它"饱和"是我算错了——
+     # 见下方 n_dof 的注释。29 = G1 的关节数。
+     (float(os.getenv("HW9_JOINT_POS_STD", "0.3")), 29)),
     ("10", "HOI 感知跟踪",
      # 日志根路径来自 HOI_Mimic/scripts/rsl_rl/train.py:188
      #   os.path.join("logs", "rsl_rl", agent_cfg.experiment_name)
@@ -184,11 +191,22 @@ def main() -> int:
 
         # 第 3 问：还有没有梯度
         if std is not None:
-            grad = math.exp(-(s[-1] ** 2) / (std ** 2))
-            print(f"{'':<20}{D}奖励 exp(-err²/std²) 当前 = {grad:.2e}{N}", end="")
+            # std 字段是 (std, n_dof) 二元组。为什么要带维度：
+            #     指标 error_joint_pos = torch.norm(diff)      ← L2 范数
+            #     奖励               = exp(-mean(diff²)/std²) ← 均值
+            #     norm² = n_dof × mean(diff²)
+            # 早先这里直接写 exp(-err²/std²)，等于把指数放大了 n_dof 倍，
+            # 把实际 0.28 的奖励算成 5.9e-17，于是给出"梯度消失是 bug"的
+            # 错误结论——而实测 Reward_per_Sec/motion_joint_pos 一直有 0.47。
+            std_val, n_dof = std
+            mean_sq = (s[-1] ** 2) / n_dof
+            grad = math.exp(-mean_sq / (std_val ** 2))
+            print(f"{'':<20}{D}奖励 exp(-mean(err²)/std²) = {grad:.4f}"
+                  f"（指标为 {n_dof} 维 L2 范数，std={std_val}）{N}", end="")
             if grad < 1e-4:
                 print(f"  {R}→ 梯度已消失，是 bug{N}")
-                problems.append((pid, name, f"奖励饱和 {grad:.1e}，std={std} 与误差量级不匹配"))
+                problems.append((pid, name,
+                                 f"奖励饱和 {grad:.1e}，std={std_val} 与误差量级不匹配"))
                 continue
             print(f"  {G}→ 仍有梯度{N}")
 

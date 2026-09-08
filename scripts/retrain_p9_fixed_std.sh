@@ -23,7 +23,21 @@ PIPE="$HOME/humanoid_logs/pipeline/p9_retrain.log"
 mkdir -p "$LOG_DIR" "$(dirname "$PIPE")"
 log() { echo "[$(date '+%m-%d %H:%M:%S')] $*" | tee -a "$PIPE"; }
 
-STD="${HW9_JOINT_POS_STD:-1.0}"
+# ⚠️ std 保持课程默认的 0.3——这是官方参考答案的值
+#   （course_code/shanlan_HW6/.../teacher_env_cfg.py:344 params={"std": 0.3}）
+#
+# 曾经我判断"std=0.3 让奖励饱和到 4e-18、梯度消失"，那个结论是**错的**。
+# 错因是把两个不同的量当成了同一个：
+#   指标 error_joint_pos = torch.norm(diff)        ← L2 范数（base.py:782）
+#   奖励               = exp(-mean(diff²)/std²)   ← 均值（rewards.py:25）
+# norm² = N × mean(diff²)，N=29 个关节。我直接把 norm 代进奖励公式，
+# 等于把指数项放大了 29 倍，于是 0.28 被算成了 5.9e-17。
+#
+# 实测奖励值 Reward_per_Sec/motion_joint_pos = 0.643 → 0.469，
+# 梯度充足，根本没有饱和。用正确公式复算也得 0.72 → 0.28，与实测吻合。
+#
+# 所以这个脚本不改 std。真正的问题另有原因（见 docs/实践9 附三）。
+STD="${HW9_JOINT_POS_STD:-0.3}"
 ITERS="${P9_ITERS:-8000}"
 
 log "════ 实践 9 重训（std=$STD）════"
