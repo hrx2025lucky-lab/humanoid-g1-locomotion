@@ -8,7 +8,8 @@
 # "抓全屏 + 按窗口 id 裁剪"的做法。
 set -uo pipefail
 
-ROOT="/home/limx/workspace/Roxan_warmup"
+# 允许用 ROXAN_ROOT 覆盖，方便换机器时不用改脚本
+ROOT="${ROXAN_ROOT:-/home/limx/workspace/Roxan_warmup}"
 PY="$ROOT/envs/isaaclab/bin/python"
 OUT_DIR="$HOME/humanoid_logs/p1_env"
 LOG="$OUT_DIR/p1_capture.log"

@@ -11,7 +11,8 @@
 set -uo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ROOT="/home/limx/workspace/Roxan_warmup"
+# 允许用 ROXAN_ROOT 覆盖，方便换机器时不用改脚本
+ROOT="${ROXAN_ROOT:-/home/limx/workspace/Roxan_warmup}"
 PY="$ROOT/envs/isaaclab/bin/python"
 PIPE="$HOME/humanoid_logs/pipeline/p11_rerun.log"
 mkdir -p "$(dirname "$PIPE")"

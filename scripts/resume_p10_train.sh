@@ -16,7 +16,8 @@
 #   实践 9 ：误差在**涨**，因为跟踪目标本身错了（关节列序）→ 得先修数据
 set -uo pipefail
 
-ROOT="/home/limx/workspace/Roxan_warmup"
+# 允许用 ROXAN_ROOT 覆盖，方便换机器时不用改脚本
+ROOT="${ROXAN_ROOT:-/home/limx/workspace/Roxan_warmup}"
 HOI="$ROOT/shenlan_hw/HOI_Mimic"
 PY="$ROOT/envs/isaaclab/bin/python"
 TASK="Unitree-G1-29dof-Mimic-HOI_terrain-Perceptive-Raycast"
