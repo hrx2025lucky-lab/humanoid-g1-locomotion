@@ -43,11 +43,13 @@ SPECS = [
     # 实践 2 的日志在 repos/unitree_rl_lab 下，不在 shenlan_hw
     Spec("2", "粗糙地形行走",
          f"{WS}/repos/unitree_rl_lab/logs/rsl_rl/unitree_g1_29dof_velocity_rough/*",
-         "Train/mean_reward", 15000,
-         note="track 2.236/3.0，官方参考 15000 轮是 2.263"),
+         # 官方值来自 course_code/unitree_rl_lab_student/.../rsl_rl_ppo_cfg.py
+         "Train/mean_reward", 50000,
+         note="track 2.236/3.0；官方 50000 轮，我们 10000"),
     Spec("4", "蹲姿行走 · baseline",
          f"{WS}/shenlan_hw/hw4_mjlab/logs/rsl_rl/g1_velocity_height/*ablation_baseline",
-         "Train/mean_reward", None, note="消融三组，看对照是否成立"),
+         # 官方值来自 course_code/HW4_蹲姿行走作业/.../mjlab 的 max_iterations=30_000
+         "Train/mean_reward", 30000, note="消融三组，看对照是否成立"),
     Spec("5", "分层导航 · Baseline",
          f"{WS}/shenlan_hw/hw5_navigation/**/2026-09-05_20-10-32",
          "Episode_Termination/goal_reached", 30000, note="固定竞技场"),
@@ -57,17 +59,22 @@ SPECS = [
     # 蒸馏也是跟踪类，同样看误差不看 reward（与实践 9 口径一致）
     Spec("6", "蒸馏 · KL",
          f"{WS}/shenlan_hw/hw6_distill/logs/rsl_rl/g1_hw6_student_kl_matching/2026-09-05*",
-         "Metrics/motion/error_joint_pos", 5000, higher_better=False),
+         # 官方值来自 course_code/shanlan_HW6/.../config/g1/rl_cfg.py
+         "Metrics/motion/error_joint_pos", 20000, higher_better=False),
     Spec("6", "蒸馏 · Action",
          f"{WS}/shenlan_hw/hw6_distill/logs/rsl_rl/g1_hw6_student_action_matching_aligned/*",
-         "Metrics/motion/error_joint_pos", 5000, higher_better=False),
+         "Metrics/motion/error_joint_pos", 20000, higher_better=False),
     # ★ 模仿/跟踪类任务不能用 mean_reward 判收敛 ★
     # 实践 9 的 reward 涨 343%，但那是 episode 变长带来的累积，
     # 单步跟踪质量其实在变差（error_joint_pos 1.161→1.900）。
     # 参考答案的诊断表明确写着"奖励升但误差不降 → 查定义"。
     Spec("9", "轨迹跟踪 P2",
-         f"{WS}/shenlan_hw/hw6_distill/logs/rsl_rl/g1_hw6_teacher/2026-09-05_23-41-39*",
-         "Metrics/motion/error_joint_pos", 20000, higher_better=False),
+         # 不锁死某一次 run：2026-09-05 那次用的是**错误的关节列序**，
+         # 锁死它的话，修复后重训多少次，这里永远显示的还是那条恶化曲线。
+         # load() 会取最新的带数据的 run。
+         f"{WS}/shenlan_hw/hw6_distill/logs/rsl_rl/g1_hw6_teacher/*",
+         # 官方 rl_cfg.py:58 是 max_iterations=30_000
+         "Metrics/motion/error_joint_pos", 30000, higher_better=False),
     Spec("8", "AMP 拟人走跑",
          f"{WS}/shenlan_hw/unitree_lab_amp/logs/**/2026-09-07*",
          "Train/mean_reward", None, note="今日重跑"),
