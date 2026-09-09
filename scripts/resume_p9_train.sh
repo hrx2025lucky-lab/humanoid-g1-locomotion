@@ -44,11 +44,15 @@ ITERS="${P9_RESUME_ITERS:-13000}"
 log "════ 实践 9 续训 ════"
 
 cd "$HW6" || exit 1
-RUN=$(ls -td logs/rsl_rl/g1_hw6_teacher/2026-09-09_*/ 2>/dev/null | head -1)
-[ -z "$RUN" ] && { log "❌ 找不到 2026-09-09 的 run"; exit 1; }
-CK=$(ls "$RUN"model_*.pt 2>/dev/null | grep -oE "model_[0-9]+" \
-     | grep -oE "[0-9]+" | sort -n | tail -1)
-[ -z "$CK" ] && { log "❌ $RUN 里没有 checkpoint"; exit 1; }
+# 只认**真正有 checkpoint** 的 run。失败的启动（比如 wandb 没配 key）
+# 也会留下一个空目录，按时间取最新就会取到它，然后报"没有 checkpoint"。
+RUN=""; CK=""
+for d in $(ls -td logs/rsl_rl/g1_hw6_teacher/2026-09-09_*/ 2>/dev/null); do
+    c=$(ls "$d"model_*.pt 2>/dev/null | grep -oE "model_[0-9]+" \
+        | grep -oE "[0-9]+" | sort -n | tail -1)
+    [ -n "$c" ] && { RUN="$d"; CK="$c"; break; }
+done
+[ -z "$RUN" ] && { log "❌ 找不到带 checkpoint 的 2026-09-09 run"; exit 1; }
 # load-run / load-checkpoint 都是**正则**（mjlab/utils/os.py:52 get_checkpoint_path）。
 # checkpoint 名里的 . 在正则里是通配符，要转义成 \. 才是精确匹配，
 # 否则 model_7000.pt 也能匹配到 model_7000Xpt 这类名字。
@@ -75,6 +79,7 @@ HW6_MOTION_SOURCE=motion_data_cfg_hw9_dance_fixed.yaml \
     --env.scene.num-envs=4096 \
     --agent.max-iterations="$ITERS" \
     --agent.seed=42 \
+    --agent.logger=tensorboard \
     --agent.resume=True \
     --agent.load-run="$(basename "${RUN%/}")" \
     --agent.load-checkpoint="model_${CK}\.pt" \
