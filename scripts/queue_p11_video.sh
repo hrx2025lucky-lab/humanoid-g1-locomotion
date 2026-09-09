@@ -23,7 +23,7 @@ log "════ 等实践 9 续训结束后补录跑酷视频 ════"
 # 按 PID 判存活。pgrep -f 会匹配到查询命令自己，这个坑在本项目踩过多次。
 PID=$(nvidia-smi --query-compute-apps=pid --format=csv,noheader 2>/dev/null | tr -d ' ' | head -1)
 if [ -n "$PID" ]; then
-    log "等训练进程 $PID（实践 9 续训到 20000 轮）"
+    log "等训练进程 $PID（实践 9 续训到 30000 轮，对齐官方规模）"
     while kill -0 "$PID" 2>/dev/null; do
         it=$(grep -oE "Learning iteration [0-9]+/[0-9]+" \
              "$HOME/humanoid_logs/p9_retrain/p9_resume.log" 2>/dev/null | tail -1)

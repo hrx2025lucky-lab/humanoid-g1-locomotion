@@ -36,10 +36,16 @@ LOG_DIR="$HOME/humanoid_logs/p9_retrain"
 mkdir -p "$(dirname "$PIPE")" "$LOG_DIR"
 log() { echo "[$(date '+%m-%d %H:%M:%S')] $*" | tee -a "$PIPE"; }
 
-# rsl_rl 的 max_iterations 是**增量**不是总数
-# （on_policy_runner.py:97  tot_iter = start_iter + num_learning_iterations），
-# 从 7000 轮续训、传 13000，实际跑到 20000 轮（官方 30000 的 2/3）。
-ITERS="${P9_RESUME_ITERS:-13000}"
+# max_iterations 是**增量**不是总数（日志里显示的 "7125/20000" 是
+# start_iter + max_iterations 算出来的总数）。
+# 从 7000 轮续训、传 23000，实际跑到 30000 —— **对齐官方规模**
+# （course_code/shanlan_HW6/.../config/g1/rl_cfg.py:58  max_iterations=30_000）。
+#
+# 一开始我设的是 13000（到 20000，官方的 2/3），理由是"折中"。
+# 但既然已经确认根因就是训练量不足、且掐断时所有指标都还在降，
+# 折中就没有道理——那只会得到一个"还是没练够"的结果，
+# 而且说不清为什么不跑到官方基准。实测 2.58 s/轮，到 30000 需 16.4 h。
+ITERS="${P9_RESUME_ITERS:-23000}"
 
 log "════ 实践 9 续训 ════"
 
