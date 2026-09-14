@@ -506,30 +506,6 @@
       "title": "GMR右转重定向：G1运动学回放"
     },
     {
-      "practice": 8,
-      "path": "practices/08_amp_locomotion/media/early_amp_play.mp4",
-      "caption": "早期AMP模型播放；不是当前5759阶段模型，不用于证明稳定走跑",
-      "role": "early_stage",
-      "bytes": 1041985,
-      "sha256": "45979f5f38ce52a405b0506a9bc52420d5e507de0d895cb389b7fbcf47797092",
-      "probe": {
-        "programs": [],
-        "streams": [
-          {
-            "codec_name": "h264",
-            "width": 1280,
-            "height": 720,
-            "r_frame_rate": "50/1",
-            "nb_frames": "1499"
-          }
-        ],
-        "format": {
-          "duration": "29.980000"
-        }
-      },
-      "title": "AMP拟人运动策略回放（早期模型）"
-    },
-    {
       "practice": 9,
       "path": "practices/09_motion_tracking/media/motion_tracking_30k_full.mp4",
       "caption": "model29999完整单舞蹈播放；保留事件、失败条件旁路监测，与标称CPU误差统计分开",
@@ -576,6 +552,54 @@
         }
       },
       "title": "深度感知策略部署回放（早期model3000）"
+    },
+    {
+      "practice": 8,
+      "path": "practices/08_amp_locomotion/media/amp_selected_20s.mp4",
+      "title": "AMP低速前进：0.5m/s指令的连续20秒回放",
+      "caption": "6200模型，标称平地0.5m/s前进指令；20秒连续回放，实际前向均值0.435m/s，航向变化+9.26°。",
+      "role": "showcase",
+      "bytes": 5209237,
+      "sha256": "e7b867ca8a7e76bc7abeb2d909310b285b6cad218a57cd4b4051713cfce1a3f4",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 640,
+            "height": 624,
+            "r_frame_rate": "25/1",
+            "nb_frames": "500"
+          }
+        ],
+        "format": {
+          "duration": "20.000000"
+        }
+      }
+    },
+    {
+      "practice": 8,
+      "path": "practices/08_amp_locomotion/media/yaw_reward_comparison_20s.mp4",
+      "title": "转向奖励调整：慢走并排对照",
+      "caption": "5759与首轮6000候选；相同指令的连续20秒实测轨迹",
+      "role": "comparison",
+      "bytes": 10160187,
+      "sha256": "d0d6afc1d070fa5541e9c29ad2ceb6c88b9544eaf3aea79db317387265482c11",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 624,
+            "r_frame_rate": "25/1",
+            "nb_frames": "500"
+          }
+        ],
+        "format": {
+          "duration": "20.000000"
+        }
+      }
     }
   ],
   "previews": [
@@ -732,26 +756,28 @@
     {
       "practice": 8,
       "path": "practices/08_amp_locomotion/media/preview.gif",
-      "caption": "早期AMP模型播放；不是当前5759阶段模型，不用于证明稳定走跑；开头短预览",
-      "role": "preview_excerpt",
-      "bytes": 499696,
-      "sha256": "c9e1dfaf6dfecfcdef82c98ce2291540cc7acb0443ff3f2d5cc48c5dfe24f4fa",
+      "title": "AMP所选策略完整20秒预览",
+      "caption": "6200模型，标称平地0.5m/s前进指令；20秒连续回放，实际前向均值0.435m/s，航向变化+9.26°。",
+      "role": "full_duration_preview",
+      "bytes": 8474006,
+      "sha256": "777ce3662a8e8cacb692c4435e31d0bf2781928b321e84ebc23240de54148904",
       "probe": {
         "programs": [],
         "streams": [
           {
             "codec_name": "gif",
             "width": 440,
-            "height": 248
+            "height": 429,
+            "r_frame_rate": "10/1",
+            "nb_frames": "200"
           }
         ],
         "format": {
-          "duration": "6.010000"
+          "duration": "20.000000"
         }
       },
-      "title": "AMP拟人运动策略回放（早期模型）（动态预览）",
-      "source_video": "practices/08_amp_locomotion/media/early_amp_play.mp4",
-      "source_sha256": "45979f5f38ce52a405b0506a9bc52420d5e507de0d895cb389b7fbcf47797092",
+      "source_video": "practices/08_amp_locomotion/media/amp_selected_20s.mp4",
+      "source_sha256": "e7b867ca8a7e76bc7abeb2d909310b285b6cad218a57cd4b4051713cfce1a3f4",
       "start_seconds": 0
     },
     {

@@ -1,53 +1,46 @@
-# 08 · AMP拟人运动与风格奖励
+# 08 · AMP拟人运动与速度跟踪
 
-Isaac Lab · PPO · AMP
+Isaac Lab · PPO · AMP · G1 29DoF
 
-将任务奖励与判别器风格奖励结合，检查参考初始化、时序观测和物理执行对运动质量的影响。
+将速度跟踪和AMP风格奖励结合，提高转向跟踪权重，并用统一的停止、前进、左右转和加减速命令选择模型。当前展示采用**yaw2_6200**，全部结果来自仿真。
 
-## 已实现
+## 连续回放
 
-- 核对运动库、参考初始化、关节与根节点速度接口。
-- 完成4096环境的两段各5,000次更新，以及共享同一首段的独立适配分支。
-- 以相同初态、速度指令和评估物理比较模型，保留未改善的结果。
+### AMP低速前进：0.5m/s指令的连续20秒回放
 
-## 实验结果
+[![AMP当前所选策略：完整20秒动画](media/preview.gif)](media/amp_selected_20s.mp4)
 
-阶段模型在单初态20秒前进指令回放中保持站立，但有明显航向漂移。同预算适配对照的XY速度RMSE为0.09707与0.21461m/s，新增适配没有改善整体跟随。
+[观看完整20秒视频](media/amp_selected_20s.mp4)。6200模型，标称平地0.5m/s前进指令；20秒连续回放，实际前向均值0.435m/s，航向变化+9.26°。 动画覆盖完整20秒，MP4保留更高画质。画面中的动作来自Isaac Lab实际策略回放，根节点与关节状态使用相同G1几何渲染，并与原生双脚位置核对；没有修改动作或接入额外朝向控制器。
 
-**验证范围：**保留5759阶段模型；尚未实现稳定直行、可靠左右转向和完整变速走跑。每条分支各累计10,000次大规模更新，不能将共享首段重复计数。
+### 转向奖励调整：慢走对照
 
-[查看数值结果](results.json) · [训练记录与实现文件](training/README.md)
+[观看20秒并排对照](media/yaw_reward_comparison_20s.mp4)：原保留5759与新增241次更新的6000候选。0.3m/s指令下，航向变化从−35.19°变为+0.74°，但实际前向速度从0.317降至0.186m/s，体现了速度和转向目标的取舍。
 
-## 视频与动画
+## 已完成的改进
 
-### AMP拟人运动策略回放（早期模型）
+- 保持模型恢复起点、专家库和4096环境容量一致，将角速度跟踪奖励权重从0.5提高到2.0；保留AMP任务混合权重0.5与风格尺度5。
+- 完成241次同预算比较和500次候选续训，统一检查14个新旧模型；所有候选及未改善结果保留在[完整结果](results.json)中。
+- 按本轮预先设定的速度与航向阈值，标称初态下通过3/9项：停止、慢走 0.3、前进 0.5。这些是本项目的筛选阈值。
+- 另有7/9个场景持续20秒未触发物理终止；改变初始朝向后，此项记录为14/18。未摔倒的数量不等于命令跟踪通过数量。
 
-[![AMP拟人运动策略回放（早期模型），动态预览](media/preview.gif)](media/early_amp_play.mp4)
+![转向奖励的同条件朝向响应](media/yaw_reward_comparison.png)
 
-录像来自早期AMP模型；当前保留5759阶段模型，最新结果仍有航向漂移。
+## 当前模型的9场景结果
 
-| 视频 / 动画标题 | 时长 | 内容与条件 |
-|---|---:|---|
-| [AMP拟人运动策略回放（早期模型）](media/early_amp_play.mp4) | 29.98秒 | 早期AMP模型播放；不是当前5759阶段模型，不用于证明稳定走跑 |
+| 命令场景（m/s或rad/s） | 运行秒数 | 实际前向速度 m/s | XY速度RMSE m/s | 航向变化 ° | 运行结果 |
+|---|---:|---:|---:|---:|---|
+| 停止 | 20.00 | 0.000 | 0.002 | -1.2 | 20秒内无物理终止 |
+| 慢走 0.3 | 20.00 | 0.266 | 0.098 | -9.8 | 20秒内无物理终止 |
+| 前进 0.5 | 20.00 | 0.435 | 0.123 | +9.3 | 20秒内无物理终止 |
+| 前进 1.0 | 20.00 | 0.858 | 0.188 | -47.3 | 20秒内无物理终止 |
+| 高速指令 2.0 | 20.00 | 2.496 | 0.591 | +24.3 | 20秒内无物理终止 |
+| 高速指令 2.5 | 3.00 | 2.681 | 0.472 | +48.3 | 姿态终止 |
+| 左转 +0.2 | 20.00 | 0.416 | 0.143 | +106.7 | 20秒内无物理终止 |
+| 右转 −0.2 | 20.00 | 0.453 | 0.105 | -79.5 | 20秒内无物理终止 |
+| 加速—减速 | 10.56 | 1.047 | 0.487 | +32.8 | 姿态终止 |
 
+条件：平地、标称质量与摩擦、固定初态；关闭观测噪声、外部推力和专家参考复位；保留原高度与倾角终止条件。速度统计排除前2秒，首次终止后不继续累计成功时长。左右转命令同时保持前向0.5m/s；加减速依次为0.3、1.0、2.5、0.5、0m/s，各持续4秒。
 
-![AMP拟人运动与风格奖励结果图](media/p8_adaptation_final_comparison.png)
+**能力范围：** 当前可用于展示低速行走；左右转方向已有响应，但转向幅度不足。2.5m/s恒速在3.00秒、加减速序列在10.56秒触发终止，高速与走跑切换尚未可靠。 连续未摔倒不能替代速度跟踪、正确转向或自然跑步的验证。完整走跑验收和有无AMP的动作自然性对照仍未完成。
 
-<details>
-<summary>全部结果图</summary>
-
-- [b1_starter_feasibility](media/b1_starter_feasibility.png)
-- [c4_command_intersection](media/c4_command_intersection.png)
-- [p8_adaptation_final_comparison](media/p8_adaptation_final_comparison.png)
-- [p8_command_support_pair](media/p8_command_support_pair.png)
-- [p8_course_scale_first_stage](media/p8_course_scale_first_stage.png)
-- [p8_expert_mixture_probe](media/p8_expert_mixture_probe.png)
-- [p8_second_stage_turn_paths](media/p8_second_stage_turn_paths.png)
-- [p8_step_commands_rewards](media/p8_step_commands_rewards.png)
-- [p8_substeps_force_timing](media/p8_substeps_force_timing.png)
-- [p8_support_diagnostic](media/p8_support_diagnostic.png)
-- [reset_clamp_geometry](media/reset_clamp_geometry.png)
-
-</details>
-
-[返回项目首页](../../README.md) · [全部实践状态](../../PROJECT_STATUS.md)
+[训练配置与全部指标](training/README.md) · [完整结果](results.json) · [返回首页](../../README.md)

@@ -6,6 +6,7 @@
 |---|---|---|
 | Isaac Lab | GPU并行仿真、任务管理与训练接口 | [Isaac Lab](https://github.com/isaac-sim/IsaacLab) |
 | Unitree RL Lab | G1模型、运动控制任务与部署接口 | [Unitree RL Lab](https://github.com/unitreerobotics/unitree_rl_lab) |
+| Unitree Lab AMP | AMP判别器、风格奖励与G1走跑任务参考实现 | [Unitree Lab AMP](https://github.com/HeYee03/unitree_lab_amp) |
 | MJLab | MuJoCo/Warp并行训练与动作跟踪 | [MJLab](https://github.com/mujocolab/mjlab) |
 | MuJoCo | 刚体仿真、PD执行与策略迁移 | [MuJoCo](https://github.com/google-deepmind/mujoco) |
 | GMR | 人体到机器人运动重定向 | [GMR](https://github.com/YanjieZe/GMR) |

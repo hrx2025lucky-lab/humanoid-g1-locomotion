@@ -8,7 +8,7 @@
 
 ## 动态预览与完整视频
 
-已收录实践2—11的22段完整MP4，以及实践3的2段补充动画。下方动画为原视频开头的短预览（最长约6秒）；点击动画或带标题的链接可打开完整文件。
+已收录实践2—11的23段完整MP4，以及实践3的2段补充动画。实践08的动画覆盖完整20秒，其余为短预览；点击动画或带标题的链接可打开完整文件。
 
 ### 实践01｜仿真环境与行走策略部署
 
@@ -87,13 +87,14 @@
 
 [本实践的结果与条件](practices/07_motion_retargeting/README.md)
 
-### 实践08｜AMP拟人运动（早期模型录像）
+### 实践08｜AMP拟人运动：所选策略与转向改进
 
-录像来自早期AMP模型；当前保留5759阶段模型，最新结果仍有航向漂移。
+6200模型，标称平地0.5m/s前进指令；20秒连续回放，实际前向均值0.435m/s，航向变化+9.26°。 当前展示模型yaw2_6200；完整9场景表现与限制见实践页。
 
-[![实践08：AMP拟人运动策略回放（早期模型），动态预览](practices/08_amp_locomotion/media/preview.gif)](practices/08_amp_locomotion/media/early_amp_play.mp4)
+[![实践08：AMP所选策略完整20秒动画](practices/08_amp_locomotion/media/preview.gif)](practices/08_amp_locomotion/media/amp_selected_20s.mp4)
 
-- [AMP拟人运动策略回放（早期模型）](practices/08_amp_locomotion/media/early_amp_play.mp4) · 29.98秒
+- [AMP低速前进：0.5m/s指令的连续20秒回放](practices/08_amp_locomotion/media/amp_selected_20s.mp4) · 20秒
+- [转向奖励调整：20秒慢走并排对照](practices/08_amp_locomotion/media/yaw_reward_comparison_20s.mp4)
 
 [本实践的结果与条件](practices/08_amp_locomotion/README.md)
 
@@ -158,6 +159,6 @@
 
 ## 当前进展
 
-已完成双指令控制、两类蒸馏、长动作跟踪、地形配对和平台路径的分项验证。分层导航已有1,536局配对结果，尚未得到随机布局训练的总体优势；AMP仍有明显航向漂移，深度策略尚未达到完整跑酷表现。
+已完成双指令控制、两类蒸馏、长动作跟踪、地形配对和平台路径的分项验证。分层导航已有1,536局配对结果，尚未得到随机布局训练的总体优势；AMP的低速与转向响应已做对照改进，完整速度范围仍待完善，深度策略尚未达到完整跑酷表现。
 
 各项结果保留模型、统计窗口、坐标和初态限制。预训练部署、运动学回放与自主训练分别说明，具体数值和未覆盖场景见对应实践页。

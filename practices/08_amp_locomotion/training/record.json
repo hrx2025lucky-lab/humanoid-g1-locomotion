@@ -5,9 +5,38 @@
   "mode": "staged_training",
   "num_envs": 4096,
   "rollout_steps": 24,
-  "seed": 42,
-  "large_scale_updates_per_branch": 10000,
-  "retained_checkpoint_index": 5759,
-  "adaptation_candidate_promoted": false,
-  "task": "Unitree-G1-29dof-AMP-WalkToRun"
+  "retained_checkpoint_index": 6200,
+  "task": "Unitree-G1-29dof-AMP-WalkToRun",
+  "train_seed": 20260912,
+  "evaluation_seed": 42,
+  "selected_model": "yaw2_6200",
+  "selected_checkpoint_sha256": "81c14770086fb0c3b820de0bddf2123cb21a0bc00d0bf430935ffdcf56fae45b",
+  "selected_large_scale_updates": 5441,
+  "prior_small_scale_updates": 760,
+  "current_additional_updates": [
+    241,
+    500
+  ],
+  "current_additional_transitions": 72843264,
+  "yaw_reward_weight": {
+    "control": 0.5,
+    "candidate": 2.0
+  },
+  "yaw_reward_std": 0.5,
+  "shared_amp_task_weight": 0.5,
+  "shared_amp_reward_scale": 5.0,
+  "shared_external_forces_every_iteration": true,
+  "candidate_total_large_scale_updates": 5741,
+  "nominal_models_evaluated": 14,
+  "interpretation": "Two historical 10000-update branches share the same first 5000 updates. The new candidate starts at that shared checkpoint and adds 241 then 500 updates. The second resume rebuilds environment and replay state.",
+  "full_walk_run_accepted": false,
+  "historical_large_scale_updates_per_branch": 10000,
+  "historical_force_adaptation_candidate_promoted": false,
+  "yaw_reward_candidate_selected": true,
+  "policy_observation_dim": 480,
+  "critic_observation_dim": 495,
+  "amp_frame_dim": 80,
+  "amp_history_steps": 3,
+  "control_dt_seconds": 0.02,
+  "physics_dt_seconds": 0.005
 }
