@@ -1,0 +1,19 @@
+{
+  "as_of": "2026-09-14",
+  "practice": 4,
+  "simulation_only": true,
+  "metrics": {
+    "main_updates": 20000,
+    "fixed_crouch_seconds": 22,
+    "height_command_m": 0.5,
+    "forward_command_m_s": 0.5,
+    "fixed_height_mae_cm": 0.6116,
+    "fixed_forward_mean_m_s": 0.5357,
+    "three_dynamic_trials_completed": true,
+    "dynamic_height_phase_mae_cm_range": [
+      0.13568816582361856,
+      1.3327265183130879
+    ],
+    "scope": "single-seed flat-ground simulation"
+  }
+}

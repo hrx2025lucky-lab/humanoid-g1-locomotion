@@ -1,0 +1,25 @@
+{
+  "practice": 5,
+  "as_of": "2026-09-14",
+  "algorithm": "hierarchical_PPO",
+  "mode": "paired_evaluation",
+  "evaluated_saved_updates_each": 951,
+  "baseline_saved_updates": 951,
+  "random_layout_saved_updates": 3000,
+  "rollout_steps": 8,
+  "num_envs_training": 4096,
+  "seed": 42,
+  "high_frequency_hz": 5,
+  "low_frequency_hz": 50,
+  "physics_frequency_hz": 200,
+  "actor_observation_size": 376,
+  "critic_observation_size": 378,
+  "actions": 3,
+  "startup_check": {
+    "num_envs": 128,
+    "high_level_steps": 10,
+    "records": 1280,
+    "new_training_updates": 0
+  },
+  "task": "Unitree-G1-29dof-Navigation-HRL-Baseline"
+}

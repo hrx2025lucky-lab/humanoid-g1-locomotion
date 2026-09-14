@@ -1,0 +1,15 @@
+{
+  "practice": 6,
+  "as_of": "2026-09-14",
+  "algorithm": "PPO_with_distillation",
+  "mode": "action_and_kl",
+  "updates_each": 20000,
+  "num_envs": 4096,
+  "rollout_steps": 24,
+  "transitions_each": 1966080000,
+  "seed": 42,
+  "tasks": [
+    "Mjlab-Humanoid-HW6-Student-Action-Matching-G1",
+    "Mjlab-Humanoid-HW6-Student-KL-Matching-G1"
+  ]
+}

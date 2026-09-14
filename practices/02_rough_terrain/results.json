@@ -1,0 +1,11 @@
+{
+  "as_of": "2026-09-14",
+  "practice": 2,
+  "simulation_only": true,
+  "metrics": {
+    "new_updates": 15000,
+    "matched_cases": 8,
+    "seconds_per_case": 14,
+    "xy_and_yaw_rmse_lower_in_all_eight": true
+  }
+}

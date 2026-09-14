@@ -1,39 +1,65 @@
-# Unitree G1：强化学习运动控制实践
+# G1人形机器人：强化学习与运动控制
 
-围绕G1人形机器人的11项课程实践，整理个人实现、训练、调试与仿真验证。主要方向是强化学习控制、双足全身动作跟踪、感知与Sim2Sim，使用Python、Isaac Lab、mjlab/MuJoCo Warp和MuJoCo。
+基于Unitree G1开展速度与高度控制、地形行走、分层导航、全身动作跟踪、教师学生蒸馏和深度感知运动。项目包含算法组件、训练配置、量化实验和仿真视频。
 
-**最新进度：2026-09-10。** 实践4已核实完成20k更新，实践6的Action组正在接续训练。实践仍在推进，已实现代码、训练预算、独立行为证据和作业交付分别记录。
+**更新：2026-09-14。全部结果来自仿真或离线运动学验证。**
 
-- [全部实践进度与作业验收](showcase/STATUS.md)
-- [已测实验：包含改善和退化](showcase/EXPERIMENTS.md)
-- [从RL原理到实践的学习安排](showcase/LEARNING.md)
+[视频合集](MEDIA.md) · [当前状态](PROJECT_STATUS.md) · [算法与框架来源](REFERENCES.md)
 
-## 代表性工作
+## 动态预览
 
-| 工作 | 实现与证据 | 当前边界 |
+以下为原视频前6秒的动画节选；点击动画打开完整视频。具体模型、播放条件和结果见对应实践页。
+
+**实践02**
+
+[![实践02动态预览](practices/02_rough_terrain/media/preview.gif)](practices/02_rough_terrain/media/p2_final_stairs_20s.mp4)
+
+**实践04**
+
+[![实践04动态预览](practices/04_velocity_height/media/preview.gif)](practices/04_velocity_height/media/velocity_height_20k_22s.mp4)
+
+**实践06**
+
+[![实践06动态预览](practices/06_teacher_student/media/preview.gif)](practices/06_teacher_student/media/p6_action_kl_3clips_23s.mp4)
+
+**实践09**
+
+[![实践09动态预览](practices/09_motion_tracking/media/preview.gif)](practices/09_motion_tracking/media/motion_tracking_30k_full.mp4)
+
+**实践10**
+
+[![实践10动态预览](practices/10_object_interaction/media/preview.gif)](practices/10_object_interaction/media/p10_std03_model399_full.mp4)
+
+## 代表性结果
+
+| 方向 | 已完成的结果 | 展示 |
 |---|---|---|
-| HoST增量动作部署 | 23关节预训练策略、456维历史、增量目标与PD；默认初态60秒站起回放 | 预训练模型复用，未声称自行训练HoST或完成真机 |
-| 速度＋骨盆高度控制 | 指令/观测/奖励接线、旧3k消融、续训到20k；固定蹲走22秒未终止 | 原零转向模式高度MAE0.612cm；三组heading反馈改善方向，仍有残余误差 |
-| 分层导航接口修复 | 定位低层历史缓存未更新，梳理5/50/200Hz调用 | 独立地图泛化和正式公平对照仍待验 |
-| 教师–学生蒸馏 | Action/KL目标、PPO参数对齐、恢复优化器与退火计数 | 两组最终预算及逐动作验收进行中 |
-| 动作数据与轨迹跟踪 | 关节列序/FK核对、自适应采样、参考对齐、完整动作回放 | 相对身体约3.8cm，全局锚点约1.05m，分别报告 |
-| HOI与视觉Sim2Sim诊断 | 参考时间轴、地形高度判据和导出网络对照 | 新时间轴训练、跑酷行为与迁移尚未完成 |
+| 速度与骨盆高度联合控制 | 高度0.5m、前向速度0.5m/s指令下连续蹲走22秒；统计后20秒的高度MAE为0.6116cm、前向均速0.5357m/s。三组动态指令均完成24秒窗口。 | [结果与视频](practices/04_velocity_height/README.md) |
+| 教师学生蒸馏与全身动作 | Action和KL学生均有25/25动作到达参考末尾；对齐身体平均距离分别为2.580cm、2.537cm，世界身体平均距离为10.90cm、12.86cm。 | [结果与视频](practices/06_teacher_student/README.md) |
+| 自适应采样与全身轨迹跟踪 | 标称CPU协议下学习残差连续跟完131.48秒单舞蹈，对齐身体平均距离3.633cm、世界锚点平均距离0.581m；零残差参考PD在0.28秒触发末端条件。 | [结果与视频](practices/09_motion_tracking/README.md) |
+| 感知驱动的粗糙地形行走 | 新增15,000次更新；8组同初态、各14秒场景中，新策略的XY速度与转速RMSE均低于旧策略。另完成20秒台阶穿越轨迹。 | [结果与视频](practices/02_rough_terrain/README.md) |
+| 地形感知的人物交互动作跟踪 | 所选model399走完309控制帧、6.18秒参考；世界锚点RMSE为0.1297m。两个指定初态平移也到达参考末尾。 | [结果与视频](practices/10_object_interaction/README.md) |
 
-![实践4同协议比较](showcase/assets/p4_3k_vs_20k.png)
+## 按实践浏览
 
-该图是单种子CPU仿真对照：后20秒高度更准，速度误差略增，方向漂移绝对值增大。训练曲线或更高轮数不单独证明行为合格；详情与单位见[实验记录](showcase/EXPERIMENTS.md)。
+每个目录统一放置成果说明、`training/`训练记录与算法组件、`media/`视频和结果图。训练和评估的条件在对应页面说明。
 
-## 代码与文档
+| 编号 | 内容 | 主要技术 |
+|---|---|---|
+| 01 | [仿真环境与行走策略部署](practices/01_simulation_baseline/README.md) | Isaac Lab · PPO · MuJoCo |
+| 02 | [感知驱动的粗糙地形行走](practices/02_rough_terrain/README.md) | Isaac Lab · PPO · 高度扫描 · MuJoCo |
+| 03 | [HoST起身与增量动作部署](practices/03_host_standup/README.md) | HoST · PD · MuJoCo |
+| 04 | [速度与骨盆高度联合控制](practices/04_velocity_height/README.md) | MJLab · PPO · 双指令控制 |
+| 05 | [分层强化学习导航](practices/05_hierarchical_navigation/README.md) | Isaac Lab · 高层PPO · 冻结低层策略 |
+| 06 | [教师学生蒸馏与全身动作](practices/06_teacher_student/README.md) | MJLab · PPO · Action Matching · KL Matching |
+| 07 | [人体到G1的运动重定向](practices/07_motion_retargeting/README.md) | GMR · SMPL-X · 逆运动学 |
+| 08 | [AMP拟人运动与风格奖励](practices/08_amp_locomotion/README.md) | Isaac Lab · PPO · AMP |
+| 09 | [自适应采样与全身轨迹跟踪](practices/09_motion_tracking/README.md) | BeyondMimic方法 · MJLab · PPO |
+| 10 | [地形感知的人物交互动作跟踪](practices/10_object_interaction/README.md) | Isaac Lab · PPO · 高度扫描 |
+| 11 | [深度感知运动与跨仿真部署](practices/11_depth_locomotion/README.md) | Project Instinct · 深度历史 · PPO/风格奖励 |
 
-| 目录 | 内容 |
-|---|---|
-| [tasks/](tasks/) | 粗糙地形等任务配置与扩展 |
-| [sim2sim/](sim2sim/) | 跨仿真器部署和评估 |
-| [scripts/](scripts/) | 训练、检查和实验辅助脚本 |
-| [docs/](docs/) | 分实践实验报告与排查记录 |
-| [teaching/](teaching/) | 原理与实现讲解 |
-| [showcase/](showcase/) | 当前对外展示状态和经过核对的结果 |
+## 当前进展
 
-本次同步的是展示首页、验收清单、实验说明和自生成对照图。工作区中未完成公开整理的源码、课程材料与完整教学扩写分批整理；既有脚本可能依赖本地课程框架和资源，尚未声明任意机器一键复现。后续发布代码时会绑定依赖版本、配置、资源来源和对应行为证据。
+已完成双指令控制、两类蒸馏、长动作跟踪、地形配对和平台路径的分项验证。分层导航已有1,536局配对结果，尚未得到随机布局训练的总体优势；AMP仍有明显航向漂移，深度策略尚未达到完整跑酷表现。
 
-课程框架、开源算法、预训练模型与个人改动分别说明；本仓库不将复用框架表述为从零提出算法。全部当前结果为离线或仿真证据，未进行本项目真机验收。
+各项结果保留模型、统计窗口、坐标和初态限制。预训练部署、运动学回放与自主训练分别说明，具体数值和未覆盖场景见对应实践页。

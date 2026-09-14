@@ -1,0 +1,13 @@
+{
+  "practice": 8,
+  "as_of": "2026-09-14",
+  "algorithm": "AMP_PPO",
+  "mode": "staged_training",
+  "num_envs": 4096,
+  "rollout_steps": 24,
+  "seed": 42,
+  "large_scale_updates_per_branch": 10000,
+  "retained_checkpoint_index": 5759,
+  "adaptation_candidate_promoted": false,
+  "task": "Unitree-G1-29dof-AMP-WalkToRun"
+}

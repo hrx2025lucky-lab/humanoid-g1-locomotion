@@ -1,0 +1,13 @@
+{
+  "practice": 7,
+  "as_of": "2026-09-14",
+  "algorithm": "GMR",
+  "mode": "kinematic_retargeting",
+  "new_updates": 0,
+  "categories": [
+    "walk",
+    "accelerating_run",
+    "right_turn"
+  ],
+  "quaternion_order": "wxyz"
+}

@@ -1,0 +1,25 @@
+{
+  "as_of": "2026-09-14",
+  "practice": 6,
+  "simulation_only": true,
+  "metrics": {
+    "action": {
+      "means": {
+        "body_global_mean_error_m": 0.10897519745589873,
+        "body_yaw_aligned_mean_error_m": 0.025804212387709996,
+        "joint_rmse_rad": 0.05037087514449563
+      },
+      "completed": 25,
+      "total_separately_reset_s": 184.72
+    },
+    "kl": {
+      "means": {
+        "body_global_mean_error_m": 0.128610757883046,
+        "body_yaw_aligned_mean_error_m": 0.02537428685311546,
+        "joint_rmse_rad": 0.049196299144969105
+      },
+      "completed": 25,
+      "total_separately_reset_s": 184.72
+    }
+  }
+}

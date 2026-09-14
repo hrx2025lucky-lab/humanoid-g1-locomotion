@@ -1,0 +1,14 @@
+{
+  "practice": 10,
+  "as_of": "2026-09-14",
+  "algorithm": "PPO",
+  "mode": "reward_scale_pair",
+  "num_envs": 128,
+  "rollout_steps": 24,
+  "seed": 42,
+  "new_updates_each": 500,
+  "branch_total_updates_each": 800,
+  "selected_checkpoint_index": 399,
+  "selected_reward_std": 0.3,
+  "task": "Unitree-G1-29dof-Mimic-HOI_terrain-Perceptive-Raycast"
+}

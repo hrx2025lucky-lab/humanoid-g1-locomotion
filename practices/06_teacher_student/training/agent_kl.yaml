@@ -1,0 +1,105 @@
+seed: 42
+num_steps_per_env: 24
+max_iterations: 17000
+obs_groups:
+  actor: !!python/tuple
+  - actor
+  critic: !!python/tuple
+  - critic
+  teacher: !!python/tuple
+  - teacher_policy
+save_interval: 500
+experiment_name: null
+run_name: null
+logger: tensorboard
+wandb_project: null
+wandb_tags: !!python/tuple
+- humanoid_hw6
+- student
+- kl_matching
+resume: true
+load_run: null
+load_checkpoint: ^model_2999_resume\.pt$
+clip_actions: null
+upload_model: false
+class_name: OnPolicyRunner
+actor:
+  hidden_dims: !!python/tuple
+  - 512
+  - 512
+  - 256
+  - 128
+  activation: elu
+  obs_normalization: true
+  distribution_cfg:
+    init_std: 0.4
+    std_type: log
+  current_motion_obs_dim: 64
+  proprio_obs_dim: 93
+  history_steps: 10
+  history_latent_dim: 128
+  history_conv_channels: &id001 !!python/tuple
+  - 64
+  - 32
+  history_conv_kernel_sizes: &id002 !!python/tuple
+  - 4
+  - 2
+  history_conv_strides: &id003 !!python/tuple
+  - 2
+  - 1
+  layer_norm: true
+  teacher_distribution_cfg:
+    init_std: 1.0
+    std_type: log
+  teacher_motion_obs_dim: 1344
+  teacher_motion_steps: 21
+  teacher_proprio_obs_dim: 93
+  teacher_motion_latent_dim: 64
+  teacher_motion_conv_channels: !!python/tuple
+  - 48
+  - 24
+  teacher_motion_conv_kernel_sizes: !!python/tuple
+  - 6
+  - 4
+  teacher_motion_conv_strides: !!python/tuple
+  - 2
+  - 2
+  teacher_history_latent_dim: 128
+  teacher_history_conv_channels: *id001
+  teacher_history_conv_kernel_sizes: *id002
+  teacher_history_conv_strides: *id003
+  teacher_layer_norm: true
+critic:
+  hidden_dims: !!python/tuple
+  - 512
+  - 512
+  - 256
+  - 128
+  activation: elu
+  obs_normalization: true
+algorithm:
+  num_learning_epochs: 5
+  num_mini_batches: 4
+  learning_rate: 0.0003
+  schedule: adaptive
+  gamma: 0.99
+  lam: 0.95
+  entropy_coef: 0.005
+  desired_kl: 0.008
+  max_grad_norm: 1.0
+  value_loss_coef: 1.0
+  use_clipped_value_loss: true
+  clip_param: 0.2
+  normalize_advantage_per_mini_batch: false
+  optimizer: adam
+  kl_coef: 0.1
+  kl_coef_min: 0.01
+  kl_coef_anneal_iters: 60000
+  rnd_cfg: null
+  symmetry_cfg: null
+upload_model_mode: rolling_latest
+teacher_wandb_run_path: null
+teacher_wandb_checkpoint_name: null
+teacher_checkpoint_file: null
+teacher_strict_load: true
+multi_gpu: null

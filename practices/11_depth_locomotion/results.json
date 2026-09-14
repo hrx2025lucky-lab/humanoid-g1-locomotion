@@ -1,0 +1,11 @@
+{
+  "as_of": "2026-09-14",
+  "practice": 11,
+  "simulation_only": true,
+  "metrics": {
+    "retained_updates": 5000,
+    "forward_mean_m_s": 0.2572182342003269,
+    "xy_rmse_m_s": 0.26044055071926725,
+    "full_parkour_passed": false
+  }
+}

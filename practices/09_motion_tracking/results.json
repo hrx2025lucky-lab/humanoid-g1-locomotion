@@ -1,0 +1,12 @@
+{
+  "as_of": "2026-09-14",
+  "practice": 9,
+  "simulation_only": true,
+  "metrics": {
+    "simulated_seconds": 131.48,
+    "mean_anchor_error_m": 0.581029041524416,
+    "mean_aligned_body_error_m": 0.036331222912963625,
+    "zero_residual_terminal_s": 0.28,
+    "scope": "one dance, nominal CPU protocol; prior GPU protocol not directly comparable"
+  }
+}

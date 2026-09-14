@@ -1,0 +1,34 @@
+{
+  "as_of": "2026-09-14",
+  "practice": 5,
+  "simulation_only": true,
+  "metrics": {
+    "episodes": 1536,
+    "paired_scenarios": 768,
+    "counts": {
+      "baseline|FixedLayout": {
+        "episodes": 384,
+        "successes": 375
+      },
+      "random_arena|FixedLayout": {
+        "episodes": 384,
+        "successes": 375
+      },
+      "baseline|RandomArena": {
+        "episodes": 384,
+        "successes": 376
+      },
+      "random_arena|RandomArena": {
+        "episodes": 384,
+        "successes": 374
+      }
+    },
+    "random_training_advantage_supported": false,
+    "startup_128": {
+      "num_envs": 128,
+      "high_level_steps": 10,
+      "records": 1280,
+      "new_training_updates": 0
+    }
+  }
+}

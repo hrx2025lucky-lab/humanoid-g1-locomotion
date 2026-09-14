@@ -1,0 +1,11 @@
+{
+  "practice": 1,
+  "as_of": "2026-09-14",
+  "algorithm": "PPO",
+  "mode": "trained_policy_deployment",
+  "checkpoint_index": 11998,
+  "num_envs": 4096,
+  "rollout_steps": 24,
+  "seed": 42,
+  "policy_frequency_hz": 50
+}

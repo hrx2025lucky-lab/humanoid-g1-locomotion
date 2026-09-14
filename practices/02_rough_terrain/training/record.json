@@ -1,0 +1,12 @@
+{
+  "practice": 2,
+  "as_of": "2026-09-14",
+  "algorithm": "PPO",
+  "mode": "adaptation",
+  "new_updates": 15000,
+  "num_envs": 4096,
+  "rollout_steps": 24,
+  "new_transitions": 1474560000,
+  "seed": 42,
+  "task": "Unitree-G1-29dof-Velocity-Rough"
+}

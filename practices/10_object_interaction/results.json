@@ -1,0 +1,90 @@
+{
+  "as_of": "2026-09-14",
+  "practice": 10,
+  "simulation_only": true,
+  "metrics": {
+    "selected_checkpoint": "std03_399",
+    "selected_full_window": {
+      "samples": 309,
+      "observed_seconds": 6.18,
+      "anchor_position_rmse_m": 0.1296993892776683,
+      "anchor_height_rmse_m": 0.03210677447952189,
+      "joint_rmse_per_joint_rad": 0.19564378434268082,
+      "orientation_rmse_rad": 0.22462617495128467,
+      "final_anchor_actual_minus_reference_xyz_m": [
+        0.016796410083770752,
+        -0.186562180519104,
+        -0.0007388591766357422
+      ],
+      "final_termination": {
+        "time_out": false,
+        "invalid_robot_state": false,
+        "anchor_pos": false,
+        "anchor_ori": false,
+        "ee_body_pos": false
+      }
+    },
+    "specified_initial_offsets": {
+      "nominal": {
+        "samples": 309,
+        "observed_seconds": 6.18,
+        "anchor_position_rmse_m": 0.1296993892776683,
+        "anchor_height_rmse_m": 0.03210677447952189,
+        "joint_rmse_per_joint_rad": 0.19564378434268082,
+        "orientation_rmse_rad": 0.22462617495128467,
+        "final_anchor_actual_minus_reference_xyz_m": [
+          0.016796410083770752,
+          -0.186562180519104,
+          -0.0007388591766357422
+        ],
+        "final_termination": {
+          "time_out": false,
+          "invalid_robot_state": false,
+          "anchor_pos": false,
+          "anchor_ori": false,
+          "ee_body_pos": false
+        }
+      },
+      "minus_x": {
+        "samples": 309,
+        "observed_seconds": 6.18,
+        "anchor_position_rmse_m": 0.13919977634620875,
+        "anchor_height_rmse_m": 0.033650610647289025,
+        "joint_rmse_per_joint_rad": 0.1969791142034256,
+        "orientation_rmse_rad": 0.22259129111824255,
+        "final_anchor_actual_minus_reference_xyz_m": [
+          0.07686811685562134,
+          -0.14076149463653564,
+          0.004404008388519287
+        ],
+        "final_termination": {
+          "time_out": false,
+          "invalid_robot_state": false,
+          "anchor_pos": false,
+          "anchor_ori": false,
+          "ee_body_pos": false
+        }
+      },
+      "plus_x": {
+        "samples": 309,
+        "observed_seconds": 6.18,
+        "anchor_position_rmse_m": 0.1410543349260531,
+        "anchor_height_rmse_m": 0.03147786985045016,
+        "joint_rmse_per_joint_rad": 0.19353385336409432,
+        "orientation_rmse_rad": 0.22209402632007333,
+        "final_anchor_actual_minus_reference_xyz_m": [
+          0.03534519672393799,
+          -0.22811949253082275,
+          0.0009086132049560547
+        ],
+        "final_termination": {
+          "time_out": false,
+          "invalid_robot_state": false,
+          "anchor_pos": false,
+          "anchor_ori": false,
+          "ee_body_pos": false
+        }
+      }
+    }
+  }
+}

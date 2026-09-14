@@ -1,0 +1,664 @@
+{
+  "updated_at": "2026-09-14",
+  "items": [
+    {
+      "practice": 2,
+      "path": "practices/02_rough_terrain/media/p2_final_stairs_20s.mp4",
+      "caption": "15k适配策略的20秒台阶轨迹，后段包含方块区域",
+      "role": "comparison",
+      "bytes": 1308208,
+      "sha256": "175ba97f04efd18c03251338e95ebbde635bfbfbdca7bb2d23a46d7f31a51339",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 640,
+            "r_frame_rate": "25/1",
+            "nb_frames": "500"
+          }
+        ],
+        "format": {
+          "duration": "20.000000"
+        }
+      }
+    },
+    {
+      "practice": 2,
+      "path": "practices/02_rough_terrain/media/p2_old_final_comparison_28s.mp4",
+      "caption": "旧策略与15k适配策略：平地和台阶配对，28秒剪辑",
+      "role": "comparison",
+      "bytes": 3111014,
+      "sha256": "7330f1a10465dce9748fb24498ce0654fad21f3b7c71dfe10a45cda625c82ed1",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 640,
+            "r_frame_rate": "25/1",
+            "nb_frames": "700"
+          }
+        ],
+        "format": {
+          "duration": "28.000000"
+        }
+      }
+    },
+    {
+      "practice": 6,
+      "path": "practices/06_teacher_student/media/p6_action_kl_3clips_23s.mp4",
+      "caption": "Action与KL学生的三段并排比较；各20k，训练库分别复位，23秒剪辑",
+      "role": "comparison",
+      "bytes": 19809693,
+      "sha256": "571b7abc5af7fd4055d4de26ece9cbfcff0304bba1ca7b064185d5810130116d",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 640,
+            "r_frame_rate": "50/1",
+            "nb_frames": "1150"
+          }
+        ],
+        "format": {
+          "duration": "23.000000"
+        }
+      }
+    },
+    {
+      "practice": 6,
+      "path": "practices/06_teacher_student/media/p6_clip13_comparison.mp4",
+      "caption": "动作13：Action与KL学生同协议比较",
+      "role": "comparison",
+      "bytes": 4936496,
+      "sha256": "7f6d49fb8086be9eb23b80dd8fb1d5c888aeda0751c4cd1aec98d5ef080f3d27",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 640,
+            "r_frame_rate": "50/1",
+            "nb_frames": "311"
+          }
+        ],
+        "format": {
+          "duration": "6.220000"
+        }
+      }
+    },
+    {
+      "practice": 6,
+      "path": "practices/06_teacher_student/media/p6_clip19_comparison.mp4",
+      "caption": "动作19：Action与KL学生同协议比较",
+      "role": "comparison",
+      "bytes": 7477452,
+      "sha256": "3520e66ec3c34e219a73d5dc0f399f33e23d9e9e78cd044606f663d65ac76841",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 640,
+            "r_frame_rate": "50/1",
+            "nb_frames": "406"
+          }
+        ],
+        "format": {
+          "duration": "8.120000"
+        }
+      }
+    },
+    {
+      "practice": 6,
+      "path": "practices/06_teacher_student/media/p6_clip22_comparison.mp4",
+      "caption": "动作22：Action与KL学生同协议比较，含较弱场景",
+      "role": "comparison",
+      "bytes": 7397194,
+      "sha256": "f6f886f10668c6b99e30f77efce50d071b58724d8a7fd83482a12a47d43be073",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 640,
+            "r_frame_rate": "50/1",
+            "nb_frames": "433"
+          }
+        ],
+        "format": {
+          "duration": "8.660000"
+        }
+      }
+    },
+    {
+      "practice": 10,
+      "path": "practices/10_object_interaction/media/p10_model299_edge_path.mp4",
+      "caption": "对照model299的早期平台边缘路径；不是所选model399",
+      "role": "comparison",
+      "bytes": 9461531,
+      "sha256": "a1324d3b88848e1895b3d5c6db8a266c9bcaa4b30e33e351cf9fc4eb1aa5ab16",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 640,
+            "height": 480,
+            "r_frame_rate": "50/1",
+            "nb_frames": "309"
+          }
+        ],
+        "format": {
+          "duration": "6.180000"
+        }
+      }
+    },
+    {
+      "practice": 10,
+      "path": "practices/10_object_interaction/media/p10_std03_model399_full.mp4",
+      "caption": "所选std0.3/model399：309控制帧、6.18秒完整平台路径",
+      "role": "comparison",
+      "bytes": 9320860,
+      "sha256": "0c5c36d1cb5d3f36954bf72786e6701cbef86e65fe0d26c013be54fe6063fed3",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 640,
+            "height": 480,
+            "r_frame_rate": "50/1",
+            "nb_frames": "309"
+          }
+        ],
+        "format": {
+          "duration": "6.180000"
+        }
+      }
+    },
+    {
+      "practice": 3,
+      "path": "practices/03_host_standup/media/action_space_ablation.gif",
+      "caption": "HoST动作接口对比动画",
+      "role": "figure",
+      "bytes": 496835,
+      "sha256": "95539b688fb16a7dfbcc17474b5825d17caf241a1e936e2211ec1318bf117435",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "gif",
+            "width": 800,
+            "height": 225,
+            "r_frame_rate": "10/1",
+            "nb_frames": "80"
+          }
+        ],
+        "format": {
+          "duration": "8.000000"
+        }
+      }
+    },
+    {
+      "practice": 3,
+      "path": "practices/03_host_standup/media/host_standup.gif",
+      "caption": "HoST预训练起身动画",
+      "role": "figure",
+      "bytes": 476448,
+      "sha256": "3840beac51ab40a2093e50bb5da0b4f485cb4d096680a81cbdf243b5b6a1b1f1",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "gif",
+            "width": 480,
+            "height": 270,
+            "r_frame_rate": "12/1",
+            "nb_frames": "60"
+          }
+        ],
+        "format": {
+          "duration": "5.010000"
+        }
+      }
+    },
+    {
+      "practice": 3,
+      "path": "practices/03_host_standup/media/host_standup_60s.mp4",
+      "caption": "已有HoST预训练策略；默认仰躺起身，60秒完整部署回放",
+      "role": "deployment",
+      "bytes": 632578,
+      "sha256": "b8fabf07d737199fbbf2e938e7fc836a8d80f55cfe24b26914d5b09373026505",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 640,
+            "height": 480,
+            "r_frame_rate": "25/1",
+            "nb_frames": "1500"
+          }
+        ],
+        "format": {
+          "duration": "60.000000"
+        }
+      }
+    },
+    {
+      "practice": 4,
+      "path": "practices/04_velocity_height/media/velocity_height_20k_22s.mp4",
+      "caption": "20k主模型：高度0.5m、前向0.5m/s、零转向命令，22秒",
+      "role": "main",
+      "bytes": 7914797,
+      "sha256": "820ce731dfb364d788541c16ac4b79b09c6e2092c2b2abf2b9c93964b1ec5819",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 640,
+            "height": 480,
+            "r_frame_rate": "25/1",
+            "nb_frames": "550"
+          }
+        ],
+        "format": {
+          "duration": "22.000000"
+        }
+      }
+    },
+    {
+      "practice": 4,
+      "path": "practices/04_velocity_height/media/heading_feedback_20k_22s.mp4",
+      "caption": "同一20k模型增加外部朝向反馈；角度控制不等于横向位置控制",
+      "role": "comparison",
+      "bytes": 7917109,
+      "sha256": "b4812efdb4fe207c11dfaa9d1ab24131620dd9d52b5de3dd615cb6cd0e3d7c34",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 640,
+            "height": 480,
+            "r_frame_rate": "25/1",
+            "nb_frames": "550"
+          }
+        ],
+        "format": {
+          "duration": "22.000000"
+        }
+      }
+    },
+    {
+      "practice": 4,
+      "path": "practices/04_velocity_height/media/ablation_baseline_3k.mp4",
+      "caption": "3k消融：同时保留高度观测与奖励的基线",
+      "role": "ablation",
+      "bytes": 3614237,
+      "sha256": "2fc6d479e1a351b60ea786a57f2990bcc42b1cef96350e9cc6760b41931b7ce5",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 720,
+            "r_frame_rate": "50/1",
+            "nb_frames": "1000"
+          }
+        ],
+        "format": {
+          "duration": "20.000000"
+        }
+      }
+    },
+    {
+      "practice": 4,
+      "path": "practices/04_velocity_height/media/ablation_no_height_reward_3k.mp4",
+      "caption": "3k消融：移除高度跟踪奖励",
+      "role": "ablation",
+      "bytes": 2455610,
+      "sha256": "96200a9030966e155f3a002e22ad1240d0bb24c7d8e7b7de998a96bd3d8c0570",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 720,
+            "r_frame_rate": "50/1",
+            "nb_frames": "1000"
+          }
+        ],
+        "format": {
+          "duration": "20.000000"
+        }
+      }
+    },
+    {
+      "practice": 4,
+      "path": "practices/04_velocity_height/media/ablation_no_height_observation_3k.mp4",
+      "caption": "3k消融：Actor不接收高度指令",
+      "role": "ablation",
+      "bytes": 1471901,
+      "sha256": "069ed3220338f98d34e54ab9849213c20bbe611b76e509609b22ce90499bff0e",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 720,
+            "r_frame_rate": "50/1",
+            "nb_frames": "1000"
+          }
+        ],
+        "format": {
+          "duration": "20.000000"
+        }
+      }
+    },
+    {
+      "practice": 5,
+      "path": "practices/05_hierarchical_navigation/media/navigation_baseline_play.mp4",
+      "caption": "固定布局训练模型的原生播放；含目标切换，与1536局统计协议单列",
+      "role": "illustration",
+      "bytes": 36828588,
+      "sha256": "7dd7a7d344fd0b8ce694bf76ef68cd792d3c9ebdac8267d2c0b638e6a853d44b",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1920,
+            "height": 1080,
+            "r_frame_rate": "5/1",
+            "nb_frames": "750"
+          }
+        ],
+        "format": {
+          "duration": "150.000000"
+        }
+      }
+    },
+    {
+      "practice": 5,
+      "path": "practices/05_hierarchical_navigation/media/navigation_random_layout_play.mp4",
+      "caption": "随机布局训练阶段模型的原生播放；不作为同预算统计对照",
+      "role": "illustration",
+      "bytes": 4866959,
+      "sha256": "82f890b7c556a18792cdaf44764e4765d4b5029ce49ffe4e49ffdf6005881842",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 720,
+            "r_frame_rate": "5/1",
+            "nb_frames": "750"
+          }
+        ],
+        "format": {
+          "duration": "150.000000"
+        }
+      }
+    },
+    {
+      "practice": 7,
+      "path": "practices/07_motion_retargeting/media/walk_human_g1.mp4",
+      "caption": "行走片段：人体和G1运动学对照，不含力矩闭环",
+      "role": "kinematic",
+      "bytes": 123359,
+      "sha256": "90b4b42d2fe262573fddc6c6123b8da80f33c51a31335baf05c2312a1ca359a4",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 960,
+            "height": 360,
+            "r_frame_rate": "30/1",
+            "nb_frames": "56"
+          }
+        ],
+        "format": {
+          "duration": "1.867000"
+        }
+      }
+    },
+    {
+      "practice": 7,
+      "path": "practices/07_motion_retargeting/media/run_human_g1.mp4",
+      "caption": "加速跑片段：人体和G1运动学对照，不含动态稳定结论",
+      "role": "kinematic",
+      "bytes": 113731,
+      "sha256": "e44edade38e509d95d2fd08172ecb7c3351be526a0677fd996e1c905373e316d",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 960,
+            "height": 360,
+            "r_frame_rate": "2991/100",
+            "nb_frames": "42"
+          }
+        ],
+        "format": {
+          "duration": "1.405000"
+        }
+      }
+    },
+    {
+      "practice": 7,
+      "path": "practices/07_motion_retargeting/media/right_turn_g1.mp4",
+      "caption": "右转片段：G1运动学参考回放",
+      "role": "kinematic",
+      "bytes": 152471,
+      "sha256": "278ef56cfedac0d2188fc04cdf535c542cfd3182b5f5666cadc7aadde98cec38",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 480,
+            "height": 360,
+            "r_frame_rate": "2989/100",
+            "nb_frames": "70"
+          }
+        ],
+        "format": {
+          "duration": "2.342000"
+        }
+      }
+    },
+    {
+      "practice": 8,
+      "path": "practices/08_amp_locomotion/media/early_amp_play.mp4",
+      "caption": "早期AMP模型播放；不是当前5759阶段模型，不用于证明稳定走跑",
+      "role": "early_stage",
+      "bytes": 1041985,
+      "sha256": "45979f5f38ce52a405b0506a9bc52420d5e507de0d895cb389b7fbcf47797092",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 720,
+            "r_frame_rate": "50/1",
+            "nb_frames": "1499"
+          }
+        ],
+        "format": {
+          "duration": "29.980000"
+        }
+      }
+    },
+    {
+      "practice": 9,
+      "path": "practices/09_motion_tracking/media/motion_tracking_30k_full.mp4",
+      "caption": "model29999完整单舞蹈播放；保留事件、失败条件旁路监测，与标称CPU误差统计分开",
+      "role": "illustration",
+      "bytes": 19090567,
+      "sha256": "d54add19ad348443da3b3b10e88f710903446edc9e722b069f3748ee8408ed5d",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 640,
+            "height": 480,
+            "r_frame_rate": "25/1",
+            "nb_frames": "3287"
+          }
+        ],
+        "format": {
+          "duration": "131.480000"
+        }
+      }
+    },
+    {
+      "practice": 11,
+      "path": "practices/11_depth_locomotion/media/early_depth_policy_3000.mp4",
+      "caption": "早期model3000深度策略部署录像；不是当前保留的5000模型",
+      "role": "early_stage",
+      "bytes": 1776154,
+      "sha256": "b5d983e8a99d73debfbf4031d7e2d03b48a8b3d96f3084f5adcc4737a772dfa0",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 720,
+            "r_frame_rate": "50/1",
+            "nb_frames": "999"
+          }
+        ],
+        "format": {
+          "duration": "19.980000"
+        }
+      }
+    }
+  ],
+  "previews": [
+    {
+      "practice": 2,
+      "path": "practices/02_rough_terrain/media/preview.gif",
+      "caption": "15k适配策略的20秒台阶轨迹，后段包含方块区域；前6秒动画节选",
+      "role": "preview_excerpt",
+      "bytes": 120376,
+      "sha256": "5ce4afbb02ba97664442a32168e5ec7d2b2bda5cc8550ac6fb38080d5ecd61db",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "gif",
+            "width": 440,
+            "height": 220
+          }
+        ],
+        "format": {
+          "duration": "6.010000"
+        }
+      }
+    },
+    {
+      "practice": 6,
+      "path": "practices/06_teacher_student/media/preview.gif",
+      "caption": "Action与KL学生的三段并排比较；各20k，训练库分别复位，23秒剪辑；前6秒动画节选",
+      "role": "preview_excerpt",
+      "bytes": 1760897,
+      "sha256": "b2a90786b76549438ee1d910ca4d7fb0e6f251af699f8fe46c36566edd213f88",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "gif",
+            "width": 440,
+            "height": 220
+          }
+        ],
+        "format": {
+          "duration": "6.010000"
+        }
+      }
+    },
+    {
+      "practice": 10,
+      "path": "practices/10_object_interaction/media/preview.gif",
+      "caption": "所选std0.3/model399：309控制帧、6.18秒完整平台路径；前6秒动画节选",
+      "role": "preview_excerpt",
+      "bytes": 3049446,
+      "sha256": "bef19905d1faec7d99fcc4da58425ba49d91447dd036f2c9d83f6f92ee2f6403",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "gif",
+            "width": 440,
+            "height": 330
+          }
+        ],
+        "format": {
+          "duration": "6.010000"
+        }
+      }
+    },
+    {
+      "practice": 4,
+      "path": "practices/04_velocity_height/media/preview.gif",
+      "caption": "20k主模型：高度0.5m、前向0.5m/s、零转向命令，22秒；前6秒动画节选",
+      "role": "preview_excerpt",
+      "bytes": 4021107,
+      "sha256": "fe8c4d5ea91e48fcbf0667b064f8f22fc06e01fe747e6b0e40588b7df4518b92",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "gif",
+            "width": 440,
+            "height": 330
+          }
+        ],
+        "format": {
+          "duration": "6.010000"
+        }
+      }
+    },
+    {
+      "practice": 9,
+      "path": "practices/09_motion_tracking/media/preview.gif",
+      "caption": "model29999完整单舞蹈播放；保留事件、失败条件旁路监测，与标称CPU误差统计分开；前6秒动画节选",
+      "role": "preview_excerpt",
+      "bytes": 1452824,
+      "sha256": "5bee2647a2ac4968389dfea2ed505c210bcdca5cd8d636b7aa7aeda1b4f77768",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "gif",
+            "width": 440,
+            "height": 330
+          }
+        ],
+        "format": {
+          "duration": "6.010000"
+        }
+      }
+    }
+  ]
+}

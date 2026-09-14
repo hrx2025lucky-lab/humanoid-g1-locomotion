@@ -1,0 +1,51 @@
+{
+  "as_of": "2026-09-14",
+  "practice": 8,
+  "simulation_only": true,
+  "metrics": {
+    "stable_locomotion_passed": false,
+    "retained_checkpoint_index": 5759,
+    "adaptation_comparison": {
+      "control": {
+        "samples": 1000,
+        "observed_seconds": 20.0,
+        "mean_forward_velocity_m_s": 0.4616667873831333,
+        "xy_rmse_m_s": 0.09707122513068875,
+        "forward_mae_m_s": 0.05964282656033913,
+        "lateral_rms_m_s": 0.05479051621404605,
+        "final_world_displacement_m": [
+          5.688988208770752,
+          -6.8147664070129395,
+          -0.01802116632461548
+        ],
+        "yaw_change_rad": -1.3458172077065764,
+        "minimum_root_height_m": 0.7539669275283813,
+        "final_termination": {
+          "time_out": true,
+          "base_height": false,
+          "bad_orientation": false
+        }
+      },
+      "candidate": {
+        "samples": 1000,
+        "observed_seconds": 20.0,
+        "mean_forward_velocity_m_s": 0.5857642029351816,
+        "xy_rmse_m_s": 0.21460602538088297,
+        "forward_mae_m_s": 0.10677923353637586,
+        "lateral_rms_m_s": 0.1640931147038258,
+        "final_world_displacement_m": [
+          0.18736955523490906,
+          5.718955993652344,
+          -0.010768115520477295
+        ],
+        "yaw_change_rad": 3.3252816402681247,
+        "minimum_root_height_m": 0.7600884437561035,
+        "final_termination": {
+          "time_out": true,
+          "base_height": false,
+          "bad_orientation": false
+        }
+      }
+    }
+  }
+}

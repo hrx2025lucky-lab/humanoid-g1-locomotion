@@ -1,0 +1,14 @@
+{
+  "practice": 4,
+  "as_of": "2026-09-14",
+  "algorithm": "PPO",
+  "mode": "main_and_ablation",
+  "main_updates": 20000,
+  "ablation_updates_each": 3000,
+  "num_envs": 4096,
+  "rollout_steps": 24,
+  "seed": 42,
+  "actor_observation_size": 100,
+  "actions": 29,
+  "task": "Mjlab-VelocityHeight-Flat-Unitree-G1"
+}
