@@ -86,5 +86,23 @@
         }
       }
     }
+  },
+  "training_budget": {
+    "selected_model_num_envs": 128,
+    "selected_model_cumulative_updates_at_current_time_base": 400,
+    "selected_model_transitions_at_current_time_base": 1228800,
+    "reference_configuration_from_course_material": {
+      "num_envs": 4096,
+      "iterations": 50000,
+      "transitions": 4915200000,
+      "material_allows_reduction": true
+    },
+    "fraction_of_reference_transitions": 0.00025,
+    "earlier_runs_at_different_time_base": {
+      "num_envs": 2048,
+      "last_checkpoint_index": 8998,
+      "counted_as_current_training": false,
+      "reason": "修正控制频率前的时间基准，只作历史来源"
+    }
   }
 }

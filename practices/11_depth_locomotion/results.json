@@ -6,6 +6,17 @@
     "retained_updates": 5000,
     "forward_mean_m_s": 0.2572182342003269,
     "xy_rmse_m_s": 0.26044055071926725,
-    "full_parkour_passed": false
-  }
+    "full_parkour_passed": false,
+    "sim2sim_mujoco_completed": false
+  },
+  "training_budget": {
+    "num_envs": 4096,
+    "rollout_steps": 24,
+    "retained_updates": 5000,
+    "transitions": 491520000,
+    "rejected_continuation_updates": 7500,
+    "rejection_reason": "7500模型速度波动变大、XY误差约增加40.3%，据实拒绝并保留5000",
+    "course_material_specifies_iteration_count": false
+  },
+  "scope": "已核对ONNX导出与观测编码一致性；MuJoCo跨仿真运行尚未开始，不声称完成跨仿真部署。"
 }

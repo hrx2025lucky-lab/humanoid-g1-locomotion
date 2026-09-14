@@ -46,7 +46,9 @@
           "bad_orientation": false
         }
       }
-    }
+    },
+    "natural_gait_passed": false,
+    "dragging_leg_resolved": true
   },
   "selected_model": "yaw2_6200",
   "selected_checkpoint": {
@@ -3061,5 +3063,60 @@
       "double_contact_fraction": 0.4622222222222222,
       "flight_fraction": 0.0
     }
+  },
+  "round_2026_09_14_discriminator_revival": {
+    "root_cause_1": {
+      "name": "AMP discriminator paused by saturation protection",
+      "saturation_threshold": 0.7,
+      "discriminator_classification_margin": 0.8,
+      "updates_judged_saturated": "500/500",
+      "discriminator_optimizer_steps_before": 4,
+      "discriminator_optimizer_steps_after": 2000,
+      "style_reward_fraction_of_ceiling_before": 0.248,
+      "note": "框架自带机制，非用户改动；解除后抬脚问题解决"
+    },
+    "root_cause_2": {
+      "name": "mirror loss coefficient scale mismatch",
+      "symmetry_term_over_ppo_surrogate": 95.6,
+      "coefficient_before": 1.0,
+      "coefficients_tested": [
+        0.02,
+        0.1
+      ],
+      "worst_heading_change_deg_at_coeff_1": 310.2
+    },
+    "root_cause_3": {
+      "name": "reference motion library has no sustained slow walking",
+      "slowest_sustained_reference_m_s": 0.86,
+      "reference_frame_fraction_0p2_to_0p4_m_s": 0.042,
+      "longest_continuous_slow_walk_in_library_s": 0.4,
+      "consequence": "0.3 m/s 门槛需要新增参考数据，不能靠调参达成"
+    },
+    "forward_0p5_numeric_thresholds_passed_models": [
+      "revive_mirror002_6600",
+      "revive_mirror010_6700"
+    ],
+    "min_swing_lift_m": {
+      "previous_round_best": 0.0213,
+      "this_round_best": 0.0501,
+      "threshold": 0.025
+    },
+    "visual_review": {
+      "performed": true,
+      "views": [
+        "front",
+        "side"
+      ],
+      "duration_s": 20.0,
+      "continuous_single_trajectory": true,
+      "approved": false,
+      "blocking_finding": "手臂全程不摆动；肩关节俯仰幅度只有专家走路的 9%—16%"
+    },
+    "evaluation_reproducibility": {
+      "deterministic_given_model_order": true,
+      "same_weight_different_position_heading_spread_deg": 4.7,
+      "rule": "最终候选必须单独排第一位重新评估后才进入人工复核"
+    },
+    "public_showcase_approved": false
   }
 }
