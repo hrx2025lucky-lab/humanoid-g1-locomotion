@@ -20,16 +20,19 @@ Action和KL学生均有25/25动作到达参考末尾；对齐身体平均距离�
 
 ## 视频与动画
 
-[![6秒动态预览](media/preview.gif)](media/p6_action_kl_3clips_23s.mp4)
+### Action与KL蒸馏：三段动作并排对比
 
-*前6秒节选，完整视频及条件如下。*
+[![Action与KL蒸馏：三段动作并排对比，动态预览](media/preview.gif)](media/p6_action_kl_3clips_23s.mp4)
 
-| 内容与条件 | 时长 | 文件 |
+预览展示两个学生策略的并排回放；每段动作分别复位，另附三段完整对比。
+
+| 视频 / 动画标题 | 时长 | 内容与条件 |
 |---|---:|---|
-| Action与KL学生的三段并排比较；各20k，训练库分别复位，23秒剪辑 | 23.00s | [播放 / 下载](media/p6_action_kl_3clips_23s.mp4) |
-| 动作13：Action与KL学生同协议比较 | 6.22s | [播放 / 下载](media/p6_clip13_comparison.mp4) |
-| 动作19：Action与KL学生同协议比较 | 8.12s | [播放 / 下载](media/p6_clip19_comparison.mp4) |
-| 动作22：Action与KL学生同协议比较，含较弱场景 | 8.66s | [播放 / 下载](media/p6_clip22_comparison.mp4) |
+| [Action与KL蒸馏：三段动作并排对比](media/p6_action_kl_3clips_23s.mp4) | 23.00秒 | Action与KL学生的三段并排比较；各20k，训练库分别复位，23秒剪辑 |
+| [Action与KL蒸馏对比：动作13](media/p6_clip13_comparison.mp4) | 6.22秒 | 动作13：Action与KL学生同协议比较 |
+| [Action与KL蒸馏对比：动作19](media/p6_clip19_comparison.mp4) | 8.12秒 | 动作19：Action与KL学生同协议比较 |
+| [Action与KL蒸馏对比：动作22](media/p6_clip22_comparison.mp4) | 8.66秒 | 动作22：Action与KL学生同协议比较，含较弱场景 |
+
 
 ![教师学生蒸馏与全身动作结果图](media/03_motion_pairs.png)
 

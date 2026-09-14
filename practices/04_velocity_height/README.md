@@ -20,17 +20,20 @@ MJLab · PPO · 双指令控制
 
 ## 视频与动画
 
-[![6秒动态预览](media/preview.gif)](media/velocity_height_20k_22s.mp4)
+### 速度与骨盆高度联合控制：22秒蹲走
 
-*前6秒节选，完整视频及条件如下。*
+[![速度与骨盆高度联合控制：22秒蹲走，动态预览](media/preview.gif)](media/velocity_height_20k_22s.mp4)
 
-| 内容与条件 | 时长 | 文件 |
+预览展示20k主模型的蹲走；另附朝向反馈和三组3k高度控制消融。
+
+| 视频 / 动画标题 | 时长 | 内容与条件 |
 |---|---:|---|
-| 20k主模型：高度0.5m、前向0.5m/s、零转向命令，22秒 | 22.00s | [播放 / 下载](media/velocity_height_20k_22s.mp4) |
-| 同一20k模型增加外部朝向反馈；角度控制不等于横向位置控制 | 22.00s | [播放 / 下载](media/heading_feedback_20k_22s.mp4) |
-| 3k消融：同时保留高度观测与奖励的基线 | 20.00s | [播放 / 下载](media/ablation_baseline_3k.mp4) |
-| 3k消融：移除高度跟踪奖励 | 20.00s | [播放 / 下载](media/ablation_no_height_reward_3k.mp4) |
-| 3k消融：Actor不接收高度指令 | 20.00s | [播放 / 下载](media/ablation_no_height_observation_3k.mp4) |
+| [速度与骨盆高度联合控制：22秒蹲走](media/velocity_height_20k_22s.mp4) | 22.00秒 | 20k主模型：高度0.5m、前向0.5m/s、零转向命令，22秒 |
+| [蹲走朝向反馈：同一策略加入外部朝向控制](media/heading_feedback_20k_22s.mp4) | 22.00秒 | 同一20k模型增加外部朝向反馈；角度控制不等于横向位置控制 |
+| [高度控制消融：保留高度观测与奖励](media/ablation_baseline_3k.mp4) | 20.00秒 | 3k消融：同时保留高度观测与奖励的基线 |
+| [高度控制消融：移除高度跟踪奖励](media/ablation_no_height_reward_3k.mp4) | 20.00秒 | 3k消融：移除高度跟踪奖励 |
+| [高度控制消融：移除Actor高度指令观测](media/ablation_no_height_observation_3k.mp4) | 20.00秒 | 3k消融：Actor不接收高度指令 |
+
 
 ![速度与骨盆高度联合控制结果图](media/p4_3k_vs_20k.png)
 

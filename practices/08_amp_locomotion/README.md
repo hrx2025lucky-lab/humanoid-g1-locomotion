@@ -20,9 +20,16 @@ Isaac Lab · PPO · AMP
 
 ## 视频与动画
 
-| 内容与条件 | 时长 | 文件 |
+### AMP拟人运动策略回放（早期模型）
+
+[![AMP拟人运动策略回放（早期模型），动态预览](media/preview.gif)](media/early_amp_play.mp4)
+
+录像来自早期AMP模型；当前保留5759阶段模型，最新结果仍有航向漂移。
+
+| 视频 / 动画标题 | 时长 | 内容与条件 |
 |---|---:|---|
-| 早期AMP模型播放；不是当前5759阶段模型，不用于证明稳定走跑 | 29.98s | [播放 / 下载](media/early_amp_play.mp4) |
+| [AMP拟人运动策略回放（早期模型）](media/early_amp_play.mp4) | 29.98秒 | 早期AMP模型播放；不是当前5759阶段模型，不用于证明稳定走跑 |
+
 
 ![AMP拟人运动与风格奖励结果图](media/p8_adaptation_final_comparison.png)
 

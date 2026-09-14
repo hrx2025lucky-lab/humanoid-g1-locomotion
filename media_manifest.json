@@ -22,7 +22,8 @@
         "format": {
           "duration": "20.000000"
         }
-      }
+      },
+      "title": "台阶与方块地形行走（15k适配策略）"
     },
     {
       "practice": 2,
@@ -45,7 +46,8 @@
         "format": {
           "duration": "28.000000"
         }
-      }
+      },
+      "title": "粗糙地形行走：旧策略与适配策略对比"
     },
     {
       "practice": 6,
@@ -68,7 +70,8 @@
         "format": {
           "duration": "23.000000"
         }
-      }
+      },
+      "title": "Action与KL蒸馏：三段动作并排对比"
     },
     {
       "practice": 6,
@@ -91,7 +94,8 @@
         "format": {
           "duration": "6.220000"
         }
-      }
+      },
+      "title": "Action与KL蒸馏对比：动作13"
     },
     {
       "practice": 6,
@@ -114,7 +118,8 @@
         "format": {
           "duration": "8.120000"
         }
-      }
+      },
+      "title": "Action与KL蒸馏对比：动作19"
     },
     {
       "practice": 6,
@@ -137,7 +142,8 @@
         "format": {
           "duration": "8.660000"
         }
-      }
+      },
+      "title": "Action与KL蒸馏对比：动作22"
     },
     {
       "practice": 10,
@@ -160,7 +166,8 @@
         "format": {
           "duration": "6.180000"
         }
-      }
+      },
+      "title": "平台边缘路径回放（对照model299）"
     },
     {
       "practice": 10,
@@ -183,7 +190,8 @@
         "format": {
           "duration": "6.180000"
         }
-      }
+      },
+      "title": "平台路径完整回放（所选model399）"
     },
     {
       "practice": 3,
@@ -206,7 +214,8 @@
         "format": {
           "duration": "8.000000"
         }
-      }
+      },
+      "title": "HoST动作接口对比（动画）"
     },
     {
       "practice": 3,
@@ -229,7 +238,8 @@
         "format": {
           "duration": "5.010000"
         }
-      }
+      },
+      "title": "HoST预训练策略起身（动画）"
     },
     {
       "practice": 3,
@@ -252,7 +262,8 @@
         "format": {
           "duration": "60.000000"
         }
-      }
+      },
+      "title": "HoST仰躺起身与站立：60秒完整部署回放"
     },
     {
       "practice": 4,
@@ -275,7 +286,8 @@
         "format": {
           "duration": "22.000000"
         }
-      }
+      },
+      "title": "速度与骨盆高度联合控制：22秒蹲走"
     },
     {
       "practice": 4,
@@ -298,7 +310,8 @@
         "format": {
           "duration": "22.000000"
         }
-      }
+      },
+      "title": "蹲走朝向反馈：同一策略加入外部朝向控制"
     },
     {
       "practice": 4,
@@ -321,7 +334,8 @@
         "format": {
           "duration": "20.000000"
         }
-      }
+      },
+      "title": "高度控制消融：保留高度观测与奖励"
     },
     {
       "practice": 4,
@@ -344,7 +358,8 @@
         "format": {
           "duration": "20.000000"
         }
-      }
+      },
+      "title": "高度控制消融：移除高度跟踪奖励"
     },
     {
       "practice": 4,
@@ -367,7 +382,8 @@
         "format": {
           "duration": "20.000000"
         }
-      }
+      },
+      "title": "高度控制消融：移除Actor高度指令观测"
     },
     {
       "practice": 5,
@@ -390,7 +406,8 @@
         "format": {
           "duration": "150.000000"
         }
-      }
+      },
+      "title": "分层导航：固定布局训练模型的目标跟随"
     },
     {
       "practice": 5,
@@ -413,7 +430,8 @@
         "format": {
           "duration": "150.000000"
         }
-      }
+      },
+      "title": "分层导航：随机布局训练阶段模型回放"
     },
     {
       "practice": 7,
@@ -436,7 +454,8 @@
         "format": {
           "duration": "1.867000"
         }
-      }
+      },
+      "title": "GMR行走重定向：人体与G1运动学对照"
     },
     {
       "practice": 7,
@@ -459,7 +478,8 @@
         "format": {
           "duration": "1.405000"
         }
-      }
+      },
+      "title": "GMR加速跑重定向：人体与G1运动学对照"
     },
     {
       "practice": 7,
@@ -482,7 +502,8 @@
         "format": {
           "duration": "2.342000"
         }
-      }
+      },
+      "title": "GMR右转重定向：G1运动学回放"
     },
     {
       "practice": 8,
@@ -505,7 +526,8 @@
         "format": {
           "duration": "29.980000"
         }
-      }
+      },
+      "title": "AMP拟人运动策略回放（早期模型）"
     },
     {
       "practice": 9,
@@ -528,7 +550,8 @@
         "format": {
           "duration": "131.480000"
         }
-      }
+      },
+      "title": "全身舞蹈轨迹跟踪：131.48秒完整回放"
     },
     {
       "practice": 11,
@@ -551,7 +574,8 @@
         "format": {
           "duration": "19.980000"
         }
-      }
+      },
+      "title": "深度感知策略部署回放（早期model3000）"
     }
   ],
   "previews": [
@@ -574,36 +598,19 @@
         "format": {
           "duration": "6.010000"
         }
-      }
+      },
+      "title": "台阶与方块地形行走（15k适配策略）（动态预览）",
+      "source_video": "practices/02_rough_terrain/media/p2_final_stairs_20s.mp4",
+      "source_sha256": "175ba97f04efd18c03251338e95ebbde635bfbfbdca7bb2d23a46d7f31a51339",
+      "start_seconds": 0
     },
     {
-      "practice": 6,
-      "path": "practices/06_teacher_student/media/preview.gif",
-      "caption": "Action与KL学生的三段并排比较；各20k，训练库分别复位，23秒剪辑；前6秒动画节选",
+      "practice": 3,
+      "path": "practices/03_host_standup/media/preview.gif",
+      "caption": "已有HoST预训练策略；默认仰躺起身，60秒完整部署回放；开头短预览",
       "role": "preview_excerpt",
-      "bytes": 1760897,
-      "sha256": "b2a90786b76549438ee1d910ca4d7fb0e6f251af699f8fe46c36566edd213f88",
-      "probe": {
-        "programs": [],
-        "streams": [
-          {
-            "codec_name": "gif",
-            "width": 440,
-            "height": 220
-          }
-        ],
-        "format": {
-          "duration": "6.010000"
-        }
-      }
-    },
-    {
-      "practice": 10,
-      "path": "practices/10_object_interaction/media/preview.gif",
-      "caption": "所选std0.3/model399：309控制帧、6.18秒完整平台路径；前6秒动画节选",
-      "role": "preview_excerpt",
-      "bytes": 3049446,
-      "sha256": "bef19905d1faec7d99fcc4da58425ba49d91447dd036f2c9d83f6f92ee2f6403",
+      "bytes": 709529,
+      "sha256": "87e49b476fccc9fa808de70c6992a4107e5dc32e8b8582da8b912b62f423c4c1",
       "probe": {
         "programs": [],
         "streams": [
@@ -616,7 +623,11 @@
         "format": {
           "duration": "6.010000"
         }
-      }
+      },
+      "title": "HoST仰躺起身与站立：60秒完整部署回放（动态预览）",
+      "source_video": "practices/03_host_standup/media/host_standup_60s.mp4",
+      "source_sha256": "b8fabf07d737199fbbf2e938e7fc836a8d80f55cfe24b26914d5b09373026505",
+      "start_seconds": 0
     },
     {
       "practice": 4,
@@ -637,7 +648,111 @@
         "format": {
           "duration": "6.010000"
         }
-      }
+      },
+      "title": "速度与骨盆高度联合控制：22秒蹲走（动态预览）",
+      "source_video": "practices/04_velocity_height/media/velocity_height_20k_22s.mp4",
+      "source_sha256": "820ce731dfb364d788541c16ac4b79b09c6e2092c2b2abf2b9c93964b1ec5819",
+      "start_seconds": 0
+    },
+    {
+      "practice": 5,
+      "path": "practices/05_hierarchical_navigation/media/preview.gif",
+      "caption": "固定布局训练模型的目标跟随；原视频第1至7秒动画节选",
+      "role": "preview_excerpt",
+      "bytes": 2524199,
+      "sha256": "71982ce413dbec7bb82281a59015ea654857f256f50d02b8b42d4fecfe835968",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "gif",
+            "width": 440,
+            "height": 248
+          }
+        ],
+        "format": {
+          "duration": "6.010000"
+        }
+      },
+      "title": "分层导航：固定布局训练模型的目标跟随（动态预览）",
+      "source_video": "practices/05_hierarchical_navigation/media/navigation_baseline_play.mp4",
+      "source_sha256": "7dd7a7d344fd0b8ce694bf76ef68cd792d3c9ebdac8267d2c0b638e6a853d44b",
+      "start_seconds": 1
+    },
+    {
+      "practice": 6,
+      "path": "practices/06_teacher_student/media/preview.gif",
+      "caption": "Action与KL学生的三段并排比较；各20k，训练库分别复位，23秒剪辑；前6秒动画节选",
+      "role": "preview_excerpt",
+      "bytes": 1760897,
+      "sha256": "b2a90786b76549438ee1d910ca4d7fb0e6f251af699f8fe46c36566edd213f88",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "gif",
+            "width": 440,
+            "height": 220
+          }
+        ],
+        "format": {
+          "duration": "6.010000"
+        }
+      },
+      "title": "Action与KL蒸馏：三段动作并排对比（动态预览）",
+      "source_video": "practices/06_teacher_student/media/p6_action_kl_3clips_23s.mp4",
+      "source_sha256": "571b7abc5af7fd4055d4de26ece9cbfcff0304bba1ca7b064185d5810130116d",
+      "start_seconds": 0
+    },
+    {
+      "practice": 7,
+      "path": "practices/07_motion_retargeting/media/preview.gif",
+      "caption": "行走片段：人体和G1运动学对照，不含力矩闭环；开头短预览",
+      "role": "preview_excerpt",
+      "bytes": 288060,
+      "sha256": "5e828b7632330b465987867bb2297bc910cf5a783176ce43d3ac2b57da980921",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "gif",
+            "width": 440,
+            "height": 166
+          }
+        ],
+        "format": {
+          "duration": "1.870000"
+        }
+      },
+      "title": "GMR行走重定向：人体与G1运动学对照（动态预览）",
+      "source_video": "practices/07_motion_retargeting/media/walk_human_g1.mp4",
+      "source_sha256": "90b4b42d2fe262573fddc6c6123b8da80f33c51a31335baf05c2312a1ca359a4",
+      "start_seconds": 0
+    },
+    {
+      "practice": 8,
+      "path": "practices/08_amp_locomotion/media/preview.gif",
+      "caption": "早期AMP模型播放；不是当前5759阶段模型，不用于证明稳定走跑；开头短预览",
+      "role": "preview_excerpt",
+      "bytes": 499696,
+      "sha256": "c9e1dfaf6dfecfcdef82c98ce2291540cc7acb0443ff3f2d5cc48c5dfe24f4fa",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "gif",
+            "width": 440,
+            "height": 248
+          }
+        ],
+        "format": {
+          "duration": "6.010000"
+        }
+      },
+      "title": "AMP拟人运动策略回放（早期模型）（动态预览）",
+      "source_video": "practices/08_amp_locomotion/media/early_amp_play.mp4",
+      "source_sha256": "45979f5f38ce52a405b0506a9bc52420d5e507de0d895cb389b7fbcf47797092",
+      "start_seconds": 0
     },
     {
       "practice": 9,
@@ -658,7 +773,61 @@
         "format": {
           "duration": "6.010000"
         }
-      }
+      },
+      "title": "全身舞蹈轨迹跟踪：131.48秒完整回放（动态预览）",
+      "source_video": "practices/09_motion_tracking/media/motion_tracking_30k_full.mp4",
+      "source_sha256": "d54add19ad348443da3b3b10e88f710903446edc9e722b069f3748ee8408ed5d",
+      "start_seconds": 0
+    },
+    {
+      "practice": 10,
+      "path": "practices/10_object_interaction/media/preview.gif",
+      "caption": "所选std0.3/model399：309控制帧、6.18秒完整平台路径；前6秒动画节选",
+      "role": "preview_excerpt",
+      "bytes": 3049446,
+      "sha256": "bef19905d1faec7d99fcc4da58425ba49d91447dd036f2c9d83f6f92ee2f6403",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "gif",
+            "width": 440,
+            "height": 330
+          }
+        ],
+        "format": {
+          "duration": "6.010000"
+        }
+      },
+      "title": "平台路径完整回放（所选model399）（动态预览）",
+      "source_video": "practices/10_object_interaction/media/p10_std03_model399_full.mp4",
+      "source_sha256": "0c5c36d1cb5d3f36954bf72786e6701cbef86e65fe0d26c013be54fe6063fed3",
+      "start_seconds": 0
+    },
+    {
+      "practice": 11,
+      "path": "practices/11_depth_locomotion/media/preview.gif",
+      "caption": "早期model3000深度策略部署录像；不是当前保留的5000模型；开头短预览",
+      "role": "preview_excerpt",
+      "bytes": 2151609,
+      "sha256": "e721ed5cd1b5f7be4152d121cbf16dffb0ab7b78c3acefb04af5e186dd5e25c8",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "gif",
+            "width": 440,
+            "height": 248
+          }
+        ],
+        "format": {
+          "duration": "6.010000"
+        }
+      },
+      "title": "深度感知策略部署回放（早期model3000）（动态预览）",
+      "source_video": "practices/11_depth_locomotion/media/early_depth_policy_3000.mp4",
+      "source_sha256": "b5d983e8a99d73debfbf4031d7e2d03b48a8b3d96f3084f5adcc4737a772dfa0",
+      "start_seconds": 0
     }
   ]
 }

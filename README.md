@@ -6,29 +6,127 @@
 
 [视频合集](MEDIA.md) · [当前状态](PROJECT_STATUS.md) · [算法与框架来源](REFERENCES.md)
 
-## 动态预览
+## 动态预览与完整视频
 
-以下为原视频前6秒的动画节选；点击动画打开完整视频。具体模型、播放条件和结果见对应实践页。
+已收录实践2—11的22段完整MP4，以及实践3的2段补充动画。下方动画为原视频开头的短预览（最长约6秒）；点击动画或带标题的链接可打开完整文件。
 
-**实践02**
+### 实践01｜仿真环境与行走策略部署
 
-[![实践02动态预览](practices/02_rough_terrain/media/preview.gif)](practices/02_rough_terrain/media/p2_final_stairs_20s.mp4)
+当前未收录独立展示视频。已有策略导出等价性与60秒MuJoCo闭环记录，见[实践01说明](practices/01_simulation_baseline/README.md)。
 
-**实践04**
+### 实践02｜感知驱动的粗糙地形行走
 
-[![实践04动态预览](practices/04_velocity_height/media/preview.gif)](practices/04_velocity_height/media/velocity_height_20k_22s.mp4)
+预览展示15k适配策略的台阶轨迹；另附旧策略与适配策略的同场景对比。
 
-**实践06**
+[![实践02：台阶与方块地形行走（15k适配策略），动态预览](practices/02_rough_terrain/media/preview.gif)](practices/02_rough_terrain/media/p2_final_stairs_20s.mp4)
 
-[![实践06动态预览](practices/06_teacher_student/media/preview.gif)](practices/06_teacher_student/media/p6_action_kl_3clips_23s.mp4)
+- [台阶与方块地形行走（15k适配策略）](practices/02_rough_terrain/media/p2_final_stairs_20s.mp4) · 20.00秒
+- [粗糙地形行走：旧策略与适配策略对比](practices/02_rough_terrain/media/p2_old_final_comparison_28s.mp4) · 28.00秒
 
-**实践09**
+[本实践的结果与条件](practices/02_rough_terrain/README.md)
 
-[![实践09动态预览](practices/09_motion_tracking/media/preview.gif)](practices/09_motion_tracking/media/motion_tracking_30k_full.mp4)
+### 实践03｜HoST仰躺起身（预训练策略部署）
 
-**实践10**
+预览来自默认仰躺初态的60秒部署录像；使用已有预训练策略。
 
-[![实践10动态预览](practices/10_object_interaction/media/preview.gif)](practices/10_object_interaction/media/p10_std03_model399_full.mp4)
+[![实践03：HoST仰躺起身与站立：60秒完整部署回放，动态预览](practices/03_host_standup/media/preview.gif)](practices/03_host_standup/media/host_standup_60s.mp4)
+
+- [HoST仰躺起身与站立：60秒完整部署回放](practices/03_host_standup/media/host_standup_60s.mp4) · 60.00秒
+- [HoST动作接口对比（动画）](practices/03_host_standup/media/action_space_ablation.gif) · 8.00秒
+- [HoST预训练策略起身（动画）](practices/03_host_standup/media/host_standup.gif) · 5.01秒
+
+[本实践的结果与条件](practices/03_host_standup/README.md)
+
+### 实践04｜速度与骨盆高度联合控制
+
+预览展示20k主模型的蹲走；另附朝向反馈和三组3k高度控制消融。
+
+[![实践04：速度与骨盆高度联合控制：22秒蹲走，动态预览](practices/04_velocity_height/media/preview.gif)](practices/04_velocity_height/media/velocity_height_20k_22s.mp4)
+
+- [速度与骨盆高度联合控制：22秒蹲走](practices/04_velocity_height/media/velocity_height_20k_22s.mp4) · 22.00秒
+- [蹲走朝向反馈：同一策略加入外部朝向控制](practices/04_velocity_height/media/heading_feedback_20k_22s.mp4) · 22.00秒
+- [高度控制消融：保留高度观测与奖励](practices/04_velocity_height/media/ablation_baseline_3k.mp4) · 20.00秒
+- [高度控制消融：移除高度跟踪奖励](practices/04_velocity_height/media/ablation_no_height_reward_3k.mp4) · 20.00秒
+- [高度控制消融：移除Actor高度指令观测](practices/04_velocity_height/media/ablation_no_height_observation_3k.mp4) · 20.00秒
+
+[本实践的结果与条件](practices/04_velocity_height/README.md)
+
+### 实践05｜分层强化学习导航
+
+预览为固定布局模型的目标跟随；下方两段150秒录像与配对统计测试分别说明。
+
+[![实践05：分层导航：固定布局训练模型的目标跟随，动态预览](practices/05_hierarchical_navigation/media/preview.gif)](practices/05_hierarchical_navigation/media/navigation_baseline_play.mp4)
+
+- [分层导航：固定布局训练模型的目标跟随](practices/05_hierarchical_navigation/media/navigation_baseline_play.mp4) · 150.00秒
+- [分层导航：随机布局训练阶段模型回放](practices/05_hierarchical_navigation/media/navigation_random_layout_play.mp4) · 150.00秒
+
+[本实践的结果与条件](practices/05_hierarchical_navigation/README.md)
+
+### 实践06｜教师学生蒸馏：Action与KL动作对比
+
+预览展示两个学生策略的并排回放；每段动作分别复位，另附三段完整对比。
+
+[![实践06：Action与KL蒸馏：三段动作并排对比，动态预览](practices/06_teacher_student/media/preview.gif)](practices/06_teacher_student/media/p6_action_kl_3clips_23s.mp4)
+
+- [Action与KL蒸馏：三段动作并排对比](practices/06_teacher_student/media/p6_action_kl_3clips_23s.mp4) · 23.00秒
+- [Action与KL蒸馏对比：动作13](practices/06_teacher_student/media/p6_clip13_comparison.mp4) · 6.22秒
+- [Action与KL蒸馏对比：动作19](practices/06_teacher_student/media/p6_clip19_comparison.mp4) · 8.12秒
+- [Action与KL蒸馏对比：动作22](practices/06_teacher_student/media/p6_clip22_comparison.mp4) · 8.66秒
+
+[本实践的结果与条件](practices/06_teacher_student/README.md)
+
+### 实践07｜人体到G1的运动重定向（运动学回放）
+
+预览为约1.9秒行走片段；下方另附加速跑和右转。这些是姿态映射回放，尚不代表动力学平衡。
+
+[![实践07：GMR行走重定向：人体与G1运动学对照，动态预览](practices/07_motion_retargeting/media/preview.gif)](practices/07_motion_retargeting/media/walk_human_g1.mp4)
+
+- [GMR行走重定向：人体与G1运动学对照](practices/07_motion_retargeting/media/walk_human_g1.mp4) · 1.87秒
+- [GMR加速跑重定向：人体与G1运动学对照](practices/07_motion_retargeting/media/run_human_g1.mp4) · 1.41秒
+- [GMR右转重定向：G1运动学回放](practices/07_motion_retargeting/media/right_turn_g1.mp4) · 2.34秒
+
+[本实践的结果与条件](practices/07_motion_retargeting/README.md)
+
+### 实践08｜AMP拟人运动（早期模型录像）
+
+录像来自早期AMP模型；当前保留5759阶段模型，最新结果仍有航向漂移。
+
+[![实践08：AMP拟人运动策略回放（早期模型），动态预览](practices/08_amp_locomotion/media/preview.gif)](practices/08_amp_locomotion/media/early_amp_play.mp4)
+
+- [AMP拟人运动策略回放（早期模型）](practices/08_amp_locomotion/media/early_amp_play.mp4) · 29.98秒
+
+[本实践的结果与条件](practices/08_amp_locomotion/README.md)
+
+### 实践09｜全身舞蹈轨迹跟踪
+
+完整录像长131.48秒；失败条件旁路监测，与标称CPU误差统计所用条件分列。
+
+[![实践09：全身舞蹈轨迹跟踪：131.48秒完整回放，动态预览](practices/09_motion_tracking/media/preview.gif)](practices/09_motion_tracking/media/motion_tracking_30k_full.mp4)
+
+- [全身舞蹈轨迹跟踪：131.48秒完整回放](practices/09_motion_tracking/media/motion_tracking_30k_full.mp4) · 131.48秒
+
+[本实践的结果与条件](practices/09_motion_tracking/README.md)
+
+### 实践10｜平台地形动作跟踪（HOI）
+
+预览来自所选model399的6.18秒平台路径；另附model299对照录像。
+
+[![实践10：平台路径完整回放（所选model399），动态预览](practices/10_object_interaction/media/preview.gif)](practices/10_object_interaction/media/p10_std03_model399_full.mp4)
+
+- [平台路径完整回放（所选model399）](practices/10_object_interaction/media/p10_std03_model399_full.mp4) · 6.18秒
+- [平台边缘路径回放（对照model299）](practices/10_object_interaction/media/p10_model299_edge_path.mp4) · 6.18秒
+
+[本实践的结果与条件](practices/10_object_interaction/README.md)
+
+### 实践11｜深度感知策略部署（早期3000模型录像）
+
+录像展示早期model3000的部署；当前保留5000模型，完整跑酷效果仍待完善。
+
+[![实践11：深度感知策略部署回放（早期model3000），动态预览](practices/11_depth_locomotion/media/preview.gif)](practices/11_depth_locomotion/media/early_depth_policy_3000.mp4)
+
+- [深度感知策略部署回放（早期model3000）](practices/11_depth_locomotion/media/early_depth_policy_3000.mp4) · 19.98秒
+
+[本实践的结果与条件](practices/11_depth_locomotion/README.md)
 
 ## 代表性结果
 

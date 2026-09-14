@@ -21,9 +21,16 @@ Isaac Lab · 高层PPO · 冻结低层策略
 
 ## 视频与动画
 
-| 内容与条件 | 时长 | 文件 |
+### 分层导航：固定布局训练模型的目标跟随
+
+[![分层导航：固定布局训练模型的目标跟随，动态预览](media/preview.gif)](media/navigation_baseline_play.mp4)
+
+预览为固定布局模型的目标跟随；下方两段150秒录像与配对统计测试分别说明。
+
+| 视频 / 动画标题 | 时长 | 内容与条件 |
 |---|---:|---|
-| 固定布局训练模型的原生播放；含目标切换，与1536局统计协议单列 | 150.00s | [播放 / 下载](media/navigation_baseline_play.mp4) |
-| 随机布局训练阶段模型的原生播放；不作为同预算统计对照 | 150.00s | [播放 / 下载](media/navigation_random_layout_play.mp4) |
+| [分层导航：固定布局训练模型的目标跟随](media/navigation_baseline_play.mp4) | 150.00秒 | 固定布局训练模型的原生播放；含目标切换，与1536局统计协议单列 |
+| [分层导航：随机布局训练阶段模型回放](media/navigation_random_layout_play.mp4) | 150.00秒 | 随机布局训练阶段模型的原生播放；不作为同预算统计对照 |
+
 
 [返回项目首页](../../README.md) · [全部实践状态](../../PROJECT_STATUS.md)

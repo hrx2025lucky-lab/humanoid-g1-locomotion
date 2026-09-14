@@ -20,14 +20,17 @@ Isaac Lab · PPO · 高度扫描
 
 ## 视频与动画
 
-[![6秒动态预览](media/preview.gif)](media/p10_std03_model399_full.mp4)
+### 平台路径完整回放（所选model399）
 
-*前6秒节选，完整视频及条件如下。*
+[![平台路径完整回放（所选model399），动态预览](media/preview.gif)](media/p10_std03_model399_full.mp4)
 
-| 内容与条件 | 时长 | 文件 |
+预览来自所选model399的6.18秒平台路径；另附model299对照录像。
+
+| 视频 / 动画标题 | 时长 | 内容与条件 |
 |---|---:|---|
-| 对照model299的早期平台边缘路径；不是所选model399 | 6.18s | [播放 / 下载](media/p10_model299_edge_path.mp4) |
-| 所选std0.3/model399：309控制帧、6.18秒完整平台路径 | 6.18s | [播放 / 下载](media/p10_std03_model399_full.mp4) |
+| [平台路径完整回放（所选model399）](media/p10_std03_model399_full.mp4) | 6.18秒 | 所选std0.3/model399：309控制帧、6.18秒完整平台路径 |
+| [平台边缘路径回放（对照model299）](media/p10_model299_edge_path.mp4) | 6.18秒 | 对照model299的早期平台边缘路径；不是所选model399 |
+
 
 ![地形感知的人物交互动作跟踪结果图](media/p10_model399_world_path.png)
 

@@ -20,14 +20,17 @@ Isaac Lab · PPO · 高度扫描 · MuJoCo
 
 ## 视频与动画
 
-[![6秒动态预览](media/preview.gif)](media/p2_final_stairs_20s.mp4)
+### 台阶与方块地形行走（15k适配策略）
 
-*前6秒节选，完整视频及条件如下。*
+[![台阶与方块地形行走（15k适配策略），动态预览](media/preview.gif)](media/p2_final_stairs_20s.mp4)
 
-| 内容与条件 | 时长 | 文件 |
+预览展示15k适配策略的台阶轨迹；另附旧策略与适配策略的同场景对比。
+
+| 视频 / 动画标题 | 时长 | 内容与条件 |
 |---|---:|---|
-| 15k适配策略的20秒台阶轨迹，后段包含方块区域 | 20.00s | [播放 / 下载](media/p2_final_stairs_20s.mp4) |
-| 旧策略与15k适配策略：平地和台阶配对，28秒剪辑 | 28.00s | [播放 / 下载](media/p2_old_final_comparison_28s.mp4) |
+| [台阶与方块地形行走（15k适配策略）](media/p2_final_stairs_20s.mp4) | 20.00秒 | 15k适配策略的20秒台阶轨迹，后段包含方块区域 |
+| [粗糙地形行走：旧策略与适配策略对比](media/p2_old_final_comparison_28s.mp4) | 28.00秒 | 旧策略与15k适配策略：平地和台阶配对，28秒剪辑 |
+
 
 ![感知驱动的粗糙地形行走结果图](media/p2_stair_crossing.png)
 

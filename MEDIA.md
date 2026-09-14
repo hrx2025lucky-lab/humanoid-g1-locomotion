@@ -1,32 +1,83 @@
-# G1运动控制：视频索引
+# G1运动控制：视频与动画合集
 
-按实践编号浏览，模型阶段与播放条件列在每段旁。MP4提供原文件，可在GitHub预览或下载；动画和结果图同时放在对应实践目录。
+已收录22段完整MP4和2段补充动画，按实践编号排列。每个文件都有独立标题，模型阶段、回放条件和时长在表中说明。首页提供实践2—11各一段动态预览。
 
-| 实践 | 内容与条件 | 时长 | 视频 |
-|---|---|---:|---|
-| 02 | 15k适配策略的20秒台阶轨迹，后段包含方块区域 | 20.00s | [视频](practices/02_rough_terrain/media/p2_final_stairs_20s.mp4) |
-| 02 | 旧策略与15k适配策略：平地和台阶配对，28秒剪辑 | 28.00s | [视频](practices/02_rough_terrain/media/p2_old_final_comparison_28s.mp4) |
-| 03 | HoST动作接口对比动画 | 8.00s | [视频](practices/03_host_standup/media/action_space_ablation.gif) |
-| 03 | HoST预训练起身动画 | 5.01s | [视频](practices/03_host_standup/media/host_standup.gif) |
-| 03 | 已有HoST预训练策略；默认仰躺起身，60秒完整部署回放 | 60.00s | [视频](practices/03_host_standup/media/host_standup_60s.mp4) |
-| 04 | 20k主模型：高度0.5m、前向0.5m/s、零转向命令，22秒 | 22.00s | [视频](practices/04_velocity_height/media/velocity_height_20k_22s.mp4) |
-| 04 | 同一20k模型增加外部朝向反馈；角度控制不等于横向位置控制 | 22.00s | [视频](practices/04_velocity_height/media/heading_feedback_20k_22s.mp4) |
-| 04 | 3k消融：同时保留高度观测与奖励的基线 | 20.00s | [视频](practices/04_velocity_height/media/ablation_baseline_3k.mp4) |
-| 04 | 3k消融：移除高度跟踪奖励 | 20.00s | [视频](practices/04_velocity_height/media/ablation_no_height_reward_3k.mp4) |
-| 04 | 3k消融：Actor不接收高度指令 | 20.00s | [视频](practices/04_velocity_height/media/ablation_no_height_observation_3k.mp4) |
-| 05 | 固定布局训练模型的原生播放；含目标切换，与1536局统计协议单列 | 150.00s | [视频](practices/05_hierarchical_navigation/media/navigation_baseline_play.mp4) |
-| 05 | 随机布局训练阶段模型的原生播放；不作为同预算统计对照 | 150.00s | [视频](practices/05_hierarchical_navigation/media/navigation_random_layout_play.mp4) |
-| 06 | Action与KL学生的三段并排比较；各20k，训练库分别复位，23秒剪辑 | 23.00s | [视频](practices/06_teacher_student/media/p6_action_kl_3clips_23s.mp4) |
-| 06 | 动作13：Action与KL学生同协议比较 | 6.22s | [视频](practices/06_teacher_student/media/p6_clip13_comparison.mp4) |
-| 06 | 动作19：Action与KL学生同协议比较 | 8.12s | [视频](practices/06_teacher_student/media/p6_clip19_comparison.mp4) |
-| 06 | 动作22：Action与KL学生同协议比较，含较弱场景 | 8.66s | [视频](practices/06_teacher_student/media/p6_clip22_comparison.mp4) |
-| 07 | 行走片段：人体和G1运动学对照，不含力矩闭环 | 1.87s | [视频](practices/07_motion_retargeting/media/walk_human_g1.mp4) |
-| 07 | 加速跑片段：人体和G1运动学对照，不含动态稳定结论 | 1.41s | [视频](practices/07_motion_retargeting/media/run_human_g1.mp4) |
-| 07 | 右转片段：G1运动学参考回放 | 2.34s | [视频](practices/07_motion_retargeting/media/right_turn_g1.mp4) |
-| 08 | 早期AMP模型播放；不是当前5759阶段模型，不用于证明稳定走跑 | 29.98s | [视频](practices/08_amp_locomotion/media/early_amp_play.mp4) |
-| 09 | model29999完整单舞蹈播放；保留事件、失败条件旁路监测，与标称CPU误差统计分开 | 131.48s | [视频](practices/09_motion_tracking/media/motion_tracking_30k_full.mp4) |
-| 10 | 对照model299的早期平台边缘路径；不是所选model399 | 6.18s | [视频](practices/10_object_interaction/media/p10_model299_edge_path.mp4) |
-| 10 | 所选std0.3/model399：309控制帧、6.18秒完整平台路径 | 6.18s | [视频](practices/10_object_interaction/media/p10_std03_model399_full.mp4) |
-| 11 | 早期model3000深度策略部署录像；不是当前保留的5000模型 | 19.98s | [视频](practices/11_depth_locomotion/media/early_depth_policy_3000.mp4) |
+## 实践01｜仿真环境与行走策略部署
+
+当前未收录独立展示视频；已有部署记录见[实践01说明](practices/01_simulation_baseline/README.md)。
+
+## 实践02｜感知驱动的粗糙地形行走
+
+| 视频 / 动画标题 | 时长 | 内容与条件 |
+|---|---:|---|
+| [台阶与方块地形行走（15k适配策略）](practices/02_rough_terrain/media/p2_final_stairs_20s.mp4) | 20.00秒 | 15k适配策略的20秒台阶轨迹，后段包含方块区域 |
+| [粗糙地形行走：旧策略与适配策略对比](practices/02_rough_terrain/media/p2_old_final_comparison_28s.mp4) | 28.00秒 | 旧策略与15k适配策略：平地和台阶配对，28秒剪辑 |
+
+## 实践03｜HoST仰躺起身（预训练策略部署）
+
+| 视频 / 动画标题 | 时长 | 内容与条件 |
+|---|---:|---|
+| [HoST仰躺起身与站立：60秒完整部署回放](practices/03_host_standup/media/host_standup_60s.mp4) | 60.00秒 | 已有HoST预训练策略；默认仰躺起身，60秒完整部署回放 |
+| [HoST动作接口对比（动画）](practices/03_host_standup/media/action_space_ablation.gif) | 8.00秒 | HoST动作接口对比动画 |
+| [HoST预训练策略起身（动画）](practices/03_host_standup/media/host_standup.gif) | 5.01秒 | HoST预训练起身动画 |
+
+## 实践04｜速度与骨盆高度联合控制
+
+| 视频 / 动画标题 | 时长 | 内容与条件 |
+|---|---:|---|
+| [速度与骨盆高度联合控制：22秒蹲走](practices/04_velocity_height/media/velocity_height_20k_22s.mp4) | 22.00秒 | 20k主模型：高度0.5m、前向0.5m/s、零转向命令，22秒 |
+| [蹲走朝向反馈：同一策略加入外部朝向控制](practices/04_velocity_height/media/heading_feedback_20k_22s.mp4) | 22.00秒 | 同一20k模型增加外部朝向反馈；角度控制不等于横向位置控制 |
+| [高度控制消融：保留高度观测与奖励](practices/04_velocity_height/media/ablation_baseline_3k.mp4) | 20.00秒 | 3k消融：同时保留高度观测与奖励的基线 |
+| [高度控制消融：移除高度跟踪奖励](practices/04_velocity_height/media/ablation_no_height_reward_3k.mp4) | 20.00秒 | 3k消融：移除高度跟踪奖励 |
+| [高度控制消融：移除Actor高度指令观测](practices/04_velocity_height/media/ablation_no_height_observation_3k.mp4) | 20.00秒 | 3k消融：Actor不接收高度指令 |
+
+## 实践05｜分层强化学习导航
+
+| 视频 / 动画标题 | 时长 | 内容与条件 |
+|---|---:|---|
+| [分层导航：固定布局训练模型的目标跟随](practices/05_hierarchical_navigation/media/navigation_baseline_play.mp4) | 150.00秒 | 固定布局训练模型的原生播放；含目标切换，与1536局统计协议单列 |
+| [分层导航：随机布局训练阶段模型回放](practices/05_hierarchical_navigation/media/navigation_random_layout_play.mp4) | 150.00秒 | 随机布局训练阶段模型的原生播放；不作为同预算统计对照 |
+
+## 实践06｜教师学生蒸馏：Action与KL动作对比
+
+| 视频 / 动画标题 | 时长 | 内容与条件 |
+|---|---:|---|
+| [Action与KL蒸馏：三段动作并排对比](practices/06_teacher_student/media/p6_action_kl_3clips_23s.mp4) | 23.00秒 | Action与KL学生的三段并排比较；各20k，训练库分别复位，23秒剪辑 |
+| [Action与KL蒸馏对比：动作13](practices/06_teacher_student/media/p6_clip13_comparison.mp4) | 6.22秒 | 动作13：Action与KL学生同协议比较 |
+| [Action与KL蒸馏对比：动作19](practices/06_teacher_student/media/p6_clip19_comparison.mp4) | 8.12秒 | 动作19：Action与KL学生同协议比较 |
+| [Action与KL蒸馏对比：动作22](practices/06_teacher_student/media/p6_clip22_comparison.mp4) | 8.66秒 | 动作22：Action与KL学生同协议比较，含较弱场景 |
+
+## 实践07｜人体到G1的运动重定向（运动学回放）
+
+| 视频 / 动画标题 | 时长 | 内容与条件 |
+|---|---:|---|
+| [GMR行走重定向：人体与G1运动学对照](practices/07_motion_retargeting/media/walk_human_g1.mp4) | 1.87秒 | 行走片段：人体和G1运动学对照，不含力矩闭环 |
+| [GMR加速跑重定向：人体与G1运动学对照](practices/07_motion_retargeting/media/run_human_g1.mp4) | 1.41秒 | 加速跑片段：人体和G1运动学对照，不含动态稳定结论 |
+| [GMR右转重定向：G1运动学回放](practices/07_motion_retargeting/media/right_turn_g1.mp4) | 2.34秒 | 右转片段：G1运动学参考回放 |
+
+## 实践08｜AMP拟人运动（早期模型录像）
+
+| 视频 / 动画标题 | 时长 | 内容与条件 |
+|---|---:|---|
+| [AMP拟人运动策略回放（早期模型）](practices/08_amp_locomotion/media/early_amp_play.mp4) | 29.98秒 | 早期AMP模型播放；不是当前5759阶段模型，不用于证明稳定走跑 |
+
+## 实践09｜全身舞蹈轨迹跟踪
+
+| 视频 / 动画标题 | 时长 | 内容与条件 |
+|---|---:|---|
+| [全身舞蹈轨迹跟踪：131.48秒完整回放](practices/09_motion_tracking/media/motion_tracking_30k_full.mp4) | 131.48秒 | model29999完整单舞蹈播放；保留事件、失败条件旁路监测，与标称CPU误差统计分开 |
+
+## 实践10｜平台地形动作跟踪（HOI）
+
+| 视频 / 动画标题 | 时长 | 内容与条件 |
+|---|---:|---|
+| [平台路径完整回放（所选model399）](practices/10_object_interaction/media/p10_std03_model399_full.mp4) | 6.18秒 | 所选std0.3/model399：309控制帧、6.18秒完整平台路径 |
+| [平台边缘路径回放（对照model299）](practices/10_object_interaction/media/p10_model299_edge_path.mp4) | 6.18秒 | 对照model299的早期平台边缘路径；不是所选model399 |
+
+## 实践11｜深度感知策略部署（早期3000模型录像）
+
+| 视频 / 动画标题 | 时长 | 内容与条件 |
+|---|---:|---|
+| [深度感知策略部署回放（早期model3000）](practices/11_depth_locomotion/media/early_depth_policy_3000.mp4) | 19.98秒 | 早期model3000深度策略部署录像；不是当前保留的5000模型 |
 
 [项目首页](README.md) · [媒体文件校验清单](media_manifest.json)

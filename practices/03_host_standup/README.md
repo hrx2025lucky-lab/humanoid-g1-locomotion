@@ -20,10 +20,17 @@ HoST · PD · MuJoCo
 
 ## 视频与动画
 
-| 内容与条件 | 时长 | 文件 |
+### HoST仰躺起身与站立：60秒完整部署回放
+
+[![HoST仰躺起身与站立：60秒完整部署回放，动态预览](media/preview.gif)](media/host_standup_60s.mp4)
+
+预览来自默认仰躺初态的60秒部署录像；使用已有预训练策略。
+
+| 视频 / 动画标题 | 时长 | 内容与条件 |
 |---|---:|---|
-| HoST动作接口对比动画 | 8.00s | [播放 / 下载](media/action_space_ablation.gif) |
-| HoST预训练起身动画 | 5.01s | [播放 / 下载](media/host_standup.gif) |
-| 已有HoST预训练策略；默认仰躺起身，60秒完整部署回放 | 60.00s | [播放 / 下载](media/host_standup_60s.mp4) |
+| [HoST仰躺起身与站立：60秒完整部署回放](media/host_standup_60s.mp4) | 60.00秒 | 已有HoST预训练策略；默认仰躺起身，60秒完整部署回放 |
+| [HoST动作接口对比（动画）](media/action_space_ablation.gif) | 8.00秒 | HoST动作接口对比动画 |
+| [HoST预训练策略起身（动画）](media/host_standup.gif) | 5.01秒 | HoST预训练起身动画 |
+
 
 [返回项目首页](../../README.md) · [全部实践状态](../../PROJECT_STATUS.md)
