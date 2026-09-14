@@ -55,11 +55,11 @@
 | [GMR加速跑重定向：人体与G1运动学对照](practices/07_motion_retargeting/media/run_human_g1.mp4) | 1.41秒 | 加速跑片段：人体和G1运动学对照，不含动态稳定结论 |
 | [GMR右转重定向：G1运动学回放](practices/07_motion_retargeting/media/right_turn_g1.mp4) | 2.34秒 | 右转片段：G1运动学参考回放 |
 
-## 实践08｜AMP拟人运动：所选策略与对照
+## 实践08｜AMP阶段回放与问题对照
 
 | 视频 / 动画标题 | 时长 | 内容与条件 |
 |---|---:|---|
-| [AMP低速前进：0.5m/s指令的连续20秒回放](practices/08_amp_locomotion/media/amp_selected_20s.mp4) | 20.00秒 | 6200模型，标称平地0.5m/s前进指令；20秒连续回放，实际前向均值0.435m/s，航向变化+9.26°。 |
+| [6200阶段回放：步态未通过](practices/08_amp_locomotion/media/amp_selected_20s.mp4) | 20.00秒 | 6200阶段模型，0.5m/s命令的连续20秒回放；左右步态不协调、短促摆动，保留为问题记录。 |
 | [转向奖励调整：慢走并排对照](practices/08_amp_locomotion/media/yaw_reward_comparison_20s.mp4) | 20.00秒 | 原保留5759与首轮6000候选；相同0.3m/s指令；兼顾航向改善与速度降低的结果 |
 
 ## 实践09｜全身舞蹈轨迹跟踪

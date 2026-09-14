@@ -3001,5 +3001,65 @@
     "Natural walking/running transitions and foot contact",
     "AMP versus no-AMP comparison",
     "Broader initialization and disturbance evaluation"
-  ]
+  ],
+  "public_showcase_approved": false,
+  "gait_quality_passed": false,
+  "selected_model_scope": "Historical speed/yaw selection only; superseded by failed gait review.",
+  "gait_review": {
+    "model": "yaw2_6200",
+    "case": "forward",
+    "source": "Saved native Isaac Lab physical states before reset",
+    "warmup_seconds": 2.0,
+    "normal_contact_threshold_N": 5.0,
+    "result": "left_right_coordination_failed",
+    "metrics": {
+      "seconds": 20.0,
+      "root_vx_difference_mean": 0.43355971574783325,
+      "reported_vx_mean": 0.434616357088089,
+      "left": {
+        "contact_fraction_5N": 0.66,
+        "contact_fraction_20N": 0.6533333333333333,
+        "mean_vertical_force_N": 144.93853759765625,
+        "no_contact_runs_80ms": 29,
+        "median_no_contact_duration_s": 0.2,
+        "median_swing_lift_m": 0.038585860282182693,
+        "swings_with_25mm_lift": 29,
+        "longest_contact_s": 0.42,
+        "stance_ankle_speed_from_position_rms": 0.059911616146564484,
+        "ankle_height_p05_p95": [
+          0.03498944528400898,
+          0.08294318057596684
+        ],
+        "joint_ranges_rad": {
+          "hip_pitch": 0.25922513008117676,
+          "hip_roll": 0.2149369716644287,
+          "knee": 0.18339821696281433,
+          "ankle_pitch": 0.20654988288879395
+        }
+      },
+      "right": {
+        "contact_fraction_5N": 0.8022222222222222,
+        "contact_fraction_20N": 0.7911111111111111,
+        "mean_vertical_force_N": 184.98585510253906,
+        "no_contact_runs_80ms": 28,
+        "median_no_contact_duration_s": 0.12,
+        "median_swing_lift_m": 0.018985651433467865,
+        "swings_with_25mm_lift": 0,
+        "longest_contact_s": 0.52,
+        "stance_ankle_speed_from_position_rms": 0.10057462006807327,
+        "ankle_height_p05_p95": [
+          0.03497783653438091,
+          0.06570103764533997
+        ],
+        "joint_ranges_rad": {
+          "hip_pitch": 0.46900415420532227,
+          "hip_roll": 0.1778278797864914,
+          "knee": 0.6418470144271851,
+          "ankle_pitch": 0.2216019183397293
+        }
+      },
+      "double_contact_fraction": 0.4622222222222222,
+      "flight_fraction": 0.0
+    }
+  }
 }

@@ -556,9 +556,9 @@
     {
       "practice": 8,
       "path": "practices/08_amp_locomotion/media/amp_selected_20s.mp4",
-      "title": "AMP低速前进：0.5m/s指令的连续20秒回放",
-      "caption": "6200模型，标称平地0.5m/s前进指令；20秒连续回放，实际前向均值0.435m/s，航向变化+9.26°。",
-      "role": "showcase",
+      "title": "6200阶段回放：左右步态未通过",
+      "caption": "6200阶段模型，0.5m/s命令的连续20秒回放；左右步态不协调、短促摆动，保留为问题记录。",
+      "role": "diagnostic_failed_gait",
       "bytes": 5209237,
       "sha256": "e7b867ca8a7e76bc7abeb2d909310b285b6cad218a57cd4b4051713cfce1a3f4",
       "probe": {
@@ -575,7 +575,8 @@
         "format": {
           "duration": "20.000000"
         }
-      }
+      },
+      "home_preview_enabled": false
     },
     {
       "practice": 8,
@@ -756,9 +757,9 @@
     {
       "practice": 8,
       "path": "practices/08_amp_locomotion/media/preview.gif",
-      "title": "AMP所选策略完整20秒预览",
-      "caption": "6200模型，标称平地0.5m/s前进指令；20秒连续回放，实际前向均值0.435m/s，航向变化+9.26°。",
-      "role": "full_duration_preview",
+      "title": "6200阶段回放：左右步态未通过",
+      "caption": "6200阶段模型，0.5m/s命令的连续20秒回放；左右步态不协调、短促摆动，保留为问题记录。",
+      "role": "diagnostic_failed_gait",
       "bytes": 8474006,
       "sha256": "777ce3662a8e8cacb692c4435e31d0bf2781928b321e84ebc23240de54148904",
       "probe": {
@@ -778,7 +779,8 @@
       },
       "source_video": "practices/08_amp_locomotion/media/amp_selected_20s.mp4",
       "source_sha256": "e7b867ca8a7e76bc7abeb2d909310b285b6cad218a57cd4b4051713cfce1a3f4",
-      "start_seconds": 0
+      "start_seconds": 0,
+      "home_preview_enabled": false
     },
     {
       "practice": 9,
