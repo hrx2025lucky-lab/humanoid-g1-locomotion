@@ -22,7 +22,9 @@ Isaac Lab · PPO · AMP · G1 29DoF
 
 ### 通过0.5m/s数值门槛的候选：正面与侧面完整20秒
 
-[![通过数值门槛的候选，正面完整20秒，动态预览](media/preview_gate_pass.gif)](media/p8_gate_pass_front_20s.mp4)
+[![通过数值门槛的候选，正面，动态预览](media/preview_gate_pass.gif)](media/p8_gate_pass_front_20s.mp4)
+
+预览为前16秒截取，完整20.00秒见下方MP4
 
 两个模型并排，连续20秒未剪辑。可见拖腿已消除、两脚交替抬起，也可见手臂全程前伸不摆，这正是复核未通过的原因。
 

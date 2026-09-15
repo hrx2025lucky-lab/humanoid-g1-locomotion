@@ -24,6 +24,8 @@ Project Instinct · 深度历史 · PPO/风格奖励
 
 [![深度感知策略部署回放（早期model3000），动态预览](media/preview.gif)](media/early_depth_policy_3000.mp4)
 
+预览为前8秒截取，完整19.98秒见下方MP4
+
 录像展示早期model3000的部署；当前保留5000模型，完整跑酷效果仍待完善。
 
 | 视频 / 动画标题 | 时长 | 内容与条件 |

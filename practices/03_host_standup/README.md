@@ -22,7 +22,9 @@ HoST · PD · MuJoCo
 
 ### HoST仰躺起身与站立：60秒完整部署回放
 
-[![HoST仰躺起身与站立：60秒完整部署回放，动态预览](media/preview.gif)](media/host_standup_60s.mp4)
+[![HoST仰躺起身与站立：60秒部署回放，动态预览](media/preview.gif)](media/host_standup_60s.mp4)
+
+预览为前20秒截取，完整60.00秒见下方MP4
 
 预览来自默认仰躺初态的60秒部署录像；使用已有预训练策略。
 

@@ -22,7 +22,9 @@ BeyondMimic方法 · MJLab · PPO
 
 ### 全身舞蹈轨迹跟踪：131.48秒完整回放
 
-[![全身舞蹈轨迹跟踪：131.48秒完整回放，动态预览](media/preview.gif)](media/motion_tracking_30k_full.mp4)
+[![全身舞蹈轨迹跟踪：131.48秒回放，动态预览](media/preview.gif)](media/motion_tracking_30k_full.mp4)
+
+预览为前10秒截取，完整131.48秒见下方MP4
 
 完整录像长131.48秒；失败条件旁路监测，与标称CPU误差统计所用条件分列。
 

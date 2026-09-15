@@ -24,6 +24,8 @@ Isaac Lab · PPO · 高度扫描 · MuJoCo
 
 [![台阶与方块地形行走（15k适配策略），跟随机位完整20秒](media/preview_follow.gif)](media/p2_final_stairs_20s_follow.mp4)
 
+预览为前16秒截取，完整20.00秒见下方MP4
+
 预览展示15k适配策略的台阶轨迹；另附旧策略与适配策略的同场景对比。
 
 | 视频 / 动画标题 | 时长 | 内容与条件 |

@@ -20,6 +20,8 @@
 
 [![实践02：台阶与方块地形行走（15k适配策略），跟随机位完整20秒](practices/02_rough_terrain/media/preview_follow.gif)](practices/02_rough_terrain/media/p2_final_stairs_20s_follow.mp4)
 
+预览为前16秒截取，完整20.00秒见下方MP4
+
 - [台阶与方块地形行走（15k适配策略）· 跟随机位](practices/02_rough_terrain/media/p2_final_stairs_20s_follow.mp4) · 20.00秒
 - [同一段状态的固定机位版本](practices/02_rough_terrain/media/p2_final_stairs_20s.mp4) · 20.00秒
 - [粗糙地形行走：旧策略与适配策略对比](practices/02_rough_terrain/media/p2_old_final_comparison_28s.mp4) · 28.00秒
@@ -30,7 +32,9 @@
 
 预览来自默认仰躺初态的60秒部署录像；使用已有预训练策略。
 
-[![实践03：HoST仰躺起身与站立：60秒完整部署回放，动态预览](practices/03_host_standup/media/preview.gif)](practices/03_host_standup/media/host_standup_60s.mp4)
+[![实践03：HoST仰躺起身与站立：60秒部署回放，动态预览](practices/03_host_standup/media/preview.gif)](practices/03_host_standup/media/host_standup_60s.mp4)
+
+预览为前20秒截取，完整60.00秒见下方MP4
 
 - [HoST仰躺起身与站立：60秒完整部署回放](practices/03_host_standup/media/host_standup_60s.mp4) · 60.00秒
 - [HoST动作接口对比（动画）](practices/03_host_standup/media/action_space_ablation.gif) · 8.00秒
@@ -43,6 +47,8 @@
 预览展示20k主模型的蹲走；另附朝向反馈和三组3k高度控制消融。
 
 [![实践04：速度与骨盆高度联合控制：22秒蹲走，动态预览](practices/04_velocity_height/media/preview.gif)](practices/04_velocity_height/media/velocity_height_20k_22s.mp4)
+
+预览为前8秒截取，完整22.00秒见下方MP4
 
 - [速度与骨盆高度联合控制：22秒蹲走](practices/04_velocity_height/media/velocity_height_20k_22s.mp4) · 22.00秒
 - [蹲走朝向反馈：同一策略加入外部朝向控制](practices/04_velocity_height/media/heading_feedback_20k_22s.mp4) · 22.00秒
@@ -58,6 +64,8 @@
 
 [![实践05：分层导航：固定布局训练模型的目标跟随，动态预览](practices/05_hierarchical_navigation/media/preview.gif)](practices/05_hierarchical_navigation/media/navigation_baseline_play.mp4)
 
+预览为前6秒截取，完整150.00秒见下方MP4
+
 - [分层导航：固定布局训练模型的目标跟随](practices/05_hierarchical_navigation/media/navigation_baseline_play.mp4) · 150.00秒
 - [分层导航：随机布局训练阶段模型回放](practices/05_hierarchical_navigation/media/navigation_random_layout_play.mp4) · 150.00秒
 
@@ -68,6 +76,8 @@
 预览展示两个学生策略的并排回放；每段动作分别复位，另附三段完整对比。
 
 [![实践06：Action与KL蒸馏：三段动作并排对比，动态预览](practices/06_teacher_student/media/preview.gif)](practices/06_teacher_student/media/p6_action_kl_3clips_23s.mp4)
+
+预览为前12秒截取，完整23.00秒见下方MP4
 
 - [Action与KL蒸馏：三段动作并排对比](practices/06_teacher_student/media/p6_action_kl_3clips_23s.mp4) · 23.00秒
 - [Action与KL蒸馏对比：动作13](practices/06_teacher_student/media/p6_clip13_comparison.mp4) · 6.22秒
@@ -92,9 +102,11 @@
 
 已定位并解除AMP判别器的饱和暂停：原设置下判别器全程只发生4次优化步，解除后升至2000，两脚摆腿抬升由2.13cm提高到5.01cm，**拖腿与左右不协调已解决**，0.5m/s前进已有3个模型通过全部数值门槛。但人工复核**判定不批准**：摆臂幅度虽由专家的9%—16%提高到32%—41%，与同侧髋的相位相关系数却是+0.85，即同手同脚；0.3m/s慢走则受限于参考动作库中最长连续慢走只有0.40秒。下面的预览是复核记录，不是通过的成果。
 
-[![实践08：通过0.5m/s数值门槛的候选，正面完整20秒复核录像（判定不批准）](practices/08_amp_locomotion/media/preview_gate_pass.gif)](practices/08_amp_locomotion/media/p8_gate_pass_front_20s.mp4)
+[![实践08：通过0.5m/s数值门槛的候选，正面复核录像（判定不批准）](practices/08_amp_locomotion/media/preview_gate_pass.gif)](practices/08_amp_locomotion/media/p8_gate_pass_front_20s.mp4)
 
-两个模型并排，连续20秒未剪辑。可见拖腿已消除、两脚交替抬起，也可见手臂全程前伸不摆——后者正是复核未通过的原因。
+预览为前16秒截取，完整20.00秒见下方MP4
+
+两个模型并排，MP4为连续20秒未剪辑。可见拖腿已消除、两脚交替抬起，也可见手臂全程前伸不摆——后者正是复核未通过的原因。
 
 - [通过数值门槛的候选 · 正面](practices/08_amp_locomotion/media/p8_gate_pass_front_20s.mp4) · 20.00秒
 - [通过数值门槛的候选 · 侧面](practices/08_amp_locomotion/media/p8_gate_pass_side_20s.mp4) · 20.00秒
@@ -106,7 +118,9 @@
 
 完整录像长131.48秒；失败条件旁路监测，与标称CPU误差统计所用条件分列。
 
-[![实践09：全身舞蹈轨迹跟踪：131.48秒完整回放，动态预览](practices/09_motion_tracking/media/preview.gif)](practices/09_motion_tracking/media/motion_tracking_30k_full.mp4)
+[![实践09：全身舞蹈轨迹跟踪：131.48秒回放，动态预览](practices/09_motion_tracking/media/preview.gif)](practices/09_motion_tracking/media/motion_tracking_30k_full.mp4)
+
+预览为前10秒截取，完整131.48秒见下方MP4
 
 - [全身舞蹈轨迹跟踪：131.48秒完整回放](practices/09_motion_tracking/media/motion_tracking_30k_full.mp4) · 131.48秒
 
@@ -128,6 +142,8 @@
 录像展示早期model3000的部署；当前保留5000模型，完整跑酷效果仍待完善。
 
 [![实践11：深度感知策略部署回放（早期model3000），动态预览](practices/11_depth_locomotion/media/preview.gif)](practices/11_depth_locomotion/media/early_depth_policy_3000.mp4)
+
+预览为前8秒截取，完整19.98秒见下方MP4
 
 - [深度感知策略部署回放（早期model3000）](practices/11_depth_locomotion/media/early_depth_policy_3000.mp4) · 19.98秒
 
