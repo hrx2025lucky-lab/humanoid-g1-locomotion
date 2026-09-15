@@ -12,13 +12,17 @@
 
 ### 实践01｜仿真环境与行走策略部署
 
+**技术栈**：Isaac Lab · PPO · MuJoCo
+
 当前未收录独立展示视频。已有策略导出等价性与60秒MuJoCo闭环记录，见[实践01说明](practices/01_simulation_baseline/README.md)。
 
 ### 实践02｜感知驱动的粗糙地形行走
 
-预览是15k适配策略走完整20秒台阶与方块地形，相机跟随机器人；另附旧策略与适配策略的同场景对比。
+**技术栈**：Isaac Lab · PPO · 高度扫描 · MuJoCo
 
-[![实践02：台阶与方块地形行走（15k适配策略），跟随机位完整20秒](practices/02_rough_terrain/media/preview_follow.gif)](practices/02_rough_terrain/media/p2_final_stairs_20s_follow.mp4)
+预览是15k适配策略走台阶与方块地形，相机跟随机器人；完整20秒与旧策略对比见下方链接。
+
+[![实践02：台阶与方块地形行走（15k适配策略），跟随机位](practices/02_rough_terrain/media/preview_follow.gif)](practices/02_rough_terrain/media/p2_final_stairs_20s_follow.mp4)
 
 预览为前16秒截取，完整20.00秒见下方MP4
 
@@ -29,6 +33,8 @@
 [本实践的结果与条件](practices/02_rough_terrain/README.md)
 
 ### 实践03｜HoST仰躺起身（预训练策略部署）
+
+**技术栈**：HoST · PD · MuJoCo
 
 预览来自默认仰躺初态的60秒部署录像；使用已有预训练策略。
 
@@ -43,6 +49,8 @@
 [本实践的结果与条件](practices/03_host_standup/README.md)
 
 ### 实践04｜速度与骨盆高度联合控制
+
+**技术栈**：MJLab · PPO · 双指令控制
 
 预览展示20k主模型的蹲走；另附朝向反馈和三组3k高度控制消融。
 
@@ -60,6 +68,8 @@
 
 ### 实践05｜分层强化学习导航
 
+**技术栈**：Isaac Lab · 高层PPO · 冻结低层策略
+
 预览为固定布局模型的目标跟随；下方两段150秒录像与配对统计测试分别说明。
 
 [![实践05：分层导航：固定布局训练模型的目标跟随，动态预览](practices/05_hierarchical_navigation/media/preview.gif)](practices/05_hierarchical_navigation/media/navigation_baseline_play.mp4)
@@ -72,6 +82,8 @@
 [本实践的结果与条件](practices/05_hierarchical_navigation/README.md)
 
 ### 实践06｜教师学生蒸馏：Action与KL动作对比
+
+**技术栈**：MJLab · PPO · Action Matching · KL Matching
 
 预览展示两个学生策略的并排回放；每段动作分别复位，另附三段完整对比。
 
@@ -88,6 +100,8 @@
 
 ### 实践07｜人体到G1的运动重定向（运动学回放）
 
+**技术栈**：GMR · SMPL-X · 逆运动学
+
 预览为约1.9秒行走片段；下方另附加速跑和右转。这些是姿态映射回放，尚不代表动力学平衡。
 
 [![实践07：GMR行走重定向：人体与G1运动学对照，动态预览](practices/07_motion_retargeting/media/preview.gif)](practices/07_motion_retargeting/media/walk_human_g1.mp4)
@@ -99,6 +113,8 @@
 [本实践的结果与条件](practices/07_motion_retargeting/README.md)
 
 ### 实践08｜AMP速度跟踪与步态评估
+
+**技术栈**：Isaac Lab · PPO · AMP · G1 29DoF
 
 已定位并解除AMP判别器的饱和暂停：原设置下判别器全程只发生4次优化步，解除后升至2000，两脚摆腿抬升由2.13cm提高到5.01cm，**拖腿与左右不协调已解决**，0.5m/s前进已有3个模型通过全部数值门槛。但人工复核**判定不批准**：摆臂幅度虽由专家的9%—16%提高到32%—41%，与同侧髋的相位相关系数却是+0.85，即同手同脚；0.3m/s慢走则受限于参考动作库中最长连续慢走只有0.40秒。下面的预览是复核记录，不是通过的成果。
 
@@ -116,6 +132,8 @@
 
 ### 实践09｜全身舞蹈轨迹跟踪
 
+**技术栈**：BeyondMimic方法 · MJLab · PPO
+
 完整录像长131.48秒；失败条件旁路监测，与标称CPU误差统计所用条件分列。
 
 [![实践09：全身舞蹈轨迹跟踪：131.48秒回放，动态预览](practices/09_motion_tracking/media/preview.gif)](practices/09_motion_tracking/media/motion_tracking_30k_full.mp4)
@@ -128,6 +146,8 @@
 
 ### 实践10｜平台地形动作跟踪（HOI）
 
+**技术栈**：Isaac Lab · PPO · 高度扫描
+
 预览来自所选model399的6.18秒平台路径；另附model299对照录像。
 
 [![实践10：平台路径完整回放（所选model399），动态预览](practices/10_object_interaction/media/preview.gif)](practices/10_object_interaction/media/p10_std03_model399_full.mp4)
@@ -138,6 +158,8 @@
 [本实践的结果与条件](practices/10_object_interaction/README.md)
 
 ### 实践11｜深度感知策略部署（早期3000模型录像）
+
+**技术栈**：Project Instinct · 深度历史 · PPO/风格奖励
 
 录像展示早期model3000的部署；当前保留5000模型，完整跑酷效果仍待完善。
 
