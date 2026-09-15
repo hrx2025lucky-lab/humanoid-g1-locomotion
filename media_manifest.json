@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-15T13:34:42.697760+08:00",
+  "updated_at": "2026-09-15T15:16:48.016961+08:00",
   "items": [
     {
       "practice": 2,
@@ -579,6 +579,54 @@
     },
     {
       "practice": 8,
+      "path": "practices/08_amp_locomotion/media/p8_gate_pass_side_20s.mp4",
+      "caption": "同两个模型的侧面机位；同一段评估轨迹，仅相机不同",
+      "role": "comparison",
+      "bytes": 8019926,
+      "sha256": "2a8ccd585b1e3ea23bd951feb287c999638c19e180f2739f60c81a6f7d9c0e69",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 640,
+            "r_frame_rate": "25/1",
+            "nb_frames": "500"
+          }
+        ],
+        "format": {
+          "duration": "20.000000"
+        }
+      },
+      "title": "通过数值门槛的候选 · 侧面"
+    },
+    {
+      "practice": 8,
+      "path": "practices/08_amp_locomotion/media/p8_gate_pass_front_20s.mp4",
+      "caption": "两个通过0.5m/s全部数值门槛的模型；正面机位，连续20秒未剪辑，可观察摆臂与左右协调",
+      "role": "comparison",
+      "bytes": 9032824,
+      "sha256": "8fce316ce2f70572eb4b3874280e9298da96343944bd06fefd19633b12b28f39",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 640,
+            "r_frame_rate": "25/1",
+            "nb_frames": "500"
+          }
+        ],
+        "format": {
+          "duration": "20.000000"
+        }
+      },
+      "title": "通过数值门槛的候选 · 正面"
+    },
+    {
+      "practice": 8,
       "path": "practices/08_amp_locomotion/media/amp_selected_20s.mp4",
       "title": "6200阶段回放：左右步态未通过",
       "caption": "6200阶段模型，0.5m/s命令的连续20秒回放；左右步态不协调、短促摆动，保留为问题记录。",
@@ -804,6 +852,34 @@
       "source_video": "practices/07_motion_retargeting/media/walk_human_g1.mp4",
       "source_sha256": "90b4b42d2fe262573fddc6c6123b8da80f33c51a31335baf05c2312a1ca359a4",
       "start_seconds": 0
+    },
+    {
+      "practice": 8,
+      "path": "practices/08_amp_locomotion/media/preview_gate_pass.gif",
+      "title": "6200阶段回放：左右步态未通过",
+      "caption": "6200阶段模型，0.5m/s命令的连续20秒回放；左右步态不协调、短促摆动，保留为问题记录。",
+      "role": "diagnostic_failed_gait",
+      "bytes": 2583683,
+      "sha256": "1ff82c3a614bb6b8c4d06272ab175e9ba3710ce06ee80742ff2023b1a71da90b",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "gif",
+            "width": 400,
+            "height": 200,
+            "r_frame_rate": "8/1",
+            "nb_frames": "160"
+          }
+        ],
+        "format": {
+          "duration": "20.010000"
+        }
+      },
+      "source_video": "practices/08_amp_locomotion/media/p8_gate_pass_front_20s.mp4",
+      "source_sha256": "e7b867ca8a7e76bc7abeb2d909310b285b6cad218a57cd4b4051713cfce1a3f4",
+      "start_seconds": 0,
+      "home_preview_enabled": false
     },
     {
       "practice": 8,

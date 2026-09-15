@@ -60,6 +60,8 @@
 
 | 视频 / 动画标题 | 时长 | 内容与条件 |
 |---|---:|---|
+| [AMP候选 · 正面完整20秒](practices/08_amp_locomotion/media/p8_gate_pass_front_20s.mp4) | 20.00秒 | 通过0.5m/s全部数值门槛的两个模型，正面机位 |
+| [AMP候选 · 侧面完整20秒](practices/08_amp_locomotion/media/p8_gate_pass_side_20s.mp4) | 20.00秒 | 同两个模型的侧面机位 |
 | [6200阶段回放：步态未通过](practices/08_amp_locomotion/media/amp_selected_20s.mp4) | 20.00秒 | 6200阶段模型，0.5m/s命令的连续20秒回放；左右步态不协调、短促摆动，保留为问题记录。 |
 | [转向奖励调整：慢走并排对照](practices/08_amp_locomotion/media/yaw_reward_comparison_20s.mp4) | 20.00秒 | 原保留5759与首轮6000候选；相同0.3m/s指令；兼顾航向改善与速度降低的结果 |
 
