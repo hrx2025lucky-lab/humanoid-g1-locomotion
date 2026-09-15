@@ -16,11 +16,12 @@
 
 ### 实践02｜感知驱动的粗糙地形行走
 
-预览展示15k适配策略的台阶轨迹；另附旧策略与适配策略的同场景对比。
+预览是15k适配策略走完整20秒台阶与方块地形，相机跟随机器人；另附旧策略与适配策略的同场景对比。
 
-[![实践02：台阶与方块地形行走（15k适配策略），动态预览](practices/02_rough_terrain/media/preview.gif)](practices/02_rough_terrain/media/p2_final_stairs_20s.mp4)
+[![实践02：台阶与方块地形行走（15k适配策略），跟随机位完整20秒](practices/02_rough_terrain/media/preview_follow.gif)](practices/02_rough_terrain/media/p2_final_stairs_20s_follow.mp4)
 
-- [台阶与方块地形行走（15k适配策略）](practices/02_rough_terrain/media/p2_final_stairs_20s.mp4) · 20.00秒
+- [台阶与方块地形行走（15k适配策略）· 跟随机位](practices/02_rough_terrain/media/p2_final_stairs_20s_follow.mp4) · 20.00秒
+- [同一段状态的固定机位版本](practices/02_rough_terrain/media/p2_final_stairs_20s.mp4) · 20.00秒
 - [粗糙地形行走：旧策略与适配策略对比](practices/02_rough_terrain/media/p2_old_final_comparison_28s.mp4) · 28.00秒
 
 [本实践的结果与条件](practices/02_rough_terrain/README.md)

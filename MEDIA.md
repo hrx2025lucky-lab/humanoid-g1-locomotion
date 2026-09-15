@@ -10,7 +10,8 @@
 
 | 视频 / 动画标题 | 时长 | 内容与条件 |
 |---|---:|---|
-| [台阶与方块地形行走（15k适配策略）](practices/02_rough_terrain/media/p2_final_stairs_20s.mp4) | 20.00秒 | 15k适配策略的20秒台阶轨迹，后段包含方块区域 |
+| [台阶与方块地形行走 · 跟随机位](practices/02_rough_terrain/media/p2_final_stairs_20s_follow.mp4) | 20.00秒 | 相机跟随机器人躯干，便于看清落脚与姿态 |
+| [同一段状态 · 固定机位](practices/02_rough_terrain/media/p2_final_stairs_20s.mp4) | 20.00秒 | 固定世界相机，便于看清走过的距离与路径 |
 | [粗糙地形行走：旧策略与适配策略对比](practices/02_rough_terrain/media/p2_old_final_comparison_28s.mp4) | 28.00秒 | 旧策略与15k适配策略：平地和台阶配对，28秒剪辑 |
 
 ## 实践03｜HoST仰躺起身（预训练策略部署）

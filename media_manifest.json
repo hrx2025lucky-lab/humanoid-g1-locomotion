@@ -1,10 +1,34 @@
 {
-  "updated_at": "2026-09-14",
+  "updated_at": "2026-09-15T13:34:42.697760+08:00",
   "items": [
     {
       "practice": 2,
+      "path": "practices/02_rough_terrain/media/p2_final_stairs_20s_follow.mp4",
+      "caption": "相机跟随机器人躯干的同段回放，便于看清落脚与姿态；与固定机位版本为同一段保存状态",
+      "role": "comparison",
+      "bytes": 8513931,
+      "sha256": "9c8df0a66805a89d07f7b2ac212374a556dafe8121c28aba0e8aa3a3065a67b8",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 1280,
+            "height": 640,
+            "r_frame_rate": "25/1",
+            "nb_frames": "500"
+          }
+        ],
+        "format": {
+          "duration": "20.000000"
+        }
+      },
+      "title": "台阶与方块地形行走（15k适配策略）· 跟随机位"
+    },
+    {
+      "practice": 2,
       "path": "practices/02_rough_terrain/media/p2_final_stairs_20s.mp4",
-      "caption": "15k适配策略的20秒台阶轨迹，后段包含方块区域",
+      "caption": "同一段保存状态的固定世界相机版本，便于看清走过的距离与路径",
       "role": "comparison",
       "bytes": 1308208,
       "sha256": "175ba97f04efd18c03251338e95ebbde635bfbfbdca7bb2d23a46d7f31a51339",
@@ -23,7 +47,7 @@
           "duration": "20.000000"
         }
       },
-      "title": "台阶与方块地形行走（15k适配策略）"
+      "title": "台阶与方块地形行走（15k适配策略）· 固定机位"
     },
     {
       "practice": 2,
@@ -604,6 +628,33 @@
     }
   ],
   "previews": [
+    {
+      "practice": 2,
+      "path": "practices/02_rough_terrain/media/preview_follow.gif",
+      "caption": "15k适配策略的20秒台阶轨迹，后段包含方块区域；前6秒动画节选",
+      "role": "preview_excerpt",
+      "bytes": 2292705,
+      "sha256": "f83e58a616e16a184d70c832bf1e27d9a23723c98c7d2a64f7dff92bdb45001b",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "gif",
+            "width": 400,
+            "height": 200,
+            "r_frame_rate": "8/1",
+            "nb_frames": "160"
+          }
+        ],
+        "format": {
+          "duration": "20.010000"
+        }
+      },
+      "title": "台阶与方块地形行走（15k适配策略）（动态预览）",
+      "source_video": "practices/02_rough_terrain/media/p2_final_stairs_20s_follow.mp4",
+      "source_sha256": "175ba97f04efd18c03251338e95ebbde635bfbfbdca7bb2d23a46d7f31a51339",
+      "start_seconds": 0
+    },
     {
       "practice": 2,
       "path": "practices/02_rough_terrain/media/preview.gif",
