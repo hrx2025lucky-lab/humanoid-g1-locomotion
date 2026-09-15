@@ -8,7 +8,7 @@
 
 ## 动态预览与完整视频
 
-已收录实践2—11的25段完整MP4，以及实践3的2段补充动画。实践08的录像是复核记录而非通过成果，标注随附；其余实践可从动画预览或带标题的链接打开完整文件。
+已收录实践2—11的29段完整MP4，以及实践3的2段补充动画。实践08的录像是复核记录而非通过成果，标注随附；其余实践可从动画预览或带标题的链接打开完整文件。
 
 ### 实践01｜仿真环境与行走策略部署
 
@@ -177,21 +177,26 @@
 
 [本实践的结果与条件](practices/10_object_interaction/README.md)
 
-### 实践11｜深度感知策略部署（早期3000模型录像）
+### 实践11｜深度感知与MuJoCo跨仿真验证
 
 **技术栈**：Project Instinct + MuJoCo（Sim2Sim）· PPO + 运动风格奖励
 
 让机器人靠一个深度相机看路并通过障碍。深度图不是直接用最新一帧，而是维护一个历史队列并从中抽帧，还要模拟真实传感器的延迟；图像本身要经过缩放、裁剪、空洞修补、模糊和归一化才能进网络。训练完的策略导出为 ONNX，再放到 MuJoCo 里跨仿真运行。
 
-录像展示早期model3000的部署；当前保留5000模型，完整跑酷效果仍待完善。
+补全深度处理链路后，课程示例策略在 MuJoCo 平地连续走完 20 秒、13.87 米，骨盆稳定在 0.71 米以上，说明整条链路正确。但我们自己训练的 5000 模型迁移后几乎不前进：平地 1.43 米、粗糙地形 1.24 米，两者差异很小，说明瓶颈在迁移本身而不是地形。它在 Isaac 原生评估里是 0.2572 m/s，到 MuJoCo 只剩 0.072，约 28%，落差原因还没定位。
 
-[![实践11：深度感知策略部署回放（早期model3000），动态预览](practices/11_depth_locomotion/media/preview.gif)](practices/11_depth_locomotion/media/early_depth_policy_3000.mp4)
+[![实践11：深度感知策略MuJoCo跨仿真运行](practices/11_depth_locomotion/media/preview.gif)](practices/11_depth_locomotion/media/p11_sim2sim_course_flat_20s.mp4)
 
 预览为前8秒截取，完整19.98秒见下方MP4
 
+- [Sim2Sim · 课程示例策略 · 平地](practices/11_depth_locomotion/media/p11_sim2sim_course_flat_20s.mp4) · 20.00秒
+- [Sim2Sim · 课程示例策略 · 粗糙地形](practices/11_depth_locomotion/media/p11_sim2sim_course_rough_20s.mp4) · 20.00秒
+- [Sim2Sim · 自训练5000模型 · 平地](practices/11_depth_locomotion/media/p11_sim2sim_ours5000_flat_20s.mp4) · 20.00秒
+- [Sim2Sim · 自训练5000模型 · 粗糙地形](practices/11_depth_locomotion/media/p11_sim2sim_ours5000_rough_20s.mp4) · 20.00秒
 - [深度感知策略部署回放（早期model3000）](practices/11_depth_locomotion/media/early_depth_policy_3000.mp4) · 19.98秒
 
 [本实践的结果与条件](practices/11_depth_locomotion/README.md)
+
 
 ## 代表性结果
 
@@ -223,6 +228,6 @@
 
 ## 当前进展
 
-已完成双指令控制、两类蒸馏、长动作跟踪、地形配对和平台路径的分项验证。分层导航已有1,536局配对结果，尚未得到随机布局训练的总体优势；AMP已解决拖腿与左右不协调，但自然摆臂与低速慢走仍未通过，拟人走跑整体未通过验证；深度策略尚未达到完整跑酷表现，跨仿真运行尚未开始。
+已完成双指令控制、两类蒸馏、长动作跟踪、地形配对和平台路径的分项验证。分层导航已有1,536局配对结果，尚未得到随机布局训练的总体优势；AMP已解决拖腿与左右不协调，但自然摆臂与低速慢走仍未通过，拟人走跑整体未通过验证；深度策略尚未达到完整跑酷表现；MuJoCo跨仿真已跑通并录制四组对照，但自训练模型迁移后几乎不前进，跨仿真部署不算成功。
 
 各项结果保留模型、统计窗口、坐标和初态限制。预训练部署、运动学回放与自主训练分别说明，具体数值和未覆盖场景见对应实践页。

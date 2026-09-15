@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-15T16:31:29.476050+08:00",
+  "updated_at": "2026-09-15T18:38:45.544194+08:00",
   "items": [
     {
       "practice": 2,
@@ -552,6 +552,102 @@
         }
       },
       "title": "全身舞蹈轨迹跟踪：131.48秒完整回放"
+    },
+    {
+      "practice": 11,
+      "path": "practices/11_depth_locomotion/media/p11_sim2sim_ours5000_rough_20s.mp4",
+      "caption": "自训练5000模型在粗糙地形仅前进1.24米；与平地差异很小，瓶颈在迁移而非地形",
+      "role": "comparison",
+      "bytes": 7493721,
+      "sha256": "df2a7e73de7e4aed27b04e1b33bd38b280ca3535f37b5407074cde4bdc1965db",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 960,
+            "height": 544,
+            "r_frame_rate": "50/1",
+            "nb_frames": "1000"
+          }
+        ],
+        "format": {
+          "duration": "20.000000"
+        }
+      },
+      "title": "Sim2Sim · 自训练5000模型 · 粗糙地形"
+    },
+    {
+      "practice": 11,
+      "path": "practices/11_depth_locomotion/media/p11_sim2sim_ours5000_flat_20s.mp4",
+      "caption": "自训练5000模型在平地仅前进1.43米，站立稳定但几乎不移动",
+      "role": "comparison",
+      "bytes": 7814537,
+      "sha256": "5a4344ed4bcce90551531b7d14baa7baab5cd249dbc7da1a318826aabc5f76ee",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 960,
+            "height": 544,
+            "r_frame_rate": "50/1",
+            "nb_frames": "1000"
+          }
+        ],
+        "format": {
+          "duration": "20.000000"
+        }
+      },
+      "title": "Sim2Sim · 自训练5000模型 · 平地"
+    },
+    {
+      "practice": 11,
+      "path": "practices/11_depth_locomotion/media/p11_sim2sim_course_rough_20s.mp4",
+      "caption": "课程示例策略在粗糙地形前进4.98米，爬上台阶后蹲住，未摔倒但未完成跑酷",
+      "role": "comparison",
+      "bytes": 5292414,
+      "sha256": "ac5f9e5df91c5701c0d523687420eef4ebbf1d532ba0b310ee3cf1aedb36997c",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 960,
+            "height": 544,
+            "r_frame_rate": "50/1",
+            "nb_frames": "1000"
+          }
+        ],
+        "format": {
+          "duration": "20.000000"
+        }
+      },
+      "title": "Sim2Sim · 课程示例策略 · 粗糙地形"
+    },
+    {
+      "practice": 11,
+      "path": "practices/11_depth_locomotion/media/p11_sim2sim_course_flat_20s.mp4",
+      "caption": "课程示例策略在MuJoCo平地连续行走13.87米，骨盆稳定；验证深度处理与执行链路正确",
+      "role": "comparison",
+      "bytes": 10916960,
+      "sha256": "d7b82a8fcf0924f00caea1659dfb0e6e6944bf6b2a72e4c293d772250c84e1e1",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 960,
+            "height": 544,
+            "r_frame_rate": "50/1",
+            "nb_frames": "1000"
+          }
+        ],
+        "format": {
+          "duration": "20.000000"
+        }
+      },
+      "title": "Sim2Sim · 课程示例策略 · 平地"
     },
     {
       "practice": 11,

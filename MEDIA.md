@@ -1,6 +1,6 @@
 # G1运动控制：视频与动画合集
 
-已收录23段完整MP4和2段补充动画，按实践编号排列。每个文件都有独立标题，模型阶段、回放条件和时长在表中说明。首页提供实践2—11各一段动态预览。
+已收录29段完整MP4和2段补充动画，按实践编号排列。每个文件都有独立标题，模型阶段、回放条件和时长在表中说明。首页提供实践2—11各一段动态预览。
 
 ## 实践01｜仿真环境与行走策略部署
 
@@ -82,6 +82,10 @@
 
 | 视频 / 动画标题 | 时长 | 内容与条件 |
 |---|---:|---|
+| [Sim2Sim · 课程示例 · 平地](practices/11_depth_locomotion/media/p11_sim2sim_course_flat_20s.mp4) | 20.00秒 | MuJoCo跨仿真，连续走13.87米 |
+| [Sim2Sim · 课程示例 · 粗糙](practices/11_depth_locomotion/media/p11_sim2sim_course_rough_20s.mp4) | 20.00秒 | 前进4.98米，台阶后蹲住 |
+| [Sim2Sim · 自训练5000 · 平地](practices/11_depth_locomotion/media/p11_sim2sim_ours5000_flat_20s.mp4) | 20.00秒 | 仅前进1.43米 |
+| [Sim2Sim · 自训练5000 · 粗糙](practices/11_depth_locomotion/media/p11_sim2sim_ours5000_rough_20s.mp4) | 20.00秒 | 仅前进1.24米 |
 | [深度感知策略部署回放（早期model3000）](practices/11_depth_locomotion/media/early_depth_policy_3000.mp4) | 19.98秒 | 早期model3000深度策略部署录像；不是当前保留的5000模型 |
 
 [项目首页](README.md) · [媒体文件校验清单](media_manifest.json)
