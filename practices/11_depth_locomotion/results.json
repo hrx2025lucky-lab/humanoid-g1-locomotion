@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-09-14",
+  "as_of": "2026-09-16",
   "practice": 11,
   "simulation_only": true,
   "metrics": {
@@ -7,7 +7,7 @@
     "forward_mean_m_s": 0.2572182342003269,
     "xy_rmse_m_s": 0.26044055071926725,
     "full_parkour_passed": false,
-    "sim2sim_mujoco_completed": false
+    "sim2sim_mujoco_completed": true
   },
   "training_budget": {
     "num_envs": 4096,
@@ -18,5 +18,37 @@
     "rejection_reason": "7500模型速度波动变大、XY误差约增加40.3%，据实拒绝并保留5000",
     "course_material_specifies_iteration_count": false
   },
-  "scope": "已核对ONNX导出与观测编码一致性；MuJoCo跨仿真运行尚未开始，不声称完成跨仿真部署。"
+  "scope": "深度处理链路已补全并通过单元测试，MuJoCo跨仿真已运行并录制四组对照。自训练模型在原生评估中XY RMSE与均速几乎相等，本就缺乏速度跟踪能力，低速不应归因于跨仿真损失；不声称完成跨仿真部署。",
+  "sim2sim": {
+    "depth_pipeline_todos_filled": 5,
+    "unit_tests_passed": 5,
+    "recorded_runs": 4,
+    "seconds_each": 20.0,
+    "course_example": {
+      "flat_m": 13.87,
+      "rough_m": 4.98
+    },
+    "ours_5000": {
+      "flat_m": 1.43,
+      "rough_m": 1.24
+    },
+    "command_sweep_flat_12s": {
+      "course_tracking_ratio": {
+        "0.6": 1.136,
+        "1.0": 0.962,
+        "1.5": 0.849
+      },
+      "ours_tracking_ratio": {
+        "0.6": 0.13,
+        "1.0": 0.098,
+        "1.5": 0.207
+      },
+      "training_command_clamp": [
+        0.0,
+        1.0
+      ],
+      "note": "command is a P-controller output on distance to target, not a setpoint"
+    },
+    "deployment_claimed": false
+  }
 }
