@@ -1,6 +1,6 @@
 # G1运动控制：视频与动画合集
 
-已收录29段完整MP4和2段补充动画，按实践编号排列。每个文件都有独立标题，模型阶段、回放条件和时长在表中说明。首页提供实践2—11各一段动态预览。
+已收录31段完整MP4和2段补充动画，按实践编号排列。每个文件都有独立标题，模型阶段、回放条件和时长在表中说明。首页提供实践2—11各一段动态预览。
 
 ## 实践01｜仿真环境与行走策略部署
 
@@ -60,6 +60,8 @@
 
 | 视频 / 动画标题 | 时长 | 内容与条件 |
 |---|---:|---|
+| [AMP · 摆臂方向已修正 · 侧面](practices/08_amp_locomotion/media/p8_armswing_fixed_side_20s.mp4) | 20.00秒 | 相位−0.70/−0.84反相摆臂，通过前进全部数值门槛 |
+| [AMP · 摆臂方向已修正 · 正面](practices/08_amp_locomotion/media/p8_armswing_fixed_front_20s.mp4) | 20.00秒 | 同段轨迹正面机位 |
 | [AMP候选 · 正面完整20秒](practices/08_amp_locomotion/media/p8_gate_pass_front_20s.mp4) | 20.00秒 | 通过0.5m/s全部数值门槛的两个模型，正面机位 |
 | [AMP候选 · 侧面完整20秒](practices/08_amp_locomotion/media/p8_gate_pass_side_20s.mp4) | 20.00秒 | 同两个模型的侧面机位 |
 | [6200阶段回放：步态未通过](practices/08_amp_locomotion/media/amp_selected_20s.mp4) | 20.00秒 | 6200阶段模型，0.5m/s命令的连续20秒回放；左右步态不协调、短促摆动，保留为问题记录。 |

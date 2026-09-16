@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-15T18:38:45.544194+08:00",
+  "updated_at": "2026-09-16T10:44:16.438844+08:00",
   "items": [
     {
       "practice": 2,
@@ -699,6 +699,54 @@
     },
     {
       "practice": 8,
+      "path": "practices/08_amp_locomotion/media/p8_armswing_fixed_front_20s.mp4",
+      "caption": "同一段评估轨迹的正面机位，用于观察左右协调",
+      "role": "comparison",
+      "bytes": 4594241,
+      "sha256": "597c00e8f4edfe43fe643a67f58240217cfa36aa3533c153c77e4c6cb57e8741",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 640,
+            "height": 640,
+            "r_frame_rate": "25/1",
+            "nb_frames": "500"
+          }
+        ],
+        "format": {
+          "duration": "20.000000"
+        }
+      },
+      "title": "摆臂方向已修正 · 正面"
+    },
+    {
+      "practice": 8,
+      "path": "practices/08_amp_locomotion/media/p8_armswing_fixed_side_20s.mp4",
+      "caption": "gp100_6600，梯度惩罚100；肩与同侧髋相位-0.699/-0.839为反相，通过前进场景全部数值门槛",
+      "role": "comparison",
+      "bytes": 4144257,
+      "sha256": "7b44a78bc68cd97c0b436685b77ea76b64aef6f98e586369323d46b10778dbe6",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 640,
+            "height": 640,
+            "r_frame_rate": "25/1",
+            "nb_frames": "500"
+          }
+        ],
+        "format": {
+          "duration": "20.000000"
+        }
+      },
+      "title": "摆臂方向已修正 · 侧面"
+    },
+    {
+      "practice": 8,
       "path": "practices/08_amp_locomotion/media/p8_gate_pass_front_20s.mp4",
       "caption": "两个通过0.5m/s全部数值门槛的模型；正面机位，连续20秒未剪辑，可观察摆臂与左右协调",
       "role": "comparison",
@@ -981,6 +1029,37 @@
       "covered_seconds": 1.867,
       "source_seconds": 1.867,
       "truncated": false
+    },
+    {
+      "practice": 8,
+      "path": "practices/08_amp_locomotion/media/preview_armswing_fixed.gif",
+      "title": "6200阶段回放：左右步态未通过",
+      "caption": "6200阶段模型，0.5m/s命令的连续20秒回放；左右步态不协调、短促摆动，保留为问题记录。",
+      "role": "diagnostic_failed_gait",
+      "bytes": 3703254,
+      "sha256": "8e4743c1972a23be27e525d32f454dee31e556687dc02d1dc617d84824e49386",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "gif",
+            "width": 640,
+            "height": 640,
+            "r_frame_rate": "10/1",
+            "nb_frames": "80"
+          }
+        ],
+        "format": {
+          "duration": "8.000000"
+        }
+      },
+      "source_video": "practices/08_amp_locomotion/media/p8_armswing_fixed_side_20s.mp4",
+      "source_sha256": "e7b867ca8a7e76bc7abeb2d909310b285b6cad218a57cd4b4051713cfce1a3f4",
+      "start_seconds": 0,
+      "home_preview_enabled": false,
+      "covered_seconds": 8.0,
+      "source_seconds": 20.0,
+      "truncated": true
     },
     {
       "practice": 8,
