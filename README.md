@@ -167,16 +167,21 @@
 
 **技术栈**：Isaac Lab · PPO
 
-在有平台的场景里跟踪全身参考动作，机器人要和平台发生实际接触而不只是复现姿态，因此用高度扫描感知地形，并比较了世界锚点奖励的不同尺度。已核对完整路径与指定初态偏移下的复现情况。
+在有平台的场景里跟踪全身参考动作，机器人要和平台发生实际接触而不只是复现姿态，因此用高度扫描感知地形，并比较了世界锚点奖励的不同尺度。
 
-预览来自所选model399的6.18秒平台路径；另附model299对照录像。
+这一项此前最大的短板是训练量：所选模型只有参考配置的 0.025%。补做扩容训练后（1536 环境 × 2000 次更新，约 7373 万条转换，是原来的 60 倍），世界锚点 RMSE 由 **0.1297 m 降到 0.0501 m**，降幅 61%，朝向与关节误差同步下降。**这确认了预算就是此前的约束。**
 
-[![实践10：平台路径完整回放（所选model399），动态预览](practices/10_object_interaction/media/preview.gif)](practices/10_object_interaction/media/p10_std03_model399_full.mp4)
+仍需说明的是：4096 环境在本机显存上跑不起来，所以这轮是 1536，训练量为参考配置的 1.5%；模型也仍然没有独立留出验证。
+
+[![实践10：平台路径完整回放](practices/10_object_interaction/media/preview.gif)](practices/10_object_interaction/media/p10_std03_model399_full.mp4)
+
+预览来自此前所选model399的6.18秒平台路径；扩容后的模型尚未录制新视频。
 
 - [平台路径完整回放（所选model399）](practices/10_object_interaction/media/p10_std03_model399_full.mp4) · 6.18秒
 - [平台边缘路径回放（对照model299）](practices/10_object_interaction/media/p10_model299_edge_path.mp4) · 6.18秒
 
 [本实践的结果与条件](practices/10_object_interaction/README.md)
+
 
 ### 实践11｜深度感知与MuJoCo跨仿真验证
 

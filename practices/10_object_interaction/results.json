@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-09-14",
+  "as_of": "2026-09-16",
   "practice": 10,
   "simulation_only": true,
   "metrics": {
@@ -104,5 +104,27 @@
       "counted_as_current_training": false,
       "reason": "修正控制频率前的时间基准，只作历史来源"
     }
+  },
+  "scale_up": {
+    "num_envs": 1536,
+    "updates": 2000,
+    "transitions": 73728000,
+    "multiple_of_previous": 60,
+    "fraction_of_reference": 0.015,
+    "reference_num_envs": 4096,
+    "reference_iterations": 50000,
+    "reference_not_reachable_reason": "CUDA OOM on a 23.54 GiB card at 4096 environments",
+    "world_anchor_rmse_m": {
+      "baseline_model399": 0.1296993892776683,
+      "model_400": 0.1328,
+      "model_900": 0.1167,
+      "model_1400": 0.0616,
+      "model_1900": 0.0649,
+      "model_2399": 0.0501
+    },
+    "pre_registered_boundary_m": 0.1,
+    "verdict": "improved",
+    "checkpoint_selection": "five evenly spaced points registered before evaluation",
+    "held_out_validation": false
   }
 }
