@@ -1,0 +1,16 @@
+# 实践 9 P2 —— 轨迹跟踪训练用的动作源
+#
+# 指向 dance1_subject2.npz（实践 9 作业包自带，6574 帧 @ 50 fps）。
+# 它是 BeyondMimic 的完整格式：joint_pos/joint_vel 与 30 个刚体的
+# 位姿速度都已算好，不需要框架再做正运动学。
+#
+# ⚠️ 该 npz 不带刚体名，必须靠同目录的 meta.json 提供。
+# 名字顺序是**广度优先**（IsaacLab articulation 的排列方式），
+# 不是 MuJoCo 模型的刚体顺序 —— 两者不同，用错会静默产生错误的跟踪目标。
+# 顺序已用物理量验证：脚（ankle_roll）是最低刚体 z≈0.10，
+# 肩是最高 z≈1.03，躯干 0.79 在骨盆 0.75 之上，全部合理。
+# 若换成 MuJoCo 顺序，则脚会算到 0.79、躯干 0.12，明显不合理。
+root_path: ../../../../assets/motions
+subfolders:
+  - name: g1_hw9_dance
+    weight: 1.0

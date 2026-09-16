@@ -1,0 +1,8 @@
+# root_path: ../../../../assets/motions
+# subfolders:
+#   - name: g1_omomo_amass_clean
+#     weight: 1.0
+root_path: ../../../../assets/motions
+subfolders:
+  - name: g1_accad_walk
+    weight: 1.0

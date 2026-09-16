@@ -1,0 +1,35 @@
+# 实践 9 P2 —— 轨迹跟踪训练用的动作源（关节顺序已修正版）
+#
+# 指向 g1_hw9_dance_fixed/dance1_subject2.npz。
+# 与原始 g1_hw9_dance 的唯一差别：joint_pos / joint_vel 的**列顺序**
+# 从广度优先（BFS）重排成了模型的深度优先（DFS）顺序。
+#
+# ── 为什么要修 ────────────────────────────────────────────
+# 原始 npz 的 30 个刚体和 29 个关节都**不带名字**。
+# 刚体这边靠 meta.json 的 body_names 解决了：loader 会按名字重排
+# （library.py:129-136）。但关节这边没有 joint_names，
+# `joint_pos=payload.joint_pos`（library.py:143）是**原样传递的**，
+# 于是 BFS 排列的数据被当成 DFS 顺序直接喂给了模型。
+#
+# 数据是 BFS（逐层）：
+#   列 0,1,2  = left_hip_pitch, right_hip_pitch, waist_yaw
+#   列 3,4,5  = left_hip_roll,  right_hip_roll,  waist_roll
+#   列 6,7,8  = left_hip_yaw,   right_hip_yaw,   waist_pitch
+# 模型是 DFS（逐链）：先左腿到底，再右腿，再腰，再左臂、右臂。
+#
+# ── 怎么发现的 ────────────────────────────────────────────
+# 用正运动学交叉验证：拿数据的 joint_pos 驱动模型，算出的刚体位置
+# 应当等于数据里的 body_pos_w（body 顺序已另行验证正确）。
+#   原始顺序   FK 误差 0.178 m，且不优于随机排列
+#   修正顺序   FK 误差 0.0011 m   ← 163 倍改善
+# 关节超限数同步从 11/29 降到 1/29
+#（原来 right_ankle_pitch 被要求转 153°，限位只有 ±30°）。
+#
+# ── 教训 ──────────────────────────────────────────────────
+# 刚体顺序当初验证过（脚最低、肩最高、躯干在骨盆之上），
+# 但那只是**必要条件**，而且验的是 body，关节顺序从头到尾没验过。
+# 两套索引各自独立，验了一套不代表另一套也对。
+root_path: ../../../../assets/motions
+subfolders:
+  - name: g1_hw9_dance_fixed
+    weight: 1.0

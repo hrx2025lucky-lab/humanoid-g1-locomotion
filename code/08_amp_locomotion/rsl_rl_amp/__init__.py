@@ -1,0 +1,8 @@
+# Copyright (c) 2021-2026, ETH Zurich and NVIDIA CORPORATION
+# All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
+"""Main module for the rsl_rl_amp package."""
+
+__version__ = "0.1.0"

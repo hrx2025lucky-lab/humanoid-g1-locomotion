@@ -1,0 +1,44 @@
+{
+  "profile": "p7_segments_20260911",
+  "scope": "Private P7 course loading selection; P8 environment/agent not switched. Equal per-clip weights, not final training mixture.",
+  "source_config": {
+    "profile_name": "p7_segments_20260911",
+    "motion_dir": "<repo>/source/unitree_rl_lab/unitree_rl_lab/tasks/locomotion/amp/data/p7_segments_20260911",
+    "clip_weights": {
+      "walk_C4_f050_105": 1.0,
+      "run_C5_f120_161": 1.0,
+      "turn_right_C16_full": 1.0
+    },
+    "file_pattern": "*.npz",
+    "features": [
+      "base_lin_vel",
+      "base_ang_vel",
+      "projected_gravity",
+      "base_height",
+      "joint_pos",
+      "joint_vel",
+      "key_links_pos_b"
+    ]
+  },
+  "config_sha256": "f792b2b31d3859637e4effc3e604e5a42f3a08e17cd01169db2eaa5dfe72a000",
+  "loader_sha256": "712d46ce56cf05bdf2f97584429081ded195c57015de56dd568010cc2f779dcb",
+  "clips": {
+    "walk_C4_f050_105": {
+      "source": "<evidence>/验收证据/P7走跑分段验收_2026-09-11/segments/walk_C4_f050_105.npz",
+      "sha256": "2a16b2f3338bb45aa5889f187ac1fab46cd88b4f379a99bced8860b899b65d63"
+    },
+    "run_C5_f120_161": {
+      "source": "<evidence>/验收证据/P7走跑分段验收_2026-09-11/segments/run_C5_f120_161.npz",
+      "sha256": "a87506c81da7168435a4bde8ab5adf64e2ff14474d46b0a75ee1af669c22184b"
+    },
+    "turn_right_C16_full": {
+      "source": "<evidence>/验收证据/P7补充动作覆盖_2026-09-11/right_alternative/C16_run_turn_right_135/ground_candidate/C16_run_turn_right_135_ground_candidate.npz",
+      "sha256": "76df0b6a9fbc5fed7dcae1790808683606fb072ba2c5db6b12bd4a678c00ec6f"
+    }
+  },
+  "segment_manifest_sha256": "8bf7f0b19308decfc8a97f780ff17a395d0cffebf3492f1fc37201bf937eee55",
+  "old_walk_to_run_default_preserved": true,
+  "factory_apply_and_actual_cpu_loader": "passed",
+  "verified_windows_from_actual_profile": 4096,
+  "script_sha256": "a4a507c4d4ab82f2f79f687d3d1febd9e1e9e3332c9d8d4c29e876cf1927bfc6"
+}

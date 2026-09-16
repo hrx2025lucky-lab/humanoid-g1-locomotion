@@ -1,0 +1,175 @@
+{
+  "policy_source": "self_trained_checkpoint_cpu_export",
+  "checkpoint": {
+    "path": "/home/limx/workspace/Roxan_warmup/motion control/humanoid_practice/\u9a8c\u6536\u8bc1\u636e/P11\u5019\u9009\u65b0\u589e1250\u6b21\u81f35000_2026-09-12/training_runtime/training/model_5000.pt",
+    "sha256": "b9cbdea9da63b57fa1f6fd61b115b3b4cba9b609f5436d91555facace8e81e29"
+  },
+  "checkpoint_index": 5000,
+  "agent_config": {
+    "path": "/home/limx/workspace/Roxan_warmup/motion control/humanoid_practice/\u9a8c\u6536\u8bc1\u636e/P11\u5019\u9009\u65b0\u589e1250\u6b21\u81f35000_2026-09-12/training_runtime/training/params/agent.yaml",
+    "sha256": "3b7f7bcf4dc352ba3111418903de0bcaa5316968116f480e0769c2f347bfa972"
+  },
+  "env_config": {
+    "path": "/home/limx/workspace/Roxan_warmup/motion control/humanoid_practice/\u9a8c\u6536\u8bc1\u636e/P11\u5019\u9009\u65b0\u589e1250\u6b21\u81f35000_2026-09-12/training_runtime/training/params/env.yaml",
+    "sha256": "acf2e1285fea01bce4c0a842e9a08783f86c9079ed4520a0139a3e49d08aa811"
+  },
+  "export_script": {
+    "path": "/home/limx/workspace/Roxan_warmup/motion control/humanoid_practice/g1_locomotion/scripts/export_p11_cpu.py",
+    "sha256": "4c063214e2d93f3ae963bd759b8ccf44e7000fc514b187323e144ac55f6af0a8"
+  },
+  "observation_format": {
+    "policy": {
+      "base_ang_vel": [
+        24
+      ],
+      "projected_gravity": [
+        24
+      ],
+      "velocity_commands": [
+        24
+      ],
+      "joint_pos": [
+        232
+      ],
+      "joint_vel": [
+        232
+      ],
+      "actions": [
+        232
+      ],
+      "depth_image": [
+        8,
+        18,
+        32
+      ]
+    },
+    "critic": {
+      "base_lin_vel": [
+        24
+      ],
+      "base_ang_vel": [
+        24
+      ],
+      "projected_gravity": [
+        24
+      ],
+      "velocity_commands": [
+        24
+      ],
+      "joint_pos": [
+        232
+      ],
+      "joint_vel": [
+        232
+      ],
+      "actions": [
+        232
+      ],
+      "depth_image": [
+        8,
+        18,
+        32
+      ]
+    }
+  },
+  "sources": [
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/__init__.py",
+      "sha256": "15368d3624cef6c734ff206c199ff37278c3b26ca5dd643d7f3f5976c13aac4b"
+    },
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/act_residual.py",
+      "sha256": "9097d3c6044404f5ea59fca8fa4e799b804b4cad46fac9955109292af1987f6b"
+    },
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/actor_critic.py",
+      "sha256": "83203dba1ca6d95b9e1d1dd706555acb44be25d51cf2d5e6f24d8367fb226190"
+    },
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/actor_critic_recurrent.py",
+      "sha256": "050079a6ae57bd0beab0e3470bb222c355ccf5d501090fddb50c6b20367bee70"
+    },
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/all_mixer.py",
+      "sha256": "ef5e9f2098de0c9f7c13d0880875895ef1971c7d9f64bec5bf44cf825e218b62"
+    },
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/conv2d.py",
+      "sha256": "a2247f64b1e3e097cf275b7e6dab64ddcb449ce685ecbb9b21c7574368e27bba"
+    },
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/deterministic_policy.py",
+      "sha256": "6ddd4d79d64d2c081ec5d0b5650bc0314ac5d78ce2d0a5ba539300b81730a5d3"
+    },
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/discriminator.py",
+      "sha256": "9de681aae9b6fa95b8082c4b20f6f65e1923f2aca0601dfa3075ce538b27b7c6"
+    },
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/encoder_actor_critic.py",
+      "sha256": "1407bec88618f3c23928443f7cc994b51af1f427657eede90ed1accb38b8624e"
+    },
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/mlp.py",
+      "sha256": "64473ec472b87988f1bd3c3393ddcdfbf6a5cf1db2548081790ce1cc69afebb3"
+    },
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/moe.py",
+      "sha256": "68dea60aec4b8b611b5608a9c4348da6fb08ccfa9edd0ef5f80a1f4c3ac972fe"
+    },
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/moe_actor_critic.py",
+      "sha256": "de8ce3c47a5ff6858cc9d561dd00bdfde70f3f4e9fa5841e872aa90509b20262"
+    },
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/normalizer.py",
+      "sha256": "8cfd478679332bb31d02a3a1e693160c7db596762deaa7021422448cd6b748a7"
+    },
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/parallel_layer.py",
+      "sha256": "12758737893808d2b6e8755fedfe3f3b0c1be280cea6ca6c85543ae9dbda9fe5"
+    },
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/state_estimator.py",
+      "sha256": "fe34997f20a824f62793855e9327cbd98163528a77197c284548b8fc96c2ba38"
+    },
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/transformer.py",
+      "sha256": "40b76a9d228b2952a248254ffe6a9342c42dfef73e36771ae9a195c1118f1a1e"
+    },
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/utils.py",
+      "sha256": "c14cdb1516d167b681c9aabfe386745fb14130fe4de81657affbde08a0564160"
+    },
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/vae.py",
+      "sha256": "bbd9f8720674e38bab1f599ab067adb48236f0e3e4ccee3ff3b38612378e0d45"
+    },
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/vae_actor_critic.py",
+      "sha256": "bd3aa0387950ff4724bd48843abfd93e0139615def2e8de8a3aef596b14fc6e6"
+    },
+    {
+      "path": "/home/limx/workspace/Roxan_warmup/repos/instinct_rl/instinct_rl/modules/vqvae.py",
+      "sha256": "578aa59a8737587b6cf0f08a98e777bc3a71b7d3c66fd564586a81d5de6ecc7e"
+    }
+  ],
+  "actor": {
+    "path": "/home/limx/.copilot/session-state/c480c07a-08e2-4e2e-95ad-8ab1cc5b9d61/files/p11/export_5000/actor.onnx",
+    "sha256": "4c36fdcc4422e339fefd494deb0cfaecc4735bed5db945ee5ac9419af3c770b4"
+  },
+  "depth_encoder": {
+    "path": "/home/limx/.copilot/session-state/c480c07a-08e2-4e2e-95ad-8ab1cc5b9d61/files/p11/export_5000/0-depth_encoder.onnx",
+    "sha256": "27258f1408d69b746cd9f10869f0b3998afecb04c998fecba8d10c078584911b"
+  },
+  "validation": {
+    "strict_state_load": true,
+    "onnx_checker": true,
+    "paired_cpu_cases": 32,
+    "max_action_abs_error": 1.1920928955078125e-06,
+    "providers": [
+      "CPUExecutionProvider"
+    ],
+    "behavior_acceptance": "not_tested"
+  }
+}

@@ -1,0 +1,47 @@
+[build-system]
+requires = ["uv_build>=0.8.19,<0.9.0"]
+build-backend = "uv_build"
+
+[project]
+name = "humanoid_hw6"
+version = "0.1.0"
+description = "Humanoid HW6 teacher-student distillation package for mjlab."
+readme = { file = "README.md", content-type = "text/markdown" }
+requires-python = ">=3.10,<3.14"
+license = "Apache-2.0"
+authors = [
+  { name = "Fabio Amadio" },
+]
+dependencies = [
+  "mjlab==1.2.0",
+]
+
+[project.optional-dependencies]
+export = [
+  "onnx>=1.16.0",
+]
+
+[project.scripts]
+play = "humanoid_hw6.scripts.utils.play_checkpoint:main"
+
+[project.entry-points."mjlab.tasks"]
+humanoid_hw6 = "humanoid_hw6"
+
+[dependency-groups]
+dev = [
+  "pytest>=9.0.2",
+  "ruff>=0.14.14",
+]
+
+[tool.ruff]
+src = ["src"]
+indent-width = 2
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "B"]
+ignore = ["B011"]
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers -p no:launch_testing -p no:ament_pep257 -p no:ament_flake8 -p no:ament_xmllint -p no:ament_copyright -p no:ament_lint"
+pythonpath = ["src"]
+testpaths = ["tests"]
