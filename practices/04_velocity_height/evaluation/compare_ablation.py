@@ -91,7 +91,7 @@ def main() -> int:
         sys.exit('没有可用的 run')
     print()
     print('═' * 74)
-    print('实践 4 消融对比 —— 速度+骨盆高度双指令 MDP 的三段闭环')
+    print('实践 4 消融对比: 速度+骨盆高度双指令 MDP 的三段闭环')
     print('═' * 74)
     for (key, _, desc) in GROUPS:
         if key in runs:
@@ -131,7 +131,7 @@ def main() -> int:
             if e_cal < (H_HI - H_LO) / 2:
                 print(f'  ✅ 落在「固定高度策略」的理论区间内（{BLIND_PREDICTED_ERROR:.4f} ~ {(H_HI - H_LO) / 2:.4f} m）')
                 print(f'     Actor 看不到指令时确实退化为输出一个固定高度；')
-                print(f'     它没停在最优的 0.625 而是偏向 {hi:.3f} m —— 因为速度跟踪等其它奖励')
+                print(f'     它没停在最优的 0.625 而是偏向 {hi:.3f} m: 因为速度跟踪等其它奖励')
                 print(f'     把姿态往自然站高（约 0.78 m）拉，最终是两者的折中。')
             else:
                 print(f'  ⚠️  超出固定高度策略的理论上限 {(H_HI - H_LO) / 2:.4f} m，')

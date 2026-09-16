@@ -50,7 +50,7 @@ def main() -> int:
         sys.exit('没有可用的 run')
     print()
     print('═' * 80)
-    print('实践 6 蒸馏对照 —— 2×2（蒸馏目标 × 超参设置）')
+    print('实践 6 蒸馏对照: 2×2（蒸馏目标 × 超参设置）')
     print('═' * 80)
     print(f"  {'组别':<28}{'超参':<32}{'跑到':>8}")
     for (m, ml) in METHODS:
@@ -78,7 +78,7 @@ def main() -> int:
             note = '  ⏳对齐组未跑完' if b[1] < TARGET_ITERS else ''
             print(f"  {ml:<18}关节误差 {va:.4f} → {vb:.4f}  ({d:+.1f}%)  {('对齐超参更好' if vb < va else '原始超参更好')}{note}")
     print()
-    print('── 横向对照：同一超参，只换蒸馏目标 ★ 唯一可归因的比较 ──')
+    print('── 横向对照：同一超参，只换蒸馏目标 唯一可归因的比较 ──')
     ac = runs.get(('action_matching', '_aligned'))
     kl = runs.get(('kl_matching', ''))
     ready = ac and kl and (ac[1] >= TARGET_ITERS) and (kl[1] >= TARGET_ITERS)
@@ -106,7 +106,7 @@ def main() -> int:
                 if va0 and vb0:
                     gap0 = abs(va0 - vb0) / max(va0, vb0) * 100
                     print()
-                    print(f'对比首轮（超参混杂）的差距 {gap0:.1f}% —— 对齐后变为 {gap:.1f}%，')
+                    print(f'对比首轮（超参混杂）的差距 {gap0:.1f}%: 对齐后变为 {gap:.1f}%，')
                     print(f'说明首轮那个差距里有 {abs(gap0 - gap):.1f} 个百分点其实来自超参而非蒸馏目标。')
         print('═' * 80)
     else:

@@ -150,7 +150,7 @@ def main() -> int:
     (fell, total_steps) = run_segments(app, segments)
     passed = report_segments(segments, fell, total_steps, app.policy_dt)
     print('═' * 68)
-    print('判定：' + ('✅ 通过 —— 策略在 MuJoCo 中跟踪指令且保持站立' if passed else '❌ 未通过 —— 见上方分项'))
+    print('判定：' + ('✅ 通过: 策略在 MuJoCo 中跟踪指令且保持站立' if passed else '❌ 未通过: 见上方分项'))
     print('═' * 68)
     return 0 if passed else 1
 if __name__ == '__main__':
