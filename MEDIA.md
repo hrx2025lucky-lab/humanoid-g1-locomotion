@@ -77,6 +77,7 @@
 
 | 视频 / 动画标题 | 时长 | 内容与条件 |
 |---|---:|---|
+| [平台路径 · 扩容后model_2399](practices/10_object_interaction/media/p10_scaleup_model2399_full.mp4) | 6.18秒 | 锚点RMSE 0.0501m，较扩容前降低61% |
 | [平台路径完整回放（所选model399）](practices/10_object_interaction/media/p10_std03_model399_full.mp4) | 6.18秒 | 所选std0.3/model399：309控制帧、6.18秒完整平台路径 |
 | [平台边缘路径回放（对照model299）](practices/10_object_interaction/media/p10_model299_edge_path.mp4) | 6.18秒 | 对照model299的早期平台边缘路径；不是所选model399 |
 

@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-09-16T10:44:16.438844+08:00",
+  "updated_at": "2026-09-16T17:32:33.811439+08:00",
   "items": [
     {
       "practice": 2,
@@ -192,6 +192,30 @@
         }
       },
       "title": "平台边缘路径回放（对照model299）"
+    },
+    {
+      "practice": 10,
+      "path": "practices/10_object_interaction/media/p10_scaleup_model2399_full.mp4",
+      "caption": "1536环境×2000次扩容训练后的model_2399；世界锚点RMSE 0.0501m，跑完309帧参考",
+      "role": "comparison",
+      "bytes": 422912,
+      "sha256": "6d5ddeb193b80931ea0d6b4228efef36659c62af5ab2c982dfa77fe2346a2b0b",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "h264",
+            "width": 640,
+            "height": 480,
+            "r_frame_rate": "50/1",
+            "nb_frames": "310"
+          }
+        ],
+        "format": {
+          "duration": "6.200000"
+        }
+      },
+      "title": "扩容训练后的平台路径 · model_2399"
     },
     {
       "practice": 10,
@@ -1152,6 +1176,36 @@
       "covered_seconds": 10.0,
       "source_seconds": 131.48,
       "truncated": true
+    },
+    {
+      "practice": 10,
+      "path": "practices/10_object_interaction/media/preview_scaleup.gif",
+      "caption": "所选std0.3/model399：309控制帧、6.18秒完整平台路径；前6秒动画节选",
+      "role": "preview_excerpt",
+      "bytes": 4025402,
+      "sha256": "c6aea8696457fc3292f497707e124738761d1327ec8d213a1eb0a66b99f8c202",
+      "probe": {
+        "programs": [],
+        "streams": [
+          {
+            "codec_name": "gif",
+            "width": 560,
+            "height": 420,
+            "r_frame_rate": "10/1",
+            "nb_frames": "62"
+          }
+        ],
+        "format": {
+          "duration": "6.200000"
+        }
+      },
+      "title": "平台路径完整回放（所选model399）（动态预览）",
+      "source_video": "practices/10_object_interaction/media/p10_scaleup_model2399_full.mp4",
+      "source_sha256": "0c5c36d1cb5d3f36954bf72786e6701cbef86e65fe0d26c013be54fe6063fed3",
+      "start_seconds": 0,
+      "covered_seconds": 6.18,
+      "source_seconds": 6.18,
+      "truncated": false
     },
     {
       "practice": 10,

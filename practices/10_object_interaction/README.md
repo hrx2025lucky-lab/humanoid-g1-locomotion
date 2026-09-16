@@ -31,17 +31,25 @@ Isaac Lab · PPO · 高度扫描
 
 ## 视频与动画
 
-### 平台路径完整回放（所选model399）
+### 扩容训练后的平台路径（model_2399）
 
-[![平台路径完整回放（所选model399），动态预览](media/preview.gif)](media/p10_std03_model399_full.mp4)
+[![扩容训练后的平台路径，model_2399](media/preview_scaleup.gif)](media/p10_scaleup_model2399_full.mp4)
 
-预览来自所选model399的6.18秒平台路径；另附model299对照录像。
+1536环境×2000次更新后的模型，世界锚点RMSE 0.0501m，跑完309帧参考、无提前终止。
 
-| 视频 / 动画标题 | 时长 | 内容与条件 |
+| 视频 | 时长 | 内容与条件 |
 |---|---:|---|
-| [平台路径完整回放（所选model399）](media/p10_std03_model399_full.mp4) | 6.18秒 | 所选std0.3/model399：309控制帧、6.18秒完整平台路径 |
-| [平台边缘路径回放（对照model299）](media/p10_model299_edge_path.mp4) | 6.18秒 | 对照model299的早期平台边缘路径；不是所选model399 |
+| [扩容训练后的平台路径 · model_2399](media/p10_scaleup_model2399_full.mp4) | 6.18秒 | 锚点RMSE 0.0501m、朝向RMSE 0.0825rad，原Play协议不变 |
 
+<details>
+<summary>扩容前的阶段记录（保留以便核对改进幅度）</summary>
+
+| 视频 | 时长 | 内容与条件 |
+|---|---:|---|
+| [扩容前所选model399](media/p10_std03_model399_full.mp4) | 6.18秒 | 128环境、累计400次更新；锚点RMSE 0.1297m |
+| [平台边缘路径（对照model299）](media/p10_model299_edge_path.mp4) | 6.18秒 | 更早期的对照，沿平台边缘通过 |
+
+</details>
 
 ![地形感知的人物交互动作跟踪结果图](media/p10_model399_world_path.png)
 
