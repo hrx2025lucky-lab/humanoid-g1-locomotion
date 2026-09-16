@@ -51,7 +51,7 @@ def joint_pos_limits_log1p(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg=Sce
 
     Upstream :func:`joint_pos_limits` returns a nonnegative violation magnitude; large sim
     failures can make it extreme and destabilize value learning. ``log1p(p)`` keeps small
-    violations nearly linear while compressing huge ``p``. Keep ``RewTerm.weight`` **negative**
+    violations nearly linear while compressing huge ``p``. Keep ``RewTerm.weight`` negative
     so the term stays a penalty (e.g. ``weight=-10`` gives ``-10 * log1p(p)`` per step).
     """
     raw = _isaac_joint_pos_limits_penalty(env, asset_cfg)
@@ -70,7 +70,7 @@ def applied_torque_limits_by_ratio_log1p(env: ManagerBasedRLEnv, asset_cfg: Scen
     """``log1p`` of the raw torque-over-limit penalty (sum of squared excess torques).
 
     Like :func:`joint_pos_limits_log1p`, this compresses huge spikes from sim failures so
-    value targets stay well-scaled. Keep ``RewTerm.weight`` **negative** so the term remains
+    value targets stay well-scaled. Keep ``RewTerm.weight`` negative so the term remains
     a penalty (e.g. ``weight=-0.05`` gives ``-0.05 * log1p(raw)`` per step).
     """
     raw = applied_torque_limits_by_ratio(env, asset_cfg, limit_ratio)

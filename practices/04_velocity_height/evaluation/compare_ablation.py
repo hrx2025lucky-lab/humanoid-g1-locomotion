@@ -42,9 +42,9 @@ def fmt(v: float | None, nd: int=4) -> str:
 def calibration_factor(ea: EventAccumulator) -> float | None:
     """用 target_height_mean 反推指标的膨胀倍数。
 
-    ★ 发现的一个指标 bug：`_update_metrics` 每步累加后除以
+    发现的一个指标 bug：`_update_metrics` 每步累加后除以
     `max_command_step = resampling_time_range[1] / step_dt = 8.0/0.02 = 400`，
-    但 metrics 实际累积了**整个 episode**（997.7 步）而不是单条指令的生命周期，
+    但 metrics 实际累积了整个 episode（997.7 步）而不是单条指令的生命周期，
     于是所有量被同一个因子放大：997.7/400 ≈ 2.494。
 
     好在这个指标自带校准物：`target_height_mean` 的真值必然是指令区间中点
@@ -52,7 +52,7 @@ def calibration_factor(ea: EventAccumulator) -> float | None:
     比值 2.493 与理论膨胀 2.494 吻合到小数点后两位，确认了这个解释。
 
     由于三组的 episode 长度几乎相同（997.5~997.9），膨胀因子一致，
-    **组间相对比较不受影响**；但绝对值必须除以该因子才能与理论预测对比。
+    组间相对比较不受影响；但绝对值必须除以该因子才能与理论预测对比。
     """
     t = tail_mean(ea, 'Metrics/base_height/target_height_mean')
     if t is None or t <= 0:

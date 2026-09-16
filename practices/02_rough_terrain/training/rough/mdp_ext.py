@@ -13,15 +13,15 @@ def ground_height_from_scan(sensor: RayCaster, fallback: float=0.0) -> torch.Ten
     Args:
         sensor: 高度扫描传感器。``data.ray_hits_w`` 形状 (num_envs, num_rays, 3)，
             打空的射线该行为 ``inf``。
-        fallback: 一个环境的射线**全部**打空时的回退值。默认 0.0，
-            即退化成基线的世界系原点假设——这是最保守的选择：
+        fallback: 一个环境的射线全部打空时的回退值。默认 0.0，
+            即退化成基线的世界系原点假设,这是最保守的选择：
             此时行为与修改前完全一致，不会引入新的失败模式。
 
     Returns:
         形状 (num_envs,) 的地面高度。
 
-    实现要点：不能用 ``torch.mean`` 后再 ``nan_to_num``——inf 会先污染整个均值，
-    补救时真实信息已经丢了。必须**先掩掉 inf 再求均值**。
+    实现要点：不能用 ``torch.mean`` 后再 ``nan_to_num``,inf 会先污染整个均值，
+    补救时真实信息已经丢了。必须先掩掉 inf 再求均值。
     """
     z = sensor.data.ray_hits_w[..., 2]
     valid = torch.isfinite(z)
@@ -36,7 +36,7 @@ def base_height_l2_safe(env: ManagerBasedRLEnv, target_height: float, sensor_cfg
     与官方 ``base_height_l2(sensor_cfg=...)`` 的唯一区别是地面高度经
     :func:`ground_height_from_scan` 估计，射线打空不会污染结果。
 
-    ``target_height`` 的含义随之变成**离地高度**而不是世界系高度，
+    ``target_height`` 的含义随之变成离地高度而不是世界系高度，
     数值不用改：平地上两者相等，G1 的 0.78 m 依然成立。
     """
     asset: RigidObject = env.scene[asset_cfg.name]

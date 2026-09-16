@@ -146,7 +146,7 @@ class FlatSim2Sim:
         return int(self.obs_cfg[term].get('history_length', 1) or 1)
 
     def _scale_and_clip(self, term: str, obs: np.ndarray) -> np.ndarray:
-        """对齐 ⑤ 的一部分：观测缩放与截断，必须与训练时一致。"""
+        """对齐 5. 的一部分：观测缩放与截断，必须与训练时一致。"""
         c = self.obs_cfg[term]
         scale = c.get('scale')
         if scale is not None:
@@ -184,7 +184,7 @@ class FlatSim2Sim:
             self.history[name].append(self._scale_and_clip(name, raw[name]))
 
     def get_obs(self) -> np.ndarray:
-        """★ 对齐 ⑤：按 OBS_ORDER + 历史帧顺序拼成一维向量。"""
+        """对齐 5.：按 OBS_ORDER + 历史帧顺序拼成一维向量。"""
         parts = []
         for name in self.OBS_ORDER:
             for frame in self.history[name]:
@@ -192,7 +192,7 @@ class FlatSim2Sim:
         return np.concatenate(parts, dtype=np.float32)
 
     def action_to_target_sdk(self, raw_action_asset: np.ndarray) -> np.ndarray:
-        """★ 对齐 ③：目标角 = offset + scale × 网络输出，再转回 SDK 顺序。"""
+        """对齐 3.：目标角 = offset + scale × 网络输出，再转回 SDK 顺序。"""
         self.last_action[:] = raw_action_asset
         target_asset = raw_action_asset * self.action_scale_asset + self.action_offset_asset
         target_sdk = np.zeros(self.num_joints, dtype=np.float32)
@@ -200,7 +200,7 @@ class FlatSim2Sim:
         return target_sdk
 
     def compute_torque(self, target_sdk: np.ndarray) -> np.ndarray:
-        """★ 对齐 ④：Isaac Sim 内置 PD，MuJoCo 要自己算。"""
+        """对齐 4.：Isaac Sim 内置 PD，MuJoCo 要自己算。"""
         sd = self.data.sensordata
         q = sd[:self.num_joints].astype(np.float32)
         dq = sd[self.num_joints:2 * self.num_joints].astype(np.float32)

@@ -49,7 +49,7 @@ def load_app(run_dir: str | None, policy: str | None):
     return (app, config)
 
 def report_obs_contract(app) -> None:
-    """① 观测契约：MuJoCo 侧拼装顺序必须与训练侧逐项一致。
+    """1. 观测契约：MuJoCo 侧拼装顺序必须与训练侧逐项一致。
 
     这六项里任何一项错了都不会报错，只会让策略读到错位的数值。
     """

@@ -1,9 +1,9 @@
 """G1 粗糙地形环境配置。
 
 Step 1: 注册链路（已通过）
-Step 2: 换地形 —— 平地 → ROUGH_TERRAINS_CFG（已通过）
-Step 3: 修 base_height —— 世界系绝对高度 → 相对地形高度（已通过）
-Step 4: 感知空间 —— 把 height_scanner 接进 policy / critic 观测（当前）
+Step 2: 换地形: 平地 → ROUGH_TERRAINS_CFG（已通过）
+Step 3: 修 base_height: 世界系绝对高度 → 相对地形高度（已通过）
+Step 4: 感知空间: 把 height_scanner 接进 policy / critic 观测（当前）
 后续: 奖励调整，每加一项跑一次冒烟测试。
 """
 import copy
@@ -52,7 +52,7 @@ class G1RoughEnvCfg(RobotEnvCfg):
 class G1RoughPlayEnvCfg(G1RoughEnvCfg):
     """播放配置。
 
-    必须继承 ``G1RoughEnvCfg`` 而不是基线的 ``RobotPlayEnvCfg`` ——
+    必须继承 ``G1RoughEnvCfg`` 而不是基线的 ``RobotPlayEnvCfg``:
     后者继承自 ``RobotEnvCfg``，走那条链会丢掉本文件对训练配置做的全部改动。
     代价是要手动重复基线 play 的差异项。
     """
