@@ -40,7 +40,7 @@ def _build_grid_xy(size_xy: tuple[float, float], resolution: float, device: torc
 def _normalize_box_record(entry: dict, idx: int) -> tuple[list[float], list[float], list[float]]:
     """Validate one metadata box and return pos, quat, half_size.
 
-    TODO(student) -- RayCaster assignment:
+    Perceptive RayCaster notes:
     1. Read `pos`, `quat`, and `half_size` from entry.
     2. If `half_size` is missing but `full_size` exists, convert full_size to half_size.
     3. Check pos length is 3, quat length is 4, half_size length is 3.
@@ -106,7 +106,7 @@ def _load_boxes(metadata_file: str, device: torch.device) -> tuple[torch.Tensor,
         box_quat_local: [num_boxes, 4], terrain-body local box orientation in wxyz.
         box_half: [num_boxes, 3], box half extents.
 
-    TODO(student) -- RayCaster assignment:
+    Perceptive RayCaster notes:
     1. Open metadata_file as JSON.
     2. Read `mjcf_boxes` and check it is a non-empty list.
     3. Normalize every box record with `_normalize_box_record`.

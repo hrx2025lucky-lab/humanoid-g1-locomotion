@@ -195,13 +195,13 @@ time_to_sleep = SIM_DT * DECIMATION - (time.perf_counter() - time_start)
 
 ### 4. 需要补全的内容
 
-本次作业要求补全：
+本次项目要求补全：
 
 ```Plaintext
 /path/to/instinctlab/sim2sim/sim2sim.py
 ```
 
-重点补全 `DepthImagePipeline.update()` 中的深度图预处理流程。同学需要根据下面的功能要求、`config.py` 中的参数，以及 OpenCV API 自行补全。
+重点补全 `DepthImagePipeline.update()` 中的深度图预处理流程。依据下面的功能要求、`config.py` 中的参数，以及 OpenCV API 自行补全。
 
 `DepthImagePipeline.update()` 按照 `resize → crop → inpaint → Gaussian blur → clip → normalize → append` 的顺序处理深度图，需要补全以下内容：
 

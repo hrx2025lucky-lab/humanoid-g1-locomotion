@@ -180,7 +180,6 @@ python scripts/rsl_rl/train.py \
 Perceptive Raycast 任务使用 `RayCaster` height scanner，需要 `mjcf_boxes`。
 当前默认 `set_project_root.sh` 已把地形 URDF 指向 `*_isaac_world.urdf`。
 如果使用 `home_work` 分支，请先完成
-[HOI_MIMIC_HOMEWORK.md](HOI_MIMIC_HOMEWORK.md) 中的 `TODO(student)`。
 
 跑训练之前，建议先确认 URDF 路径：
 

@@ -1,7 +1,7 @@
 """HW6 KL Matching 蒸馏算法。
 
 本文件包含 TODO 7/7。
-快速定位：grep -n "【作业 TODO" src/humanoid_hw6/rl/algorithms/
+快速定位：grep -n "【实现要点" src/humanoid_hw6/rl/algorithms/
 """
 
 from __future__ import annotations
@@ -39,19 +39,19 @@ class KlMatchingPPO(DistillationPPO):
     self.num_kl_updates = 0
 
   def _current_distillation_coef(self) -> float:
-    # >>> HOMEWORK_TODO_7A_START
-    # 【作业 TODO 7/7 · 系数退火】KL matching 的 distill_coef
+    # >>> IMPL_7A_START
+    # 【实现要点 7/7 · 系数退火】KL matching 的 distill_coef
     # 与 Action Matching 同构，只是退火到 kl_coef_min 而非 0:
     # 保留一个下限意味着即使训练后期也维持轻微的分布约束，防止 Student
     # 在 PPO 回报的驱动下漂移到与 Teacher 完全不同的行为模式。
     return linear_anneal(
       self.kl_coef_start, self.kl_coef_min, self.num_kl_updates, self.kl_coef_anneal_iters
     )
-    # <<< HOMEWORK_TODO_7A_END
+    # <<< IMPL_7A_END
 
   def _compute_distillation_output(self, batch) -> DistillationOutput:
-    # >>> HOMEWORK_TODO_7B_START
-    # 【作业 TODO 7/7 · 蒸馏集成】KL matching distillation
+    # >>> IMPL_7B_START
+    # 【实现要点 7/7 · 蒸馏集成】KL matching distillation
     #
     # 与 Action Matching 的本质区别：
     #   Action Matching 只对齐分布的均值（动作本身）
@@ -73,7 +73,7 @@ class KlMatchingPPO(DistillationPPO):
     loss = diagonal_gaussian_kl(teacher_mean, teacher_std, student_mean, student_std)
     metrics = gaussian_matching_metrics(teacher_mean, teacher_std, student_mean, student_std)
     return DistillationOutput(loss=loss, metrics=metrics)
-    # <<< HOMEWORK_TODO_7B_END
+    # <<< IMPL_7B_END
 
   def _format_distillation_metrics(self, mean_distill_loss: float) -> dict[str, float]:
     return {"kl": mean_distill_loss}

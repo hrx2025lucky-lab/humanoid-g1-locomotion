@@ -106,7 +106,7 @@ class G1WalkToRunMotionCfg(G1MotionSourceCfg):
     # 没有这个目录（只有 Male2Walking_c3d，且里面全是 hop/leap 类）。
     # 照原表启动会直接抛
     #   ValueError: AMP clip weights reference missing clips: ...
-    # 这正是实践 7 作业讲解点名的检查项,「motion_cfg.py 中的文件名和
+    # 这正是实践 7 已知检查项,「motion_cfg.py 中的文件名和
     # 采样权重是否与生成的数据同步」。
     #
     # C14 的文件名也对不上：源文件是 C14_-_run_turn_right_90_stageii
@@ -114,7 +114,7 @@ class G1WalkToRunMotionCfg(G1MotionSourceCfg):
     # 同一批数据里 C11 反而是带括号的（来自 Female1Running），
     # 两个子集的命名风格不同，不能按一种模式套。
     #
-    # 三类覆盖（作业 §7 的硬要求）在当前这套里是齐的：
+    # 三类覆盖（数据覆盖的硬要求）在当前这套里是齐的：
     #   走路   B1_-_stand_to_walk
     #   跑步   C3_-_Run / C3_-_run / C2_-_Run_to_stand / C6_-_stand_to_run_backwards
     #   切换   C5_-_walk_to_run

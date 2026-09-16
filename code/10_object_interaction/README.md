@@ -14,7 +14,6 @@ Currently supports Unitree **Go2**, **H1** and **G1-29dof** robots.
 
 For the modified HOI Mimic training/play workflow in this checkout, see [HOI_MIMIC_RUN_GUIDE.md](HOI_MIMIC_RUN_GUIDE.md).
 
-For the perceptive terrain RayCaster assignment, see [HOI_MIMIC_HOMEWORK.md](HOI_MIMIC_HOMEWORK.md).
 
 <div align="center">
 

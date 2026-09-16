@@ -25,7 +25,7 @@ register_mjlab_task(
   runner_cls=VelocityOnPolicyRunner,
 )
 
-# ── 消融实验（作业 §7 要求 ≥2 组，公平对照：仅改一个因素）──
+# ── 消融实验（消融设计要求 ≥2 组，公平对照：仅改一个因素）──
 # 共用 baseline 的 rl_cfg，保证 seed / num_steps_per_env / 网络结构完全一致。
 
 register_mjlab_task(

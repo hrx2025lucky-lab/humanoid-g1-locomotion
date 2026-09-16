@@ -52,7 +52,7 @@ class PreTrainedPolicyAction(ActionTerm):
         # 2. 将低层观测中的 velocity_commands 绑定到裁剪后的高层动作。
         # 3. 将 last_action（或兼容名称 actions）绑定到上一次低层关节动作。
         # 4. 最后创建只含 ll_policy 组的 ObservationManager。
-        # >>> HOMEWORK_TODO_3_START
+        # >>> IMPL_3_START
         # 加载冻结的低层策略。read_file 支持本地路径与远程 URI，
         # torch.jit.load 读的是 TorchScript 归档,低层策略是训练完导出的静态图，
         # 没有 Python 源码依赖，这正是它能被当作"技能库"复用的原因。
@@ -90,7 +90,7 @@ class PreTrainedPolicyAction(ActionTerm):
         # 这个算低层的 (6 项 × 5 帧历史)。低层的输入契约必须原封不动，
         # 所以这里用的是 deepcopy 自低层训练配置的 group（见 TODO 6）。
         self._low_level_obs_manager = ObservationManager({"ll_policy": cfg.low_level_observations}, env)
-        # <<< HOMEWORK_TODO_3_END
+        # <<< IMPL_3_END
 
         self._clip_lower = torch.tensor([limit[0] for limit in cfg.velocity_clip], device=self.device)
         self._clip_upper = torch.tensor([limit[1] for limit in cfg.velocity_clip], device=self.device)
@@ -119,7 +119,7 @@ class PreTrainedPolicyAction(ActionTerm):
         return self._processed_actions
 
     def process_actions(self, actions: torch.Tensor):
-        # >>> HOMEWORK_TODO_4_START
+        # >>> IMPL_4_START
         # 两份动作各有用途，不能只留一份：
         #   _raw_actions       高层网络的原始输出，用于日志/诊断（看动作是否长期饱和）
         #   _processed_actions 裁剪到低层熟悉范围后的指令，这才是真正执行的
@@ -149,10 +149,10 @@ class PreTrainedPolicyAction(ActionTerm):
                 just_reset = self._env.episode_length_buf == 0
                 if just_reset.any():
                     self._processed_actions[just_reset] = clipped[just_reset]
-        # <<< HOMEWORK_TODO_4_END
+        # <<< IMPL_4_END
 
     def apply_actions(self):
-        # >>> HOMEWORK_TODO_5_START
+        # >>> IMPL_5_START
         # 分层控制的多时间尺度：
         #   高层 planner   每个 env step 出一次速度指令        (~10 Hz)
         #   低层 locomotion 每 low_level_decimation=4 步推理一次 (~50 Hz)
@@ -161,7 +161,7 @@ class PreTrainedPolicyAction(ActionTerm):
         # 注意 apply_actions() 在 if 之外：低层网络虽然只在计数器归零时前向一次，
         # 但它算出的关节目标必须在随后的每个物理步持续驱动 PD 控制器。
         # 若把 apply_actions 写进 if 里，关节目标只在 1/4 的物理步被写入，
-        # 其余 3 步执行器收不到指令，机器人会抽搐。这是作业讲解点名的高频错误。
+        # 其余 3 步执行器收不到指令，机器人会抽搐。这是已知的高频错误。
         #
         # inference_mode 比 no_grad 更彻底：它连版本计数都不记录，
         # 对这种"每步都跑、永不反传"的冻结网络能省下可观的显存与开销。
@@ -198,7 +198,7 @@ class PreTrainedPolicyAction(ActionTerm):
             self._counter = 0
         self._low_level_action_term.apply_actions()
         self._counter += 1
-        # <<< HOMEWORK_TODO_5_END
+        # <<< IMPL_5_END
 
     def _set_debug_vis_impl(self, debug_vis: bool):
         if debug_vis:

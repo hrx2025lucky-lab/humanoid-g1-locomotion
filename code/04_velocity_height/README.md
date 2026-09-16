@@ -1,26 +1,26 @@
-# mjlab（深蓝学院 人形机器人运动控制 · 实践 4）
+# mjlab · 实践 04 蹲姿行走（速度 + 骨盆高度 MDP）
 
-> **这个文件是环境配置时补建的，不是原作业内容。**
+> **这个文件是环境配置时补建的，不是上游原始内容。**
 >
 > `pyproject.toml` 第 10 行声明了：
 > ```toml
 > readme = { file = "README.md", content-type = "text/markdown" }
 > ```
-> 但作业分发的压缩包里没有 README.md。uv 以可编辑模式安装本包时会调用
+> 但上游分发的压缩包里没有 README.md。uv 以可编辑模式安装本包时会调用
 > `uv_build.build_editable` 读取该文件，因此报错：
 > ```
 > × Failed to build `mjlab @ file:///.../hw4_mjlab`
 > ╰─▶ Call to `uv_build.build_editable` failed
 >     Error: failed to open file `.../README.md`: No such file or directory
 > ```
-> 补建此文件即可通过构建。**不影响任何作业逻辑**——它只被打包元数据读取。
+> 补建此文件即可通过构建。**不影响任何功能逻辑**——它只被打包元数据读取。
 
 ## 这是什么
 
 mjlab 1.4.0 源码仓库，基于 MuJoCo + MuJoCo-Warp 的 GPU 并行强化学习框架。
 与实践 1/2 用的 IsaacLab 是同类工具，但底层物理引擎不同（MuJoCo vs PhysX）。
 
-作业代码中的待办项用 `TODO` 标记，共 10 处。
+需实现的要点用 `TODO` 标记，共 10 处。
 
 ## 环境说明
 

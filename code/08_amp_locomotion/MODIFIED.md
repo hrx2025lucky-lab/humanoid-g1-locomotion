@@ -1,13 +1,13 @@
 # 实践 08 · 基于 AMP 的拟人走跑 — 我的改动清单
 
-对照基准：课程题目库 `HeYee03/unitree_lab_amp` 的 `main` 分支（含 9 个 TODO 空位）
+对照基准：`HeYee03/unitree_lab_amp` 的 `main` 分支（AMP 框架骨架，不含算法实现）
 
-> ⚠️ 本目录是**做完全部 9 个 TODO 后**的版本。若你是正在做这份作业的同学，
-> 请先自己实现再对照。
+骨架提供了环境、专家数据加载、判别器网络结构和 PPO 主体；下面 9 处是我补全的
+核心实现。
 
-## 9 个 TODO 对应的实现位置
+## 核心实现位置
 
-| TODO | 内容 | 文件 |
+| # | 内容 | 文件 |
 |---|---|---|
 | 1 | AMP 单帧观测（80 维） | `source/.../amp/config/g1/amp_flat_env_cfg.py` `AMPObservationsCfg.AMPCfg` |
 | 2 | actor / critic / amp 观测分组 | `source/.../amp/config/g1/agents/rsl_rl_ppo_cfg.py` `obs_groups` |
@@ -18,6 +18,10 @@
 | 7 | WalkToRun Runner 配置 | `source/.../agents/rsl_rl_ppo_cfg.py` `G1AMPWalkToRunRunnerCfg` |
 | 8 | 完整走跑评估环境 | `source/.../amp_flat_env_cfg.py` `G1AMPWalkToRunFullPlayEnvCfg` |
 | 9 | FullPlay 任务注册 | `source/.../amp/config/g1/__init__.py` |
+
+单帧 AMP 特征 80 维 = 线速度 3 + 角速度 3 + 投影重力 3 + 基座高度 1
++ 关节位置 29 + 关节速度 29 + 4 个关键连杆位置 12。历史长度 3，
+判别器窗口 240 维。特征顺序必须与 `motion_dataset.py` 中的专家数据一致。
 
 ## 我修改的文件（11 个）
 

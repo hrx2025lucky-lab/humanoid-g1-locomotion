@@ -1,7 +1,7 @@
 """Velocity task reward terms.
 
 Homework TODOs in this file: 6, 7, 8  (of 10 total)
-Index: docs/HOMEWORK_TODO.md · grep: 【作业 TODO
+Index: 本文件 · grep: 【实现要点
 """
 
 from __future__ import annotations
@@ -44,9 +44,9 @@ def track_linear_velocity(
   command = env.command_manager.get_command(command_name)
   assert command is not None, f"Command '{command_name}' not found."
   actual = asset.data.root_link_lin_vel_b
-  # >>> HOMEWORK_TODO_7_START
+  # >>> IMPL_7_START
   # ==============================================================================
-  # 【作业 TODO 7/10】线速度跟踪误差
+  # 【实现要点 7/10】线速度跟踪误差
   # ==============================================================================
   # 误差由两部分组成，对应 PDF 式(6)：
   #   lin_vel_error = Σ(v_xy_cmd - v_xy_actual)² + v_z_actual²
@@ -61,12 +61,12 @@ def track_linear_velocity(
   # actual 用 root_link_lin_vel_b（机体系）：速度指令 (v_x, v_y) 的语义是
   # "朝机器人自己的前方/侧方走多快"，与朝向无关。用世界系的话，
   # 机器人转个身同样的动作就会算出完全不同的误差。
-  # 这与 TODO 6 的高度用世界系正好相反，是本作业最容易混淆的一处。
+  # 这与 TODO 6 的高度用世界系正好相反，是本项目最容易混淆的一处。
   xy_error = torch.sum(torch.square(command[:, :2] - actual[:, :2]), dim=1)
   z_error = torch.square(actual[:, 2])
   lin_vel_error = xy_error + z_error
   return torch.exp(-lin_vel_error / std**2)
-  # <<< HOMEWORK_TODO_7_END
+  # <<< IMPL_7_END
 
 
 def track_base_height(
@@ -79,20 +79,20 @@ def track_base_height(
   asset: Entity = env.scene[asset_cfg.name]
   command = env.command_manager.get_command(command_name)
   assert command is not None, f"Command '{command_name}' not found."
-  # >>> HOMEWORK_TODO_6_START
+  # >>> IMPL_6_START
   # ==============================================================================
-  # 【作业 TODO 6/10】高度跟踪奖励（蹲姿/高度任务核心）
+  # 【实现要点 6/10】高度跟踪奖励（蹲姿/高度任务核心）
   # ==============================================================================
   # 对应 PDF 式(5)：height_error = (h_cmd - z_root)²，r = exp(-height_error/std²)
   #
   # 必须用 root_link_pos_w[:, 2] 即骨盆的世界坐标 z。
-  # 高度指令的语义是"骨盆离地多高"，本作业在平地上训练（地面 z ≡ 0），
+  # 高度指令的语义是"骨盆离地多高"，本项目在平地上训练（地面 z ≡ 0），
   # 所以世界系 z 就等于离地高度。
   #
   # ⚠️ 这个等价关系只在平地成立。实践 2 的粗糙地形上我们已经栽过一次：
   # 倒金字塔楼梯和下坡的地面本身低于 0，用世界系绝对高度做判据会把
   # 姿态正常的机器人误判成摔倒。那边的解法是用 height_scanner 测出脚下
-  # 真实地面高度再相减。本作业是平地任务，可以直接用世界系。
+  # 真实地面高度再相减。本项目是平地任务，可以直接用世界系。
   #
   # 与 TODO 7/8 的坐标系对比：
   #   高度  → 世界系（root_link_pos_w）      "离地多高"是绝对概念
@@ -100,7 +100,7 @@ def track_base_height(
   actual_height = asset.data.root_link_pos_w[:, 2]
   height_error = torch.square(command[:, 0] - actual_height)
   return torch.exp(-height_error / std**2)
-  # <<< HOMEWORK_TODO_6_END
+  # <<< IMPL_6_END
 
 
 def track_angular_velocity(
@@ -117,9 +117,9 @@ def track_angular_velocity(
   command = env.command_manager.get_command(command_name)
   assert command is not None, f"Command '{command_name}' not found."
   actual = asset.data.root_link_ang_vel_b
-  # >>> HOMEWORK_TODO_8_START
+  # >>> IMPL_8_START
   # ==============================================================================
-  # 【作业 TODO 8/10】角速度跟踪误差
+  # 【实现要点 8/10】角速度跟踪误差
   # ==============================================================================
   # 对应 PDF 式(7)：ang_vel_error = (ω_z_cmd - ω_z)² + Σ(ω_xy)²
   #
@@ -138,7 +138,7 @@ def track_angular_velocity(
   xy_error = torch.sum(torch.square(actual[:, :2]), dim=1)
   ang_vel_error = z_error + xy_error
   return torch.exp(-ang_vel_error / std**2)
-  # <<< HOMEWORK_TODO_8_END
+  # <<< IMPL_8_END
 
 
 class upright:

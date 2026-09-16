@@ -47,7 +47,7 @@ _COURSE_LOW_LEVEL_POLICY_PATH = str(_REPO_ROOT / "pretrained" / "g1_29dof_lowlev
 #
 # 具体成因未做进一步隔离（USD/URDF 的物理属性差异、训练指令分布差异都有可能），
 # 这里只陈述可复现的实测差距。设 UNITREE_G1_LOW_LEVEL_POLICY_PATH
-# 指向课程原策略即可复现对照。
+# 指向上游基线策略即可复现对照。
 _OWN_LOW_LEVEL_POLICY_PATH = os.path.expanduser(
     "~/unitree_rl_lab/logs/rsl_rl"
     "/unitree_g1_29dof_velocity/2026-08-31_10-49-33/exported/policy.pt"
@@ -133,12 +133,12 @@ def make_cylinder_obstacle_collection(
 
 def make_low_level_inference_observations() -> LowLevelObservationsCfg.PolicyCfg:
     """Create a no-corruption copy of the exact low-level policy observation group."""
-    # >>> HOMEWORK_TODO_6_START
+    # >>> IMPL_6_START
     # 必须 deepcopy 低层训练时的 observation group，绝不能手写重建。
     # 低层策略是个 TorchScript 静态图，它的输入是按训练时的 term 顺序、
     # 缩放系数和 5 帧历史拼出来的一个扁平向量。顺序或缩放差一点，
     # 网络不会报错，只会读到错位的物理量然后输出乱七八糟的关节角。
-    # 这就是作业讲解说的"低层输入契约",契约的唯一可靠来源是低层自己的配置。
+    # 这就是所谓的"低层输入契约",契约的唯一可靠来源是低层自己的配置。
     #
     # deepcopy 而非直接引用：下面要改 noise/corruption，直接改会污染
     # LOW_LEVEL_ENV_CFG 这个模块级单例，影响同进程内其他使用它的配置。
@@ -160,7 +160,7 @@ def make_low_level_inference_observations() -> LowLevelObservationsCfg.PolicyCfg
     # 注意不要动 history_length：低层训练时用的就是 5 帧，
     # deepcopy 已带过来，改了就破坏契约。
     return observations
-    # <<< HOMEWORK_TODO_6_END
+    # <<< IMPL_6_END
 
 
 @configclass
@@ -600,7 +600,7 @@ class NavigationObservationsCfg:
 
     @configclass
     class PolicyCfg(ObsGroup):
-        # >>> HOMEWORK_TODO_7_START
+        # >>> IMPL_7_START
         # 高层观测 = 目标 + 本体状态 + 控制历史（局部地图由子类补上）。
         # 基类这 8 项共 3+3+3+4+3+29+29+29 = 103 维；
         # V5Compact 子类再加 height_scan_pooled 的 273 维，合计 376 维。
@@ -637,7 +637,7 @@ class NavigationObservationsCfg:
         # 正常关节动作量级在 ±1（乘 action_scale=0.25 后是 ±0.25 rad），
         # ±10 已经远超合理范围，不会截掉任何有效信号。
         low_level_last_action = ObsTerm(func=mdp.low_level_last_action, clip=(-10.0, 10.0))
-        # <<< HOMEWORK_TODO_7_END
+        # <<< IMPL_7_END
 
         def __post_init__(self):
             self.enable_corruption = False
@@ -656,7 +656,7 @@ class NavigationObservationsCfg:
 class NavigationRewardsCfg:
     """Progress reward plus sparse success and fall penalty."""
 
-    # 课程原值 -400。它隐含假设低层策略足够鲁棒、摔倒是小概率事件；
+    # 上游原值 -400。它隐含假设低层策略足够鲁棒、摔倒是小概率事件；
     # 但本机这套低层（hw5 自带的预训练 TorchScript）在高层输出随机指令时
     # 平均每 143 步就摔一次，一个 150 步的 episode 里摔倒概率约 65%。
     #
@@ -672,7 +672,7 @@ class NavigationRewardsCfg:
     # 这与实践 2 的"原地踏步"是同一类问题，修法也一样：
     # 不是把奖励调大，而是改变边际激励比，让"尝试移动"变成正期望。
     # -20 是使 E[移动] 在 P(到达)=10% 时刚好转正的量级。
-    # 设 NAV_TERMINATION_PENALTY=-400 可复现课程原值做对照。
+    # 设 NAV_TERMINATION_PENALTY=-400 可复现上游原值做对照。
     termination_penalty = RewTerm(
         func=mdp.is_terminated_term,
         weight=float(os.environ.get("NAV_TERMINATION_PENALTY", -20.0)),
@@ -688,7 +688,7 @@ class NavigationRewardsCfg:
         weight=0.5,
         # std 决定这个"稠密奖励"在多大范围内有梯度。
         # Baseline 的目标在 5~10 m 外采样（ranges.distance=(5.0,10.0)），
-        # 而课程原值 std=0.1~0.2 时该奖励在整个工作范围内恒等于 0
+        # 而上游原值 std=0.1~0.2 时该奖励在整个工作范围内恒等于 0
         # （1-tanh(5/0.2) 与 1-tanh(10/0.2) 都是 0.000000，差值 0），
         # 也就是说它完全没有提供"靠近目标更好"的梯度。
         # 于是策略能看到的唯一非零信号是动作惩罚（action_magnitude -0.0014，
@@ -697,10 +697,10 @@ class NavigationRewardsCfg:
         #
         # 按真实区间选 std：
         #     std    @10m     @5m    10m→5m 梯度
-        #     0.2   0.0000  0.0000     0.0000   ← 课程原值，无梯度
+        #     0.2   0.0000  0.0000     0.0000   ← 上游原值，无梯度
         #     2.0   0.0001  0.0134     0.0133   ← 仍然太弱
         #     5.0   0.0360  0.2384     0.2024   ← 采用
-        # 设 NAV_TRACKING_STD=0.1 可复现课程原值做对照。
+        # 设 NAV_TRACKING_STD=0.1 可复现上游原值做对照。
         params={
             "std": float(os.environ.get("NAV_TRACKING_STD", 5.0)),
             "command_name": "pose_command",
@@ -983,7 +983,7 @@ class NavigationV5RandomArenaEnvCfg_SingleGoal(NavigationV5MixedObstacleEnvCfg_C
     ─────────────────────────────────────────────────────────────────────
     为什么另建一组，而不直接用课程自带的 HRL-Extension
     ─────────────────────────────────────────────────────────────────────
-    作业讲解要求 Part 2「只改变一个主要因素并保持公平对照」，并举例
+    设计要求 Part 2「只改变一个主要因素并保持公平对照」，并举例
     「baseline 使用静态地图，extension 仅增加随机障碍」。
 
     但课程自带的 Baseline 与 Extension 之间实际相差 五处：

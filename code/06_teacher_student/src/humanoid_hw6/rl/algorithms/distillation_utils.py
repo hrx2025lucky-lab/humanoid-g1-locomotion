@@ -1,7 +1,7 @@
 """HW6 蒸馏共享数学工具。
 
 本文件包含 TODO 1/7 至 TODO 5/7。
-快速定位：grep -n "【作业 TODO" src/humanoid_hw6/rl/algorithms/
+快速定位：grep -n "【实现要点" src/humanoid_hw6/rl/algorithms/
 """
 
 from __future__ import annotations
@@ -12,8 +12,8 @@ import torch.nn.functional as F
 
 def linear_anneal(start: float, end: float, step: int, duration: int) -> float:
   """在 ``duration`` 步内，从 ``start`` 线性退火到 ``end``。"""
-  # >>> HOMEWORK_TODO_1_START
-  # 【作业 TODO 1/7】线性蒸馏系数退火
+  # >>> IMPL_1_START
+  # 【实现要点 1/7】线性蒸馏系数退火
   #
   # 蒸馏系数控制"听老师的"与"自己探索"之间的权重：
   #   训练初期 coef 大 → Student 主要模仿 Teacher，快速获得可用策略
@@ -29,7 +29,7 @@ def linear_anneal(start: float, end: float, step: int, duration: int) -> float:
     return end
   progress = min(max(step / duration, 0.0), 1.0)
   return start + (end - start) * progress
-  # <<< HOMEWORK_TODO_1_END
+  # <<< IMPL_1_END
 
 
 def action_regression_loss(
@@ -38,8 +38,8 @@ def action_regression_loss(
   loss_type: str = "mse",
 ) -> torch.Tensor:
   """student 与 teacher action 之间的标量回归损失。"""
-  # >>> HOMEWORK_TODO_2_START
-  # 【作业 TODO 2/7】Action 回归损失
+  # >>> IMPL_2_START
+  # 【实现要点 2/7】Action 回归损失
   #
   # 这是 Action Matching 的监督信号：让 Student 在同一状态下输出接近 Teacher 的动作。
   #
@@ -53,7 +53,7 @@ def action_regression_loss(
   if loss_type == "huber":
     return F.huber_loss(student_actions, teacher_actions)
   raise ValueError(f"Unsupported loss_type '{loss_type}', expected 'mse' or 'huber'.")
-  # <<< HOMEWORK_TODO_2_END
+  # <<< IMPL_2_END
 
 
 def action_matching_metrics(
@@ -61,8 +61,8 @@ def action_matching_metrics(
   teacher_actions: torch.Tensor,
 ) -> dict[str, float]:
   """用于日志记录的 action 级诊断指标（不参与梯度）。"""
-  # >>> HOMEWORK_TODO_3_START
-  # 【作业 TODO 3/7】Action matching 诊断指标
+  # >>> IMPL_3_START
+  # 【实现要点 3/7】Action matching 诊断指标
   #
   # 只用于 TensorBoard 日志，不参与反向传播,所以整段包在 no_grad 里，
   # 并用 .item() 取出 Python float，彻底切断计算图。
@@ -79,7 +79,7 @@ def action_matching_metrics(
       "action_mae": diff.abs().mean().item(),
       "action_rmse": diff.pow(2).mean().sqrt().item(),
     }
-  # <<< HOMEWORK_TODO_3_END
+  # <<< IMPL_3_END
 
 
 def diagonal_gaussian_kl(
@@ -90,8 +90,8 @@ def diagonal_gaussian_kl(
   std_eps: float = 1e-6,
 ) -> torch.Tensor:
   """对角 Gaussian 分布的 mean KL(teacher || student)。"""
-  # >>> HOMEWORK_TODO_4_START
-  # 【作业 TODO 4/7】对角 Gaussian 的 analytic KL
+  # >>> IMPL_4_START
+  # 【实现要点 4/7】对角 Gaussian 的 analytic KL
   #
   # 逐维闭式解（两个一维正态之间的 KL）：
   #     log(σ_s/σ_t) + (σ_t² + (μ_t - μ_s)²) / (2σ_s²) - 1/2
@@ -118,7 +118,7 @@ def diagonal_gaussian_kl(
     - 0.5
   )
   return kl.sum(dim=-1).mean()
-  # <<< HOMEWORK_TODO_4_END
+  # <<< IMPL_4_END
 
 
 def gaussian_matching_metrics(
@@ -128,8 +128,8 @@ def gaussian_matching_metrics(
   student_std: torch.Tensor,
 ) -> dict[str, float]:
   """用于日志记录的 Gaussian 参数诊断指标（不参与梯度）。"""
-  # >>> HOMEWORK_TODO_5_START
-  # 【作业 TODO 5/7】Gaussian matching 诊断指标
+  # >>> IMPL_5_START
+  # 【实现要点 5/7】Gaussian matching 诊断指标
   #
   # 把 KL 这个标量拆成两个可解释的分量：
   #   mean_rmse  两个分布中心差多远,Student 的"平均动作"学得像不像
@@ -145,4 +145,4 @@ def gaussian_matching_metrics(
       "mean_rmse": (student_mean - teacher_mean).pow(2).mean().sqrt().item(),
       "std_rmse": (student_std - teacher_std).pow(2).mean().sqrt().item(),
     }
-  # <<< HOMEWORK_TODO_5_END
+  # <<< IMPL_5_END

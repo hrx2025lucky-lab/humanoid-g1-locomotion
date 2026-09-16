@@ -31,7 +31,7 @@ class NavigationV5MixedObstaclePPORunnerCfg(RslRlOnPolicyRunnerCfg):
         use_clipped_value_loss=True,
         clip_param=0.2,
         entropy_coef=float(os.environ.get("NAV_ENTROPY_COEF", 0.005)),
-        # 课程原值 0.005。实测 baseline 的动作噪声 std 在前 100 iter 就从
+        # 上游原值 0.005。实测 baseline 的动作噪声 std 在前 100 iter 就从
         # init_noise_std=0.2 塌到 0.07 并再未回升，探索过早收窄。
         # 与 NAV_COMMAND_SMOOTHING 是两个独立因子：前者控制 PPO 愿不愿意保持
         # 随机性，后者控制随机性能不能传到低层（EMA 会把不相关噪声衰减到 22%，

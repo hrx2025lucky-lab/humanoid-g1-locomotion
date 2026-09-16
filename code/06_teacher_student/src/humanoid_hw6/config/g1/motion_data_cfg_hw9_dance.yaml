@@ -1,6 +1,6 @@
 # 实践 9 P2 —— 轨迹跟踪训练用的动作源
 #
-# 指向 dance1_subject2.npz（实践 9 作业包自带，6574 帧 @ 50 fps）。
+# 指向 dance1_subject2.npz（实践 9 项目包自带，6574 帧 @ 50 fps）。
 # 它是 BeyondMimic 的完整格式：joint_pos/joint_vel 与 30 个刚体的
 # 位姿速度都已算好，不需要框架再做正运动学。
 #

@@ -116,7 +116,7 @@ def main() -> int:
         missing = [k for k in keys if k not in found]
         if missing:
             print(f"⚠️  profile 需要的片段缺 {len(missing)} 段：{', '.join(missing)}")
-            print("   实践 8 正式训练要求补齐，否则风格分布与作业要求不符。")
+            print("   实践 8 正式训练要求补齐，否则风格分布与项目要求不符。")
 
     smplx_folder = HERE / ".." / "assets" / "body_models"
     ok, skipped, failed = 0, 0, []

@@ -1,6 +1,6 @@
 # 实践 07 · GMR 人体动作到 G1 的重定向 — 我的改动清单
 
-对照基准：上游 `YanjieZe/GMR` + 课程 Project7 代码包
+对照基准：上游 `YanjieZe/GMR`
 
 本目录只收录**我自己写的和改的部分**，不含 GMR 上游全量代码。
 
@@ -15,7 +15,7 @@
 ## 我修改的上游文件
 
 - `general_motion_retargeting/motion_retarget.py` — 重定向主流程
-- `general_motion_retargeting/utils/smpl.py` — 适配课程提供的 SMPL-X pkl 模型
+- `general_motion_retargeting/utils/smpl.py` — 适配 SMPL-X pkl 模型
 - `scripts/vis_robot_motion.py` — 加 `--loops`，录像时默认只播一遍
 - `setup.py` — 固定依赖版本
 

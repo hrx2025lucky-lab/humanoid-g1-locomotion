@@ -1,7 +1,7 @@
 """HW6 Action Matching 蒸馏算法。
 
 本文件包含 TODO 6/7。
-快速定位：grep -n "【作业 TODO" src/humanoid_hw6/rl/algorithms/
+快速定位：grep -n "【实现要点" src/humanoid_hw6/rl/algorithms/
 """
 
 from __future__ import annotations
@@ -41,18 +41,18 @@ class ActionMatchingPPO(DistillationPPO):
     self.num_bc_updates = 0
 
   def _current_distillation_coef(self) -> float:
-    # >>> HOMEWORK_TODO_6A_START
-    # 【作业 TODO 6/7 · 系数退火】Action matching 的 distill_coef
+    # >>> IMPL_6A_START
+    # 【实现要点 6/7 · 系数退火】Action matching 的 distill_coef
     # 用 num_bc_updates 而不是环境步数：退火节奏应当跟随参数更新次数，
     # 这样改 num_envs 或 rollout 长度时 schedule 的语义保持不变。
     return linear_anneal(
       self.bc_coef_start, self.bc_coef_end, self.num_bc_updates, self.bc_anneal_iters
     )
-    # <<< HOMEWORK_TODO_6A_END
+    # <<< IMPL_6A_END
 
   def _compute_distillation_output(self, batch) -> DistillationOutput:
-    # >>> HOMEWORK_TODO_6B_START
-    # 【作业 TODO 6/7 · 蒸馏集成】Action matching distillation
+    # >>> IMPL_6B_START
+    # 【实现要点 6/7 · 蒸馏集成】Action matching distillation
     #
     # Teacher 前向必须包在 no_grad 里。StudentTeacherActor 虽然已把 teacher
     # 参数设为 requires_grad=False，但不加 no_grad 仍会为 teacher 的中间激活
@@ -70,7 +70,7 @@ class ActionMatchingPPO(DistillationPPO):
     loss = action_regression_loss(student_actions, teacher_actions, self.bc_loss_type)
     metrics = action_matching_metrics(student_actions, teacher_actions)
     return DistillationOutput(loss=loss, metrics=metrics)
-    # <<< HOMEWORK_TODO_6B_END
+    # <<< IMPL_6B_END
 
   def _format_distillation_metrics(self, mean_distill_loss: float) -> dict[str, float]:
     return {"bc": mean_distill_loss}

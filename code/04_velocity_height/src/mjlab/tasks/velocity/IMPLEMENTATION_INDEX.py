@@ -1,8 +1,8 @@
-"""Homework TODO index — search anchor only (not imported at runtime).
+"""Implementation index - search anchor only (not imported at runtime).
 
 Run in repo root to list every TODO in source:
 
-    grep -rn "【作业 TODO" src/mjlab/tasks/velocity/
+    grep -rn "【实现要点" src/mjlab/tasks/velocity/
 
 | ID | File | Location |
 |----|------|----------|
@@ -17,7 +17,7 @@ Run in repo root to list every TODO in source:
 | 9  | velocity_env_cfg.py | `curriculum["command_vel"]` |
 | 10 | mdp/observations.py | `foot_contact` |
 
-Full guide: docs/HOMEWORK_TODO.md
+Anchors are inline in the listed files.
 """
 
-# 【作业 TODO INDEX】此文件仅作索引，请勿在此写答案。
+# 【实现要点 INDEX】此文件仅作索引，实现写在各自文件里。

@@ -5,7 +5,7 @@
 GMR 开源版的 `smplx_to_robot.py` 只导出 4 个字段
 （`fps` / `root_pos` / `root_rot` / `dof_pos`），
 缺少实践 8 的 AMP 判别器必需的 `local_body_pos` 与 `link_body_list`，
-产物无法被 `motion_dataset.py` 加载。作业要求补齐这两项。
+产物无法被 `motion_dataset.py` 加载。项目要求补齐这两项。
 
 三个容易静默出错的地方
 --------------------
@@ -16,7 +16,7 @@ GMR 开源版的 `smplx_to_robot.py` 只导出 4 个字段
    最大值在第 3 位，确认是 xyzw。写错不会报错，
    只会让判别器看到一个"扭转的"机器人。
 
-2. `local_body_pos` 不是世界系连杆位置。作业明确要求用
+2. `local_body_pos` 不是世界系连杆位置。项目明确要求用
    `root_pos=0 / root_rot=单位四元数 / joint=dof_pos` 跑一次正运动学，
    得到的才是"根坐标系下的连杆位置"。
    直接存世界系位置或人体关键点都是错的:
@@ -94,7 +94,7 @@ def qpos_to_fields(qpos_list: list[np.ndarray]) -> dict:
 
 def compute_local_body_pos(dof_pos: np.ndarray, robot: str,
                            device: str = "cpu") -> tuple[np.ndarray, list[str]]:
-    """按作业要求算 local_body_pos：根节点置于原点、姿态为单位四元数。
+    """按项目要求算 local_body_pos：根节点置于原点、姿态为单位四元数。
 
         root position = [0, 0, 0]
         root rotation = identity

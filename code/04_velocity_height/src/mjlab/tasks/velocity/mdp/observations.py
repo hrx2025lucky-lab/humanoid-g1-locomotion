@@ -1,7 +1,7 @@
 """Velocity task MDP observations.
 
 Homework TODOs in this file: 10  (of 10 total)
-Index: docs/HOMEWORK_TODO.md · grep: 【作业 TODO
+Index: 本文件 · grep: 【实现要点
 """
 
 from __future__ import annotations
@@ -42,9 +42,9 @@ def foot_contact(env: ManagerBasedRlEnv, sensor_name: str) -> torch.Tensor:
   sensor: ContactSensor = env.scene[sensor_name]
   sensor_data = sensor.data
   assert sensor_data.found is not None
-  # >>> HOMEWORK_TODO_10_START
+  # >>> IMPL_10_START
   # ==============================================================================
-  # 【作业 TODO 10/10】足部接触特权观测（Critic）
+  # 【实现要点 10/10】足部接触特权观测（Critic）
   # ==============================================================================
   # 特权观测：只给 Critic，不给 Actor。
   #
@@ -57,7 +57,7 @@ def foot_contact(env: ManagerBasedRlEnv, sensor_name: str) -> torch.Tensor:
   # 转 float 而非保留 bool：观测张量要和其他项拼接成一个连续的浮点向量，
   # bool 会在 concatenate 时报 dtype 错误。
   return (sensor_data.found > 0).float()
-  # <<< HOMEWORK_TODO_10_END
+  # <<< IMPL_10_END
 
 
 def foot_contact_forces(env: ManagerBasedRlEnv, sensor_name: str) -> torch.Tensor:

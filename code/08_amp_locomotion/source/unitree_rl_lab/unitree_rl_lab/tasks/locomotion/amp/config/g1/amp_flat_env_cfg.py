@@ -348,7 +348,7 @@ class G1AMPWalkToRunFullPlayEnvCfg(G1AMPWalkToRunPlayEnvCfg):
 
     与普通 Play 的区别：
     普通 `G1AMPWalkToRunPlayEnvCfg` 的 lin_vel_x 只到 1.2，那是训练时的指令范围，
-    用来确认"训练分布内表现正常"。而作业要验收的是走↔跑切换能力，
+    用来确认"训练分布内表现正常"。而真正要验证的是走↔跑切换能力，
     必须让指令同时穿过低速行走区和高速奔跑区，否则根本触发不了步态切换。
 
     速度区间取三个已有 Play 配置的并集：

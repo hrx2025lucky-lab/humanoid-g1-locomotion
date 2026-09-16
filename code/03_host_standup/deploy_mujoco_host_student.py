@@ -200,7 +200,7 @@ def action_to_joint_targets(policy_action, current_joint_positions, action_scale
     # -------------------------------------------------------------------------
     # TODO 4: Convert policy output into current-pose incremental joint targets
     #
-    # 本次作业的核心。两种动作空间的差别：
+    # 本模块的核心。两种动作空间的差别：
     #
     #   HoST 增量式:  q* = q_current + 0.25·a     ← 基准是当前实际姿态
     #   常规残差式:   q* = q_default   + 0.25·a     ← 基准是固定标称姿态
@@ -232,7 +232,7 @@ def action_to_joint_targets(policy_action, current_joint_positions, action_scale
     ).astype(np.float32)
 
     # 增量动作空间的自检：a = 0 时目标必须等于当前姿态。
-    # 这是验证本函数最直接的方法（作业讲解推荐）。
+    # 这是验证本函数最直接的方法（推荐做法）。
     assert target_joint_positions.shape == current_joint_positions.shape, (
         f"目标关节角维度 {target_joint_positions.shape} "
         f"应与当前关节角 {current_joint_positions.shape} 一致"

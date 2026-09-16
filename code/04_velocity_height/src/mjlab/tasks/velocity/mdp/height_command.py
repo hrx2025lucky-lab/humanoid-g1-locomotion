@@ -3,7 +3,7 @@ from __future__ import annotations
 """Height command term for pelvis/root absolute height.
 
 Homework TODOs in this file: 1, 2  (of 10 total)
-Index: docs/HOMEWORK_TODO.md · grep: 【作业 TODO
+Index: 本文件 · grep: 【实现要点
 """
 
 from collections.abc import Callable
@@ -48,9 +48,9 @@ class UniformBaseHeightCommand(CommandTerm):
   def _update_metrics(self) -> None:
     max_command_time = self.cfg.resampling_time_range[1]
     max_command_step = max_command_time / self._env.step_dt
-    # >>> HOMEWORK_TODO_2_START
+    # >>> IMPL_2_START
     # ==============================================================================
-    # 【作业 TODO 2/10】高度跟踪误差指标
+    # 【实现要点 2/10】高度跟踪误差指标
     # ==============================================================================
     # 这是日志指标不是奖励：它不进反向传播，只用来回答"策略到底蹲到位了没"。
     # 实践 2 的教训,总 reward 好看不代表任务学会了,就靠这类分项指标来兜底。
@@ -68,13 +68,13 @@ class UniformBaseHeightCommand(CommandTerm):
       torch.abs(self.height_command[:, 0] - actual_height) / max_command_step
     )
     self.metrics["target_height_mean"] += self.height_command[:, 0] / max_command_step
-    # <<< HOMEWORK_TODO_2_END
+    # <<< IMPL_2_END
 
   def _resample_command(self, env_ids: torch.Tensor) -> None:
     r = torch.empty(len(env_ids), device=self.device)
-    # >>> HOMEWORK_TODO_1_START
+    # >>> IMPL_1_START
     # ==============================================================================
-    # 【作业 TODO 1/10】高度指令均匀采样
+    # 【实现要点 1/10】高度指令均匀采样
     # ==============================================================================
     # 均匀分布而不是固定值或高斯：策略必须在整个 [0.45, 0.80] m 区间内都能工作，
     # 均匀采样保证每个高度得到同等训练量。若用高斯，两端的极限蹲姿/站姿会欠训练，
@@ -84,7 +84,7 @@ class UniformBaseHeightCommand(CommandTerm):
     # 只写 [env_ids, 0]：本指令是标量高度，height_command 的形状是 (num_envs, 1)。
     r.uniform_(*self.cfg.ranges.height)
     self.height_command[env_ids, 0] = r
-    # <<< HOMEWORK_TODO_1_END
+    # <<< IMPL_1_END
 
   def _update_command(self) -> None:
     pass

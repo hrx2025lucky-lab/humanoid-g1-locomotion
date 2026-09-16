@@ -402,7 +402,7 @@ UNITREE_G1_23DOF_CFG = UnitreeArticulationCfg(
 )
 
 UNITREE_G1_29DOF_CFG = UnitreeArticulationCfg(
-    # 本机没有 G1 的 USD 资产（课程默认路径 ~/unitree_rl_lab-main/unitree_model/ 不存在），
+    # 本机没有 G1 的 USD 资产（默认路径 ~/unitree_rl_lab-main/unitree_model/ 不存在），
     # 但 unitree_ros 里有官方 URDF，IsaacLab 会在首次加载时自动转换成 USD。
     # 实践 2/5 的主仓库同样走 URDF 这条路，两边保持一致才能复用低层策略与
     # 关节顺序约定。若将来拿到官方 USD，把下面两段互换即可。

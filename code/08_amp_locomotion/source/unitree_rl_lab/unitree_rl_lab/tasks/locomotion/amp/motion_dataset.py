@@ -194,7 +194,7 @@ class MotionDataset:
         )
         if missing_names:
             # 默认严格报错：少一段专家数据会悄悄改变风格分布，训练出来的
-            # 步态和作业要求的不一致，却不会有任何报错提示。
+            # 步态和项目要求的不一致，却不会有任何报错提示。
             #
             # 但冒烟测试时手上往往只有少数几段（完整 ACCAD 走跑集需要先做
             # 实践 7 的 GMR 重定向），此时允许显式放宽，只用已有片段跑通链路。
@@ -204,7 +204,7 @@ class MotionDataset:
                     f"[AMP] 警告：profile '{cfg.profile_name}' 缺少 {len(missing_names)} 段专家数据，"
                     f"已按 UNITREE_AMP_ALLOW_MISSING_CLIPS=1 忽略：{', '.join(missing_names)}\n"
                     f"[AMP] 仅用现有 {len(self.clips)} 段继续: 这只适合冒烟测试，"
-                    "正式训练必须补齐，否则风格分布与作业要求不符。"
+                    "正式训练必须补齐，否则风格分布与项目要求不符。"
                 )
                 weights_cfg = {k: v for k, v in weights_cfg.items() if k in available_names}
                 if not weights_cfg:

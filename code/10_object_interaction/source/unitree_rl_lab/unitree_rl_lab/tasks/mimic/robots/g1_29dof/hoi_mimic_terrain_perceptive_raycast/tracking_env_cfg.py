@@ -16,9 +16,7 @@ from unitree_rl_lab.tasks.mimic.sensors import HoiMergedTerrainRayCasterCfg
 
 @configclass
 class RobotSceneCfg(blind_cfg.RobotSceneCfg):
-    # TODO(student): replace None with a HoiMergedTerrainRayCasterCfg.
-    # Configure the torso-mounted, yaw-aligned grid scanner described in
-    # HOI_MIMIC_HOMEWORK.md. Keep the supplied RayCaster implementation unchanged.
+    # Torso-mounted, yaw-aligned grid scanner over the merged HOI terrain.
     height_scanner: HoiMergedTerrainRayCasterCfg | None = HoiMergedTerrainRayCasterCfg(
         # 挂在 torso 上，扫描区随躯干平移
         prim_path="{ENV_REGEX_NS}/Robot/torso_link",
@@ -49,7 +47,7 @@ class RobotSceneCfg(blind_cfg.RobotSceneCfg):
         include_ground_plane=True,
         # 地形位姿固定，不必每次 reset 重建 mesh
         rebake_on_reset=False,
-        # 作业要求提交 RayCaster 命中点截图，那需要 debug_vis=True 才画得出射线。
+        # 项目要求提交 RayCaster 命中点截图，那需要 debug_vis=True 才画得出射线。
         # 但可视化会拖慢训练，所以做成开关：截图时设
         #   HOI_RAYCAST_DEBUG_VIS=1
         # 训练默认关闭。
@@ -70,8 +68,7 @@ class ObservationsCfg:
             noise=Unoise(n_min=-0.05, n_max=0.05),
             history_length=blind_cfg.PROPRIO_HISTORY_LENGTH,
         )
-        # TODO(student): replace None with the policy height_scanner ObsTerm.
-        # The policy term uses mdp.height_scan, clipping, history, and uniform noise.
+        # Policy-side height scan: clipped, with history and uniform noise.
         height_scanner: ObsTerm | None = ObsTerm(
             func=mdp.height_scan,
             params={"sensor_cfg": SceneEntityCfg("height_scanner"), "offset": 0.5},
@@ -106,8 +103,7 @@ class ObservationsCfg:
         body_ori = ObsTerm(func=mdp.robot_body_ori_b, params={"command_name": "motion"})
         base_lin_vel = ObsTerm(func=mdp.base_lin_vel)
         projected_gravity = ObsTerm(func=mdp.projected_gravity, history_length=blind_cfg.PROPRIO_HISTORY_LENGTH)
-        # TODO(student): replace None with the critic height_scanner ObsTerm.
-        # Match the policy height semantics and history, but do not add noise.
+        # Critic-side height scan: same semantics and history as policy, no noise.
         height_scanner: ObsTerm | None = ObsTerm(
             func=mdp.height_scan,
             params={"sensor_cfg": SceneEntityCfg("height_scanner"), "offset": 0.5},
@@ -126,19 +122,19 @@ class ObservationsCfg:
     critic: PrivilegedCfg = PrivilegedCfg()
 
 
-def _check_homework_todos(cfg) -> None:
-    """Fail with a focused message until the three assignment TODOs are complete."""
+def _check_perceptive_cfg(cfg) -> None:
+    """Fail early with a focused message if the perceptive terms are unset."""
     if cfg.scene.height_scanner is None:
         raise NotImplementedError(
-            "TODO(student): configure RobotSceneCfg.height_scanner as described in HOI_MIMIC_HOMEWORK.md."
+            "RobotSceneCfg.height_scanner is unset; a HoiMergedTerrainRayCasterCfg is required."
         )
     if cfg.observations.policy.height_scanner is None:
         raise NotImplementedError(
-            "TODO(student): add the policy height_scanner observation described in HOI_MIMIC_HOMEWORK.md."
+            "Policy observation group is missing the height_scanner term."
         )
     if cfg.observations.critic.height_scanner is None:
         raise NotImplementedError(
-            "TODO(student): add the critic height_scanner observation described in HOI_MIMIC_HOMEWORK.md."
+            "Critic observation group is missing the height_scanner term."
         )
 
 
@@ -149,7 +145,7 @@ class RobotEnvCfg(blind_cfg.RobotEnvCfg):
 
     def __post_init__(self):
         super().__post_init__()
-        _check_homework_todos(self)
+        _check_perceptive_cfg(self)
         self.scene.height_scanner.env_spacing = float(self.scene.env_spacing)
 
 
@@ -160,5 +156,5 @@ class RobotPlayEnvCfg(blind_cfg.RobotPlayEnvCfg):
 
     def __post_init__(self):
         super().__post_init__()
-        _check_homework_todos(self)
+        _check_perceptive_cfg(self)
         self.scene.height_scanner.env_spacing = float(self.scene.env_spacing)

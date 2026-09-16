@@ -4,7 +4,7 @@ This module provides a factory function to create a base velocity task config.
 Robot-specific configurations call the factory and customize as needed.
 
 Homework TODOs in this file: 9  (of 10 total)
-Index: docs/HOMEWORK_TODO.md · grep: 【作业 TODO
+Index: 本文件 · grep: 【实现要点
 """
 
 import math
@@ -360,9 +360,9 @@ def make_velocity_env_cfg() -> ManagerBasedRlEnvCfg:
   ##
 
   curriculum = {
-    # >>> HOMEWORK_TODO_9_START
+    # >>> IMPL_9_START
     # ==============================================================================
-    # 【作业 TODO 9/10】速度指令课程学习
+    # 【实现要点 9/10】速度指令课程学习
     # ==============================================================================
     # 由易到难分三阶段放宽指令范围。直接从 (-2.0, 3.0) 开训，策略在还站不稳的
     # 阶段就被要求跑到 3 m/s，绝大多数 episode 会在起步瞬间摔倒，采样全是失败样本，
@@ -371,7 +371,7 @@ def make_velocity_env_cfg() -> ManagerBasedRlEnvCfg:
     # ⚠️ step 的单位是环境步不是训练迭代数。5000 * 24 里的 24 是
     # num_steps_per_env（每次迭代每个环境 rollout 的步数），所以这两个阶段
     # 分别在第 5000 和第 10000 次训练迭代生效。写成 5000 会让课程在第 208 次
-    # 迭代就跳到 Stage 1,这是作业讲解点名的高频错误。
+    # 迭代就跳到 Stage 1,这是已知的高频错误。
     #
     # Stage 2 省略 ang_vel_z：省略的键沿用上一阶段的值。转向范围在 Stage 1
     # 已放宽到 ±0.7，继续加大意义不大，重点放在前进速度上限。
@@ -386,7 +386,7 @@ def make_velocity_env_cfg() -> ManagerBasedRlEnvCfg:
         ],
       },
     ),
-    # <<< HOMEWORK_TODO_9_END
+    # <<< IMPL_9_END
   }
 
   ##

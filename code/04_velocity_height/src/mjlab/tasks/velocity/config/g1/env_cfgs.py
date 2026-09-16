@@ -2,7 +2,7 @@
 
 Homework TODOs in this file: 3, 4, 5  (of 10 total)
 Function: unitree_g1_flat_height_env_cfg()
-Index: docs/HOMEWORK_TODO.md · grep: 【作业 TODO
+Index: 本文件 · grep: 【实现要点
 """
 
 from mjlab.asset_zoo.robots import (
@@ -182,9 +182,9 @@ def unitree_g1_flat_height_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
   """Create Unitree G1 flat terrain velocity + height command configuration."""
   cfg = unitree_g1_flat_env_cfg(play=play)
 
-  # >>> HOMEWORK_TODO_3_START
+  # >>> IMPL_3_START
   # ==============================================================================
-  # 【作业 TODO 3/10】注册 base_height 命令
+  # 【实现要点 3/10】注册 base_height 命令
   # ==============================================================================
   # 蹲姿行走的闭环有三段，缺一不可：
   #   TODO 3 采样高度指令  →  TODO 4 Actor 观测到指令  →  TODO 5/6 奖励高度跟踪
@@ -204,11 +204,11 @@ def unitree_g1_flat_height_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     debug_vis=True,  # Viser 里画出橙色目标球与青色实际球，便于肉眼验收
     ranges=UniformBaseHeightCommandCfg.Ranges(height=(0.45, 0.80)),
   )
-  # <<< HOMEWORK_TODO_3_END
+  # <<< IMPL_3_END
 
-  # >>> HOMEWORK_TODO_4_START
+  # >>> IMPL_4_START
   # ==============================================================================
-  # 【作业 TODO 4/10】接入 height_command 观测（蹲姿/高度任务核心观测）
+  # 【实现要点 4/10】接入 height_command 观测（蹲姿/高度任务核心观测）
   # ==============================================================================
   # 闭环的第二段。generated_commands 是通用观测函数，按 command_name 从
   # CommandManager 取出当前指令张量塞进观测向量，这里是 1 维（h_cmd）。
@@ -223,11 +223,11 @@ def unitree_g1_flat_height_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
   )
   cfg.observations["actor"].terms["height_command"] = height_command_obs
   cfg.observations["critic"].terms["height_command"] = height_command_obs
-  # <<< HOMEWORK_TODO_4_END
+  # <<< IMPL_4_END
 
-  # >>> HOMEWORK_TODO_5_START
+  # >>> IMPL_5_START
   # ==============================================================================
-  # 【作业 TODO 5/10】注册 track_base_height 奖励项（蹲姿/高度任务核心奖励）
+  # 【实现要点 5/10】注册 track_base_height 奖励项（蹲姿/高度任务核心奖励）
   # ==============================================================================
   # 闭环的第三段，接上 TODO 6 实现的高斯跟踪奖励。
   #
@@ -245,13 +245,13 @@ def unitree_g1_flat_height_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     weight=1.0,
     params={"command_name": "base_height", "std": 0.1},
   )
-  # <<< HOMEWORK_TODO_5_END
+  # <<< IMPL_5_END
 
   return cfg
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# 消融实验变体（作业 §7 要求 ≥2 组）
+# 消融实验变体（消融设计要求 ≥2 组）
 # ═══════════════════════════════════════════════════════════════════════════
 #
 # 蹲姿行走的因果链是一条三段闭环：
@@ -261,7 +261,7 @@ def unitree_g1_flat_height_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
 # 公平对照原则：每组只改一个因素，其余（seed / num_envs / iteration /
 # num_steps_per_env / 所有其他奖励权重）全部保持与 baseline 一致。
 #
-# 评估指标（作业指定）：error_height、总回报、h_cmd=0.5 m 下的稳定行走时长。
+# 评估指标（项目指定）：error_height、总回报、h_cmd=0.5 m 下的稳定行走时长。
 
 
 def unitree_g1_flat_height_ablation_no_reward_env_cfg(
